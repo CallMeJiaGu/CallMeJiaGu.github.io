@@ -90,7 +90,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/04/13/Solr-HanLp中文分词/百度查询.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/13/Solr-HanLp中文分词/分词查询.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/13/Solr-HanLp中文分词/分词.png">
-<meta property="og:updated_time" content="2018-04-13T08:22:03.471Z">
+<meta property="og:updated_time" content="2018-04-13T08:25:04.208Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Solr-HanLp中文分词">
 <meta name="twitter:description" content="前言在上一篇博客中，我们已经完成了Solr的搭建和简单的查询，今天我们来讲讲Solr的中文分词hanLp，以及它的应用场景。先来看一下，我们在百度上搜索hanlp时，推荐给我们的网页要么是内容中出现过hanlp这个词，要么是标题是含有hanlp的。  试想一下，如果让你实现这个功能块，你会怎么做呢？那不是很简单嘛！只要一篇篇的文章，去查询一下标题和内容是否出现过hanLp就好了嘛！的确这是一种方法">
@@ -340,7 +340,25 @@
 <p><img src="/2018/04/13/Solr-HanLp中文分词/百度查询.png" alt="你想输入的替代文字"></p>
 <p>试想一下，如果让你实现这个功能块，你会怎么做呢？那不是很简单嘛！只要一篇篇的文章，去查询一下标题和内容是否出现过hanLp就好了嘛！的确这是一种方法，但在数据量过大时，这样的全文匹配的效率是非常低的。在Solr中，采用反向索引来解决上面带来的效率问题。</p>
 <a id="more"></a>
-<h3 id="反向索引"><a href="#反向索引" class="headerlink" title="反向索引"></a>反向索引</h3><p>在讲反向索引之前，先来看看平常的索引是怎么样的。假设这里有两篇文档数据格式如下：<br>| docId | content |<br>| - | :-: | -: |<br>| 1 | this is a good book |<br>| 2 | this book is about hanLp |</p>
+<h3 id="反向索引"><a href="#反向索引" class="headerlink" title="反向索引"></a>反向索引</h3><p>在讲反向索引之前，先来看看平常的索引是怎么样的。假设这里有两篇文档数据格式如下</p>
+<table>
+<thead>
+<tr>
+<th>docId</th>
+<th style="text-align:center">content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td style="text-align:center">this is a good book</td>
+</tr>
+<tr>
+<td>2</td>
+<td style="text-align:center">this book is about hanLp</td>
+</tr>
+</tbody>
+</table>
 <p>给这两篇建立索引的时候，会去掉标点符号，还有一些没有特殊意义的如”a”,”the”,”is”这些词去掉。那么正常的索引就是</p>
 <table>
 <thead>
@@ -395,12 +413,12 @@
 <p>比如说，我要搜索“大数据的文章”的相关内容，按照上面的方式，会把含有像”大”、”的” 这些个无关紧要词的文章也返回回来，导致搜索的效果很差。所以在中文分词和英文的分词是有很大的区别的。</p>
 <h3 id="hanLp安装"><a href="#hanLp安装" class="headerlink" title="hanLp安装"></a>hanLp安装</h3><p>在Solr中通常使用的有IK分词、hanLp分词等，本案例使用的是hanLp分词。首先下载 <code>hanlp-portable.jar</code> 和 <code>hanlp-lucene-plugin.jar</code>, <a href="https://pan.baidu.com/s/1H5tNb-OxsI5ByN2sX6CpXQ" target="_blank" rel="noopener">点击下载</a>，把下载好的jar放到solr-webapp\webapp\WEB-INF\lib中即可。</p>
 <p>光有这两个插件其实是不够的，上面提供的分词器是Portable版的，比较简陋，所以还需要 HanLP 的核心数据集，可以去<a href="https://github.com/hankcs/HanLP/releases" target="_blank" rel="noopener">https://github.com/hankcs/HanLP/releases</a> 下载。以及配置文件hanlp.properties。</p>
-<p>在solr-webapp\webapp\WEB-INF下新建一个目录 classes，然后将刚才下载的配置文件hanlp.properties放进去，再在 classes 目录下新建一个文件夹 hanlp，然后将下载的数据集解压出来的 data 文件夹放到 hanlp 目录下面。</p>
+<p>在solr-webapp\webapp\WEB-INF下新建一个目录 classes，然后将刚才下载的配置文件<code>hanlp.properties</code>放进去，再在 classes 目录下新建一个文件夹 hanlp，然后将下载的数据集解压出来的 data 文件夹放到 hanlp 目录下面。</p>
 <p>最后的目录结构像这样</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">WEB-INF</span><br><span class="line">│</span><br><span class="line">├─lib</span><br><span class="line">├─...</span><br><span class="line">└─classes</span><br><span class="line">    │</span><br><span class="line">    ├─hanlp.properties</span><br><span class="line">    └─hanlp</span><br><span class="line">        │</span><br><span class="line">        └─data</span><br></pre></td></tr></table></figure>
-<p>修改配置文件 hanlp.properties，只需要把root的值修改一下即可，默认如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#Windows用户请注意，路径分隔符统一使用/</span></span><br><span class="line">root=D:/JavaProjects/HanLP/</span><br></pre></td></tr></table></figure></p>
-<p>比如，我要改成root=D:/solr/solr-5.5.2/solr-5.5.2/server/solr-webapp/webapp/classes/hanlp/</p>
-<p>下面我们到managed-schema中进行配置,把需要进行分词的field中的type类型改成text_hanlp即可。因为text_hanlp不是solr自带的，所以我们还要在这个配置文件申明。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;field name=<span class="string">"word"</span> <span class="built_in">type</span>=<span class="string">"text_hanlp"</span> indexed=<span class="string">"true"</span> stored=<span class="string">"true"</span> required=<span class="string">"false"</span> multiValued=<span class="string">"false"</span> /&gt;</span><br></pre></td></tr></table></figure></p>
+<p>修改配置文件 <code>hanlp.properties</code>，只需要把root的值修改一下即可，默认如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#Windows用户请注意，路径分隔符统一使用/</span></span><br><span class="line">root=D:/JavaProjects/HanLP/</span><br></pre></td></tr></table></figure></p>
+<p>比如，我要改成<code>root=D:/solr/solr-5.5.2/solr-5.5.2/server/solr-webapp/webapp/classes/hanlp/</code></p>
+<p>下面我们到<code>managed-schema</code>中进行配置,把需要进行分词的field中的type类型改成text_hanlp即可。因为text_hanlp不是solr自带的，所以我们还要在这个配置文件申明。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;field name=<span class="string">"word"</span> <span class="built_in">type</span>=<span class="string">"text_hanlp"</span> indexed=<span class="string">"true"</span> stored=<span class="string">"true"</span> required=<span class="string">"false"</span> multiValued=<span class="string">"false"</span> /&gt;</span><br></pre></td></tr></table></figure></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;fieldType name=<span class="string">"text_hanlp"</span> class=<span class="string">"solr.TextField"</span>&gt;</span><br><span class="line">  &lt;analyzer <span class="built_in">type</span>=<span class="string">"index"</span>&gt;</span><br><span class="line">    &lt;tokenizer class=<span class="string">"com.hankcs.lucene.HanLPTokenizerFactory"</span> enableIndexMode=<span class="string">"true"</span>/&gt;</span><br><span class="line">  &lt;/analyzer&gt;</span><br><span class="line">  &lt;analyzer <span class="built_in">type</span>=<span class="string">"query"</span>&gt;</span><br><span class="line">    &lt;tokenizer class=<span class="string">"com.hankcs.lucene.HanLPTokenizerFactory"</span> enableIndexMode=<span class="string">"false"</span>/&gt;</span><br><span class="line">  &lt;/analyzer&gt;</span><br><span class="line">&lt;/fieldType&gt;</span><br></pre></td></tr></table></figure>
 <p>注意一点的是，因为在上一篇博客中我们配置了一个默认字段，默认字段的type是String，如果我们查询的时候，没有指定域时那么查询词的类型不是text_hanlp而是string,搜索词是不会被分词的，所以需要在默认字段中也要把type设置为text_hanlp<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;field name=<span class="string">"defaultField"</span> <span class="built_in">type</span>=<span class="string">"text_hanlp"</span> indexed=<span class="string">"true"</span> stored=<span class="string">"false"</span> required=<span class="string">"false"</span> multiValued=<span class="string">"true"</span> /&gt;</span><br></pre></td></tr></table></figure></p>
 <p>接下来只要重启一下solr服务，并且重新dataimport一下，因为我们的索引方式已经变化了。</p>
