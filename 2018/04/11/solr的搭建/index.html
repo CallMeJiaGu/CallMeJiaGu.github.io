@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Solr," />
 
 
 
@@ -79,13 +79,27 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="Don&#39;t Stop">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="前言：接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2） solr下载可以在solr的官网找到之前和最新的solr版本 http://archive.apache.org/dist/lucene/solr/实验室的环境使用的是5.5.2，所以本教程使用的也是该版本，在上面的链接中找到对应的版本，下载">
+<meta name="keywords" content="Solr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Solr的搭建">
+<meta property="og:url" content="http://yoursite.com/2018/04/11/solr的搭建/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言：接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2） solr下载可以在solr的官网找到之前和最新的solr版本 http://archive.apache.org/dist/lucene/solr/实验室的环境使用的是5.5.2，所以本教程使用的也是该版本，在上面的链接中找到对应的版本，下载">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/启动.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/3.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/核心创建.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/核心目录结构.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/错误.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/dataimport.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/查询.png">
+<meta property="og:updated_time" content="2018-04-13T03:25:53.073Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Don&#39;t Stop">
+<meta name="twitter:title" content="Solr的搭建">
+<meta name="twitter:description" content="前言：接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2） solr下载可以在solr的官网找到之前和最新的solr版本 http://archive.apache.org/dist/lucene/solr/实验室的环境使用的是5.5.2，所以本教程使用的也是该版本，在上面的链接中找到对应的版本，下载">
+<meta name="twitter:image" content="http://yoursite.com/2018/04/11/solr的搭建/1.png">
 
 
 
@@ -115,13 +129,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/04/11/solr的搭建/"/>
 
 
 
 
 
-  <title>Don't Stop</title>
+  <title>Solr的搭建 | Don't Stop</title>
   
 
 
@@ -140,8 +154,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -224,9 +237,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -256,9 +269,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/11/solr的搭建/" itemprop="url">Solr的搭建</a></h1>
+          <h1 class="post-title" itemprop="name headline">Solr的搭建</h1>
         
 
         <div class="post-meta">
@@ -330,9 +341,7 @@
       
 
       
-        
-          
-            <h3 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h3><p>接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2）</p>
+        <h3 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h3><p>接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2）</p>
 <h3 id="solr下载"><a href="#solr下载" class="headerlink" title="solr下载"></a>solr下载</h3><p>可以在solr的官网找到之前和最新的solr版本 <a href="http://archive.apache.org/dist/lucene/solr/" target="_blank" rel="noopener">http://archive.apache.org/dist/lucene/solr/</a>实验室的环境使用的是5.5.2，所以本教程使用的也是该版本，在上面的链接中找到对应的版本，下载解压<code>solr-5.5.2.zip</code>即可。</p>
 <p><img src="/2018/04/11/solr的搭建/1.png" alt="你想输入的替代文字"></p>
 <h3 id="solr运行"><a href="#solr运行" class="headerlink" title="solr运行"></a>solr运行</h3><p>solr的运行也是很方便，在<code>solr-5.5.2\bin</code>中输入命令行即可运行，我直接在CMD输入命令行，至于为什么不用<code>gitbash</code>是因为，每次启动solr服务和创建核心的时候，总是会提示我端口的问题，导致核心创建失败，换到CMD就不会有这个问题。</p>
@@ -362,8 +371,6 @@
 <p><img src="/2018/04/11/solr的搭建/查询.png" alt="你想输入的替代文字"></p>
 <p>至此，solr的搭建和数据查询都已经完毕，在下一篇博客中，再来讲一讲solr的<code>中文分词</code>。</p>
 
-          
-        
       
     </div>
     
@@ -378,14 +385,20 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/Solr/" rel="tag"># Solr</a>
+          
+        </div>
+      
+
+      
+      
+      
 
       
 
       
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -395,10 +408,11 @@
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -406,6 +420,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -426,8 +444,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -487,6 +514,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言："><span class="nav-number">1.</span> <span class="nav-text">前言：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#solr下载"><span class="nav-number">2.</span> <span class="nav-text">solr下载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#solr运行"><span class="nav-number">3.</span> <span class="nav-text">solr运行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建核心"><span class="nav-number">4.</span> <span class="nav-text">创建核心</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#solrconfig-xml的配置"><span class="nav-number">4.1.</span> <span class="nav-text">solrconfig.xml的配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#managed-schema-xml的配置"><span class="nav-number">4.2.</span> <span class="nav-text">managed-schema.xml的配置</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -621,6 +664,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
