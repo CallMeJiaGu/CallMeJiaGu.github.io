@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Solr," />
 
 
 
@@ -79,13 +79,22 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="Don&#39;t Stop">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="前言在上一篇博客中，我们已经完成了Solr的搭建和简单的查询，今天我们来讲讲Solr的中文分词hanLp，以及它的应用场景。先来看一下，我们在百度上搜索hanlp时，推荐给我们的网页要么是内容中出现过hanlp这个词，要么是标题是含有hanlp的。  试想一下，如果让你实现这个功能块，你会怎么做呢？那不是很简单嘛！只要一篇篇的文章，去查询一下标题和内容是否出现过hanLp就好了嘛！的确这是一种方法">
+<meta name="keywords" content="Solr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Solr-HanLp中文分词">
+<meta property="og:url" content="http://yoursite.com/2018/04/13/Solr-HanLp中文分词/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言在上一篇博客中，我们已经完成了Solr的搭建和简单的查询，今天我们来讲讲Solr的中文分词hanLp，以及它的应用场景。先来看一下，我们在百度上搜索hanlp时，推荐给我们的网页要么是内容中出现过hanlp这个词，要么是标题是含有hanlp的。  试想一下，如果让你实现这个功能块，你会怎么做呢？那不是很简单嘛！只要一篇篇的文章，去查询一下标题和内容是否出现过hanLp就好了嘛！的确这是一种方法">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/04/13/Solr-HanLp中文分词/百度查询.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/13/Solr-HanLp中文分词/分词查询.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/13/Solr-HanLp中文分词/分词.png">
+<meta property="og:updated_time" content="2018-04-13T08:08:45.808Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Don&#39;t Stop">
+<meta name="twitter:title" content="Solr-HanLp中文分词">
+<meta name="twitter:description" content="前言在上一篇博客中，我们已经完成了Solr的搭建和简单的查询，今天我们来讲讲Solr的中文分词hanLp，以及它的应用场景。先来看一下，我们在百度上搜索hanlp时，推荐给我们的网页要么是内容中出现过hanlp这个词，要么是标题是含有hanlp的。  试想一下，如果让你实现这个功能块，你会怎么做呢？那不是很简单嘛！只要一篇篇的文章，去查询一下标题和内容是否出现过hanLp就好了嘛！的确这是一种方法">
+<meta name="twitter:image" content="http://yoursite.com/2018/04/13/Solr-HanLp中文分词/百度查询.png">
 
 
 
@@ -115,13 +124,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/04/13/Solr-HanLp中文分词/"/>
 
 
 
 
 
-  <title>Don't Stop</title>
+  <title>Solr-HanLp中文分词 | Don't Stop</title>
   
 
 
@@ -140,8 +149,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -224,9 +232,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -256,9 +264,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/13/Solr-HanLp中文分词/" itemprop="url">Solr-HanLp中文分词</a></h1>
+          <h1 class="post-title" itemprop="name headline">Solr-HanLp中文分词</h1>
         
 
         <div class="post-meta">
@@ -330,9 +336,7 @@
       
 
       
-        
-          
-            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇博客中，我们已经完成了Solr的搭建和简单的查询，今天我们来讲讲Solr的中文分词<code>hanLp</code>，以及它的应用场景。先来看一下，我们在百度上搜索hanlp时，推荐给我们的网页要么是内容中出现过hanlp这个词，要么是标题是含有hanlp的。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇博客中，我们已经完成了Solr的搭建和简单的查询，今天我们来讲讲Solr的中文分词<code>hanLp</code>，以及它的应用场景。先来看一下，我们在百度上搜索hanlp时，推荐给我们的网页要么是内容中出现过hanlp这个词，要么是标题是含有hanlp的。</p>
 <p><img src="/2018/04/13/Solr-HanLp中文分词/百度查询.png" alt="你想输入的替代文字"></p>
 <p>试想一下，如果让你实现这个功能块，你会怎么做呢？那不是很简单嘛！只要一篇篇的文章，去查询一下标题和内容是否出现过hanLp就好了嘛！的确这是一种方法，但在数据量过大时，这样的全文匹配的效率是非常低的。在Solr中，采用反向索引来解决上面带来的效率问题。</p>
 <h3 id="反向索引"><a href="#反向索引" class="headerlink" title="反向索引"></a>反向索引</h3><p>在讲反向索引之前，先来看看平常的索引是怎么样的。假设这里有两篇文档数据格式如下：</p>
@@ -423,8 +427,6 @@
 <p><img src="/2018/04/13/Solr-HanLp中文分词/分词.png" alt="你想输入的替代文字"></p>
 <p>从上图我们可以知道，搜索”数据”、”挖掘”也都是能找得到对应的记录的。</p>
 
-          
-        
       
     </div>
     
@@ -439,162 +441,36 @@
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/11/solr的搭建/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="JinTx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Don't Stop">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/11/solr的搭建/" itemprop="url">Solr的搭建</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-11T20:54:20+08:00">
-                2018-04-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
+        <div class="post-tags">
           
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Solr/" itemprop="url" rel="index">
-                    <span itemprop="name">Solr</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
+            <a href="/tags/Solr/" rel="tag"># Solr</a>
           
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
+      
 
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
+      
       
       
 
       
-        
-          <h3 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h3><p>接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2）</p>
-<h3 id="solr下载"><a href="#solr下载" class="headerlink" title="solr下载"></a>solr下载</h3><p>可以在solr的官网找到之前和最新的solr版本 <a href="http://archive.apache.org/dist/lucene/solr/" target="_blank" rel="noopener">http://archive.apache.org/dist/lucene/solr/</a>实验室的环境使用的是5.5.2，所以本教程使用的也是该版本，在上面的链接中找到对应的版本，下载解压<code>solr-5.5.2.zip</code>即可。</p>
-<p><img src="/2018/04/11/solr的搭建/1.png" alt="你想输入的替代文字"></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/04/11/solr的搭建/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/11/solr的搭建/" rel="next" title="Solr的搭建">
+                <i class="fa fa-chevron-left"></i> Solr的搭建
+              </a>
+            
           </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
 
-    
+          <span class="post-nav-divider"></span>
 
-    
-
-    
-
-    <footer class="post-footer">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
       
 
       
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -604,10 +480,11 @@
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -615,6 +492,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -635,8 +516,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -696,6 +586,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#反向索引"><span class="nav-number">2.</span> <span class="nav-text">反向索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#hanLp安装"><span class="nav-number">3.</span> <span class="nav-text">hanLp安装</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -830,6 +736,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
