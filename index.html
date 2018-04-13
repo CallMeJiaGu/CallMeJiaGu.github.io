@@ -334,7 +334,6 @@
           <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇博客中，我们已经完成了Solr的搭建和简单的查询，今天我们来讲讲Solr的中文分词<code>hanLp</code>，以及它的应用场景。先来看一下，我们在百度上搜索hanlp时，推荐给我们的网页要么是内容中出现过hanlp这个词，要么是标题是含有hanlp的。</p>
 <p><img src="/2018/04/13/Solr-HanLp中文分词/百度查询.png" alt="你想输入的替代文字"></p>
 <p>试想一下，如果让你实现这个功能块，你会怎么做呢？那不是很简单嘛！只要一篇篇的文章，去查询一下标题和内容是否出现过hanLp就好了嘛！的确这是一种方法，但在数据量过大时，这样的全文匹配的效率是非常低的。在Solr中，采用反向索引来解决上面带来的效率问题。</p>
-<h3 id="反向索引"><a href="#反向索引" class="headerlink" title="反向索引"></a>反向索引</h3><p>在讲反向索引之前，先来看看平常的索引是怎么样的。假设这里有两篇文档数据格式如下：<br></p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2018/04/13/Solr-HanLp中文分词/#more" rel="contents">
