@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="elasticsearch," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。elasticsearch是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。 那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。 elasticsearch下">
+<meta name="keywords" content="elasticsearch">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux elasticsearch搭建">
+<meta property="og:url" content="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。elasticsearch是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。 那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。 elasticsearch下">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/2.png">
+<meta property="og:image" content="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/3.png">
+<meta property="og:updated_time" content="2018-06-06T13:27:25.962Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux elasticsearch搭建">
+<meta name="twitter:description" content="前言前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。elasticsearch是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。 那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。 elasticsearch下">
+<meta name="twitter:image" content="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/"/>
+
+
+
+
+
+  <title>Linux elasticsearch搭建 | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Linux elasticsearch搭建</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-06T20:28:12+08:00">
+                2018-06-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/elasticsearch/" itemprop="url" rel="index">
+                    <span itemprop="name">elasticsearch</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。<code>elasticsearch</code>是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。</p>
+<p>那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。</p>
+<h3 id="elasticsearch下载"><a href="#elasticsearch下载" class="headerlink" title="elasticsearch下载"></a>elasticsearch下载</h3><p><code>elasticsearch</code>可以在官网上下载对应的版本然后上传到linux服务器上 <a href="https://www.elastic.co/downloads/past-releases" target="_blank" rel="noopener">es下载</a>。</p>
+<p>另外一个简单方法就是用<code>wget</code>命令,直接下载到本地，然后到对应目录上解压开。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.3.tar.gz</span><br></pre></td></tr></table></figure></p>
+<p><img src="/2018/06/06/Linux-elasticsearch搭建/1.png" alt="你想输入的替代文字"></p>
+<a id="more"></a>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -xvzf elasticsearch-6.2.3.tar.gz</span><br></pre></td></tr></table></figure>
+<h3 id="elasticsearch配置"><a href="#elasticsearch配置" class="headerlink" title="elasticsearch配置"></a>elasticsearch配置</h3><p>想要其他的机子能够访问到这台服务器的es服务，需要修改<code>elasticsearch-6.2.3/config/elasticsearch.yml</code>,找到对应的位置修改为<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">network.host: 0.0.0.0   <span class="comment">#允许任意ip访问</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="elasticsearch启动"><a href="#elasticsearch启动" class="headerlink" title="elasticsearch启动"></a>elasticsearch启动</h3><p>这时候如果你到<code>/elasticsearch-6.2.3/bin</code> 目录下去启动服务，会报错，因为es的服务器不允许root用户启动。创建一个新用户，用户名为es</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo adduser es</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/06/06/Linux-elasticsearch搭建/2.png" alt="你想输入的替代文字"></p>
+<p>输入密码，创建成功后改变一下这个目录的权限，然后切换到es新用户。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo chown -R es:es elasticsearch-6.2.3</span><br><span class="line">su es</span><br></pre></td></tr></table></figure></p>
+<p>(如果还有报错，阅读的第五部分，可能出现的问题和解决方法)上面的步骤都完成之后，到bin目录下<code>./elasticsearch</code>启动服务，看到started,则表示你的服务启动成功了。打开浏览器输入es服务器的ip:9200，可以看到</p>
+<p><img src="/2018/06/06/Linux-elasticsearch搭建/3.png" alt="你想输入的替代文字"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">"name"</span> : <span class="string">"nQjQYj2"</span>,</span><br><span class="line">  <span class="string">"cluster_name"</span> : <span class="string">"elasticsearch"</span>,</span><br><span class="line">  <span class="string">"cluster_uuid"</span> : <span class="string">"h7oqDUO1Q8me_iSdN1ztag"</span>,</span><br><span class="line">  <span class="string">"version"</span> : &#123;</span><br><span class="line">    <span class="string">"number"</span> : <span class="string">"6.2.3"</span>,</span><br><span class="line">    <span class="string">"build_hash"</span> : <span class="string">"c59ff00"</span>,</span><br><span class="line">    <span class="string">"build_date"</span> : <span class="string">"2018-03-13T10:06:29.741383Z"</span>,</span><br><span class="line">    <span class="string">"build_snapshot"</span> : <span class="literal">false</span>,</span><br><span class="line">    <span class="string">"lucene_version"</span> : <span class="string">"7.2.1"</span>,</span><br><span class="line">    <span class="string">"minimum_wire_compatibility_version"</span> : <span class="string">"5.6.0"</span>,</span><br><span class="line">    <span class="string">"minimum_index_compatibility_version"</span> : <span class="string">"5.0.0"</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">"tagline"</span> : <span class="string">"You Know, for Search"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="可能出现的问题和解决方法"><a href="#可能出现的问题和解决方法" class="headerlink" title="可能出现的问题和解决方法"></a>可能出现的问题和解决方法</h3><font color="##FF0000"><strong>1.max file descriptors [4096] for elasticsearch process likely too low, increase to at least [65536]</strong></font>
+
+<p>解决方法：切换到root用户，编辑limits.conf 添加如下内容<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/security/limits.conf</span><br></pre></td></tr></table></figure></p>
+<p>添加如下内容:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">* soft nofile 65536</span><br><span class="line">* hard nofile 131072</span><br><span class="line">* soft nproc 2048</span><br><span class="line">* hard nproc 4096</span><br></pre></td></tr></table></figure></p>
+<font color="##FF0000"><strong>2.max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]</strong></font>
+
+<p>解决：切换到root用户修改配置sysctl.conf<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vi /etc/sysctl.conf</span><br></pre></td></tr></table></figure></p>
+<p>添加下面配置：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vm.max_map_count=655360</span><br></pre></td></tr></table></figure></p>
+<p>并执行命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysctl -p</span><br></pre></td></tr></table></figure></p>
+<font color="##FF0000"><strong>3.max number of threads [1024] for user [lish] likely too low, increase to at least [2048]</strong></font>
+
+<p>解决：切换到root用户，进入limits.d目录下修改配置文件。(我的目录下没有这个文件，直接vim生成就好)<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/security/limits.d/90-nproc.conf</span><br></pre></td></tr></table></figure></p>
+<p>修改如下内容：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">soft nproc 1024</span><br></pre></td></tr></table></figure></p>
+<p>修改为:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">soft nproc 2048</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/elasticsearch/" rel="tag"># elasticsearch</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/31/solr源码修改/" rel="next" title="Solr源码修改">
+                <i class="fa fa-chevron-left"></i> Solr源码修改
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#elasticsearch下载"><span class="nav-number">2.</span> <span class="nav-text">elasticsearch下载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#elasticsearch配置"><span class="nav-number">3.</span> <span class="nav-text">elasticsearch配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#elasticsearch启动"><span class="nav-number">4.</span> <span class="nav-text">elasticsearch启动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可能出现的问题和解决方法"><span class="nav-number">5.</span> <span class="nav-text">可能出现的问题和解决方法</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
