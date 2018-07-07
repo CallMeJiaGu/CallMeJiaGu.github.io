@@ -79,22 +79,22 @@
 
 
 
-<meta name="description" content="前言对于刚接触solr的新手，在使用上多多少少会遇上一些问题，就算你按照别人的配置来做，也难免会出现这种情况，所以将我在使用过程中遇到的坑记录一下。 磁盘不够在建索引的时候，需要在core.properties配置好索引存放的路径。如下图我的路径配置为/home/tdlab/solrData/18_4_3core_data。 123456#Written by CorePropertiesLoca">
+<meta name="description" content="前言对于刚接触solr的新手，在使用上多多少少会遇上一些问题，就算你按照别人的配置来做，也难免会出现这种情况，所以将我在使用过程中遇到的坑记录一下。">
 <meta name="keywords" content="Solr">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Solr路上的坑">
 <meta property="og:url" content="http://yoursite.com/2018/05/09/solr路上的坑/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言对于刚接触solr的新手，在使用上多多少少会遇上一些问题，就算你按照别人的配置来做，也难免会出现这种情况，所以将我在使用过程中遇到的坑记录一下。 磁盘不够在建索引的时候，需要在core.properties配置好索引存放的路径。如下图我的路径配置为/home/tdlab/solrData/18_4_3core_data。 123456#Written by CorePropertiesLoca">
+<meta property="og:description" content="前言对于刚接触solr的新手，在使用上多多少少会遇上一些问题，就算你按照别人的配置来做，也难免会出现这种情况，所以将我在使用过程中遇到的坑记录一下。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/05/09/solr路上的坑/dataimport.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/09/solr路上的坑/磁盘不够.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/09/solr路上的坑/2.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/09/solr路上的坑/3.png">
-<meta property="og:updated_time" content="2018-05-26T09:06:25.859Z">
+<meta property="og:updated_time" content="2018-07-07T13:13:21.522Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Solr路上的坑">
-<meta name="twitter:description" content="前言对于刚接触solr的新手，在使用上多多少少会遇上一些问题，就算你按照别人的配置来做，也难免会出现这种情况，所以将我在使用过程中遇到的坑记录一下。 磁盘不够在建索引的时候，需要在core.properties配置好索引存放的路径。如下图我的路径配置为/home/tdlab/solrData/18_4_3core_data。 123456#Written by CorePropertiesLoca">
+<meta name="twitter:description" content="前言对于刚接触solr的新手，在使用上多多少少会遇上一些问题，就算你按照别人的配置来做，也难免会出现这种情况，所以将我在使用过程中遇到的坑记录一下。">
 <meta name="twitter:image" content="http://yoursite.com/2018/05/09/solr路上的坑/dataimport.png">
 
 
@@ -338,11 +338,11 @@
 
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>对于刚接触solr的新手，在使用上多多少少会遇上一些问题，就算你按照别人的配置来做，也难免会出现这种情况，所以将我在使用过程中遇到的坑记录一下。</p>
+<a id="more"></a>
 <h3 id="磁盘不够"><a href="#磁盘不够" class="headerlink" title="磁盘不够"></a>磁盘不够</h3><p>在建索引的时候，需要在<code>core.properties</code>配置好索引存放的路径。如下图我的路径配置为/home/tdlab/solrData/18_4_3core_data。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#Written by CorePropertiesLocator</span></span><br><span class="line"><span class="comment">#Tue May 08 02:13:05 UTC 2018</span></span><br><span class="line">config=solrconfig.xml</span><br><span class="line">name=18_5_8core</span><br><span class="line">schema=schema.xml</span><br><span class="line">dataDir=/dev/tdlab/solrData/18_4_3core_data</span><br></pre></td></tr></table></figure>
 <p>当你开始建立索引的时候，在dataimport的界面可以看到索引的具体情况。<code>Fetched: 4</code>表示总共取了多少的数据了，<code>Processed: 4</code>表示的处理了多少条数据。一般情况下这两个值是相等的。即取的每一条数据，都被成功索引了。</p>
 <p><img src="/2018/05/09/solr路上的坑/dataimport.png" alt="你想输入的替代文字"></p>
-<a id="more"></a>
 <p>但当我在为一份40G的数据建索引的时候，就出现了下面的情况，<code>Fetched</code>和<code>Processed</code>的值在处理了大概10个G数据的时候，两个值就不一样了，<code>processed</code>已经不在增加了，打开界面中的<code>Logging</code>可以看到以下错误，报错的原因是磁盘不够了。</p>
 <p><img src="/2018/05/09/solr路上的坑/磁盘不够.png" alt="你想输入的替代文字"></p>
 <p>当时看到这个问题的时候，我想的是实验室solr服务器的磁盘怎么可能因为40个g就不够了呢？后来一查才知道，原来<code>Linux</code>的磁盘分区管理导致的。利用df -lh命令查看磁盘使用情况。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">tdlab@tdlab-virtual-machine:~/lucene-solr/solr/server/solr/18_5_8core$ df -lh</span><br><span class="line">Filesystem      Size  Used Avail Use% Mounted on</span><br><span class="line">udev             18G     0   18G   0% /dev</span><br><span class="line">tmpfs           3.6G   34M  3.6G   1% /run</span><br><span class="line">/dev/sda1       260G   70G  178G  29% /</span><br><span class="line">tmpfs            18G  208K   18G   1% /dev/shm</span><br><span class="line">tmpfs           5.0M     0  5.0M   0% /run/lock</span><br><span class="line">tmpfs            18G     0   18G   0% /sys/fs/cgroup</span><br><span class="line">tmpfs           3.6G  112K  3.6G   1% /run/user/1000</span><br></pre></td></tr></table></figure></p>
@@ -477,7 +477,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

@@ -97,7 +97,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/05/31/solr源码修改/8.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/31/solr源码修改/9.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/31/solr源码修改/10.png">
-<meta property="og:updated_time" content="2018-05-31T13:32:59.468Z">
+<meta property="og:updated_time" content="2018-07-07T13:13:30.594Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Solr源码修改">
 <meta name="twitter:description" content="前言不知道从何说起，不过无论是从技术层面还是市场的需求来看，都需要把学习的重心从solr移到es上，至少现在外面大型的互联网公司都在用es。所以希望以这篇博客来总结一下对solr的学习，也算是给solr这段学习旅程打上半个句号。 回到正题，在前面一篇博客中提到了想要实现自定义的一些查询，可以利用dismax，或者修改源码。dismax的使用在上一篇已经有了简单的介绍，这篇来介绍solr源码的编译和">
@@ -345,9 +345,9 @@
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>不知道从何说起，不过无论是从技术层面还是市场的需求来看，都需要把学习的重心从solr移到es上，至少现在外面大型的互联网公司都在用es。所以希望以这篇博客来总结一下对solr的学习，也算是给solr这段学习旅程打上半个句号。</p>
 <p>回到正题，在前面一篇博客中提到了想要实现自定义的一些查询，可以利用dismax，或者修改源码。dismax的使用在上一篇已经有了简单的介绍，这篇来介绍solr源码的编译和修改。</p>
+<a id="more"></a>
 <h3 id="源码下载"><a href="#源码下载" class="headerlink" title="源码下载"></a>源码下载</h3><p>solr的源码可以在Apache的官网找到<a href="http://archive.apache.org/dist/lucene/solr/" target="_blank" rel="noopener">源码下载</a>，找到想要编译的版本，基于实验的环境，这里我选择的是<code>5.5.2</code>选择图中红框中的源码进行下载。</p>
 <p><img src="/2018/05/31/solr源码修改/1.png" alt="你想输入的替代文字"></p>
-<a id="more"></a>
 <h3 id="安装Ant和Ivy"><a href="#安装Ant和Ivy" class="headerlink" title="安装Ant和Ivy"></a>安装Ant和Ivy</h3><p>solr是通过ant和ivy来进行管理的，ant用来编译solr项目，ivy是来处理依赖关系的。ant和ivy可以直接去官网下载，下载完ant配置一下环境变量。命令行输入<code>ant -version</code>,下图表示安装成功。</p>
 <p><img src="/2018/05/31/solr源码修改/2.png" alt="你想输入的替代文字"></p>
 <p>ivy<a href="http://ant.apache.org/ivy/download.cgi" target="_blank" rel="noopener">点击这里下载</a>到官网下载后解压开，只要把对应的<code>ivy-2.4.0.jar</code>放到ant目录下的lib中即可。</p>
@@ -490,7 +490,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

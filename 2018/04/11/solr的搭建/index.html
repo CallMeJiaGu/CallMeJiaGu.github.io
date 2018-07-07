@@ -79,13 +79,13 @@
 
 
 
-<meta name="description" content="前言：接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2） solr下载可以在solr的官网找到之前和最新的solr版本 http://archive.apache.org/dist/lucene/solr/实验室的环境使用的是5.5.2，所以本教程使用的也是该版本，在上面的链接中找到对应的版本，下载">
+<meta name="description" content="前言：接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2）">
 <meta name="keywords" content="Solr">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Solr的搭建">
 <meta property="og:url" content="http://yoursite.com/2018/04/11/solr的搭建/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言：接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2） solr下载可以在solr的官网找到之前和最新的solr版本 http://archive.apache.org/dist/lucene/solr/实验室的环境使用的是5.5.2，所以本教程使用的也是该版本，在上面的链接中找到对应的版本，下载">
+<meta property="og:description" content="前言：接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2）">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/1.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/启动.png">
@@ -95,10 +95,10 @@
 <meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/错误.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/dataimport.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/11/solr的搭建/查询.png">
-<meta property="og:updated_time" content="2018-04-13T05:53:16.466Z">
+<meta property="og:updated_time" content="2018-07-07T13:13:11.619Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Solr的搭建">
-<meta name="twitter:description" content="前言：接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2） solr下载可以在solr的官网找到之前和最新的solr版本 http://archive.apache.org/dist/lucene/solr/实验室的环境使用的是5.5.2，所以本教程使用的也是该版本，在上面的链接中找到对应的版本，下载">
+<meta name="twitter:description" content="前言：接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2）">
 <meta name="twitter:image" content="http://yoursite.com/2018/04/11/solr的搭建/1.png">
 
 
@@ -342,9 +342,9 @@
 
       
         <h3 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h3><p>接触solr也有一段时间，在这里将学习的过程和体会记录一下。希望能给刚刚接触solr的人带来一些帮助。（实验环境 Windows+Solr5.5.2）</p>
+<a id="more"></a>
 <h3 id="solr下载"><a href="#solr下载" class="headerlink" title="solr下载"></a>solr下载</h3><p>可以在solr的官网找到之前和最新的solr版本 <a href="http://archive.apache.org/dist/lucene/solr/" target="_blank" rel="noopener">http://archive.apache.org/dist/lucene/solr/</a>实验室的环境使用的是5.5.2，所以本教程使用的也是该版本，在上面的链接中找到对应的版本，下载解压<code>solr-5.5.2.zip</code>即可。</p>
 <p><img src="/2018/04/11/solr的搭建/1.png" alt="你想输入的替代文字"></p>
-<a id="more"></a>
 <h3 id="solr运行"><a href="#solr运行" class="headerlink" title="solr运行"></a>solr运行</h3><p>solr的运行也是很方便，在<code>solr-5.5.2\bin</code>中输入命令行即可运行，我直接在CMD输入命令行，至于为什么不用<code>gitbash</code>是因为，每次启动solr服务和创建核心的时候，总是会提示我端口的问题，导致核心创建失败，换到CMD就不会有这个问题。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">D:\solr\solr-5.5.2\solr-5.5.2\bin&gt;solr start</span><br></pre></td></tr></table></figure>
 <p><img src="/2018/04/11/solr的搭建/启动.png" alt="你想输入的替代文字"></p>
@@ -486,7 +486,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

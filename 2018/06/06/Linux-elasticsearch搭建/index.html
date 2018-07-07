@@ -79,21 +79,21 @@
 
 
 
-<meta name="description" content="前言前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。elasticsearch是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。 那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。 elasticsearch下">
+<meta name="description" content="前言前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。elasticsearch是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。 那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。">
 <meta name="keywords" content="elasticsearch">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux elasticsearch搭建">
 <meta property="og:url" content="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。elasticsearch是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。 那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。 elasticsearch下">
+<meta property="og:description" content="前言前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。elasticsearch是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。 那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/1.png">
 <meta property="og:image" content="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/2.png">
 <meta property="og:image" content="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/3.png">
-<meta property="og:updated_time" content="2018-06-11T12:17:11.345Z">
+<meta property="og:updated_time" content="2018-07-07T13:12:30.033Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux elasticsearch搭建">
-<meta name="twitter:description" content="前言前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。elasticsearch是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。 那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。 elasticsearch下">
+<meta name="twitter:description" content="前言前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。elasticsearch是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。 那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。">
 <meta name="twitter:image" content="http://yoursite.com/2018/06/06/Linux-elasticsearch搭建/1.png">
 
 
@@ -338,11 +338,11 @@
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前几篇博客是针对solr的使用，对solr的使用也算是告一段落了。<code>elasticsearch</code>是当前主流的搜索框架，相比较于solr的单机服务来说，es的分布式特点就是一大卖点了。而且看网上的大牛们说，es在文件较大的程度上搜索的速度比solr快上很多。当你的业务上来，单台服务的搜索都会变的很吃力。</p>
 <p>那么作为es的开篇，这里来记录一下es的安装，以及安装碰上的问题。</p>
+<a id="more"></a>
 <h3 id="elasticsearch下载"><a href="#elasticsearch下载" class="headerlink" title="elasticsearch下载"></a>elasticsearch下载</h3><p><code>elasticsearch5.0</code>之后就需要运行在<code>jdk1.8</code>以上，所以在安装es之前先安装<code>jdk</code>，这里不再复述。</p>
 <p><code>elasticsearch</code>可以在官网上下载对应的版本然后上传到linux服务器上 <a href="https://www.elastic.co/downloads/past-releases" target="_blank" rel="noopener">es下载</a>。</p>
 <p>另外一个简单方法就是用<code>wget</code>命令,直接下载到本地，然后到对应目录上解压开。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.2.3.tar.gz</span><br></pre></td></tr></table></figure></p>
 <p><img src="/2018/06/06/Linux-elasticsearch搭建/1.png" alt="你想输入的替代文字"></p>
-<a id="more"></a>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -xvzf elasticsearch-6.2.3.tar.gz</span><br></pre></td></tr></table></figure>
 <h3 id="elasticsearch配置"><a href="#elasticsearch配置" class="headerlink" title="elasticsearch配置"></a>elasticsearch配置</h3><p>想要其他的机子能够访问到这台服务器的es服务，需要修改<code>elasticsearch-6.2.3/config/elasticsearch.yml</code>,找到对应的位置修改为<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">network.host: 0.0.0.0   <span class="comment">#允许任意ip访问</span></span><br></pre></td></tr></table></figure></p>
 <h3 id="elasticsearch启动"><a href="#elasticsearch启动" class="headerlink" title="elasticsearch启动"></a>elasticsearch启动</h3><p>这时候如果你到<code>/elasticsearch-6.2.3/bin</code> 目录下去启动服务，会报错，因为es的服务器不允许root用户启动。创建一个新用户，用户名为es</p>
@@ -487,7 +487,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

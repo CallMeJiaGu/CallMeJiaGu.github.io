@@ -89,7 +89,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/05/28/Solr%20dismax使用/1.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/28/Solr%20dismax使用/2.png">
-<meta property="og:updated_time" content="2018-05-30T12:46:34.754Z">
+<meta property="og:updated_time" content="2018-07-07T13:12:51.873Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Solr dismax使用">
 <meta name="twitter:description" content="前言在前面几篇博客上，我对solr的使用以及注意的一些事项有了简单的说明。但是有时候某个具体的业务在配置上是难做到的。举个例子,有这么一份数据，包含了文章的标题、内容、质量(一个整数值)、发布时间等，现在我希望搜索的结果是根据发布时间和文章质量来决定的，即发布时间越早就越靠前、质量越高就越靠前。 目前我所知道的有两种方法，1.利用dismax，在查询的时候提高某个字段的权值。2.修改solr的底层">
@@ -337,9 +337,9 @@
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在前面几篇博客上，我对solr的使用以及注意的一些事项有了简单的说明。但是有时候某个具体的业务在配置上是难做到的。举个例子,有这么一份数据，包含了文章的标题、内容、质量(一个整数值)、发布时间等，现在我希望搜索的结果是根据发布时间和文章质量来决定的，即发布时间越早就越靠前、质量越高就越靠前。</p>
 <p>目前我所知道的有两种方法，1.利用dismax，在查询的时候提高某个字段的权值。2.修改solr的底层框架Lucene的源码。在这篇我们先来讨论第一种方法。</p>
+<a id="more"></a>
 <h3 id="dismax的使用"><a href="#dismax的使用" class="headerlink" title="dismax的使用"></a>dismax的使用</h3><p>dismax可以是在solr的管理界面去配置，也可以在<code>solrconfig.xml</code>中去配置。</p>
 <p><img src="/2018/05/28/Solr dismax使用/1.png" alt="你想输入的替代文字"></p>
-<a id="more"></a>
 <h3 id="DisMax-查询解析器参数"><a href="#DisMax-查询解析器参数" class="headerlink" title="DisMax 查询解析器参数"></a>DisMax 查询解析器参数</h3><p>除了常见的请求参数、突出显示参数和简单的 facet 参数外，DisMax 查询解析器还支持下面描述的参数。与标准查询解析器一样，DisMax 查询解析器允许在 solrconfig. xml 中指定默认参数值，或者在请求中由查询时间值重写。以下部分详细解释这些参数。</p>
 <h4 id="q-alt-参数"><a href="#q-alt-参数" class="headerlink" title="q.alt 参数"></a>q.alt 参数</h4><p>如果指定，q.alt 参数定义一个查询（默认情况下将使用标准查询解析语法进行解析），当主 q 参数未指定或为空时。q.alt 当您需要一个类似于查询的东西来匹配所有的文档时（不要忘记 &amp;rows=0），q.alt 参数就派上用场了，可以获得收集范围的 faceting 计数。</p>
 <h4 id="qf（Query-Fields）参数"><a href="#qf（Query-Fields）参数" class="headerlink" title="qf（Query Fields）参数"></a>qf（Query Fields）参数</h4><p>qf 参数引入了一个字段列表，每个字段都分配了一个 boost 因子来增加或减少该字段在查询中的重要性。例如，下面的查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qf=&quot;fieldOne^2.3 fieldTwo fieldThree^0.4&quot;</span><br></pre></td></tr></table></figure></p>
@@ -469,7 +469,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

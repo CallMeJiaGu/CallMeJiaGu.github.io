@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="elasticsearch," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言往elasticsearch中导入数据，可以采用curl -XPUT &amp;#39;http://localhost:9200/megacorp/employee/1的方式往里面导入数据，这样的插入可以用来测试，但是数据量比较大的时候，这样一条条的插入是不实际的。 当然elasticsearch可以采用_bulk的方式批量导入数据12345curl -XPOST &apos;http://localhost">
+<meta name="keywords" content="elasticsearch">
+<meta property="og:type" content="article">
+<meta property="og:title" content="logstash MySQL Data Input">
+<meta property="og:url" content="http://yoursite.com/2018/07/07/logstash-MySQL-Data-Input/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言往elasticsearch中导入数据，可以采用curl -XPUT &amp;#39;http://localhost:9200/megacorp/employee/1的方式往里面导入数据，这样的插入可以用来测试，但是数据量比较大的时候，这样一条条的插入是不实际的。 当然elasticsearch可以采用_bulk的方式批量导入数据12345curl -XPOST &apos;http://localhost">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/07/07/logstash-MySQL-Data-Input/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/07/07/logstash-MySQL-Data-Input/2.png">
+<meta property="og:image" content="http://yoursite.com/2018/07/07/logstash-MySQL-Data-Input/3.png">
+<meta property="og:image" content="http://yoursite.com/2018/07/07/logstash-MySQL-Data-Input/4.png">
+<meta property="og:updated_time" content="2018-07-07T13:11:29.954Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="logstash MySQL Data Input">
+<meta name="twitter:description" content="前言往elasticsearch中导入数据，可以采用curl -XPUT &amp;#39;http://localhost:9200/megacorp/employee/1的方式往里面导入数据，这样的插入可以用来测试，但是数据量比较大的时候，这样一条条的插入是不实际的。 当然elasticsearch可以采用_bulk的方式批量导入数据12345curl -XPOST &apos;http://localhost">
+<meta name="twitter:image" content="http://yoursite.com/2018/07/07/logstash-MySQL-Data-Input/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/07/07/logstash-MySQL-Data-Input/"/>
+
+
+
+
+
+  <title>logstash MySQL Data Input | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/07/logstash-MySQL-Data-Input/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">logstash MySQL Data Input</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-07T20:12:08+08:00">
+                2018-07-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/elasticsearch/" itemprop="url" rel="index">
+                    <span itemprop="name">elasticsearch</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>往elasticsearch中导入数据，可以采用<code>curl -XPUT &#39;http://localhost:9200/megacorp/employee/1</code>的方式往里面导入数据，这样的插入可以用来测试，但是数据量比较大的时候，这样一条条的插入是不实际的。</p>
+<p>当然elasticsearch可以采用_bulk的方式批量导入数据<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">curl -XPOST <span class="string">'http://localhost:9200/_bulk'</span> -d <span class="string">'</span></span><br><span class="line"><span class="string">&#123; "create":  &#123; "_index": "website", "_type": "blog", "_id": "3" &#125;&#125;</span></span><br><span class="line"><span class="string">&#123; "title":    "My third blog post" &#125;</span></span><br><span class="line"><span class="string">&#123; "create":  &#123; "_index": "website", "_type": "blog", "_id": "4" &#125;&#125;</span></span><br><span class="line"><span class="string">&#123; "title":    "My fourth blog post" &#125;</span></span><br></pre></td></tr></table></figure></p>
+<p>或者把我们的数据导成json的格式，然后导入<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl 172.17.1.15:9200/_bulk?pretty --data-binary @E:\testdata\test.json</span><br></pre></td></tr></table></figure></p>
+<p>在之前solr使用过程中，我们是把数据库的数据导入到solr中，elasticsearch也可以，这篇主要是来记录一下logstash的安装以及使用。</p>
+<a id="more"></a>
+<h3 id="logstash的安装"><a href="#logstash的安装" class="headerlink" title="logstash的安装"></a>logstash的安装</h3><p>logstash依赖jdk1.8，所以先确保你的环境已经装了jdk的环境。下载与你elasticsearch对应的logstash版本。因为我的elasticsearch是6.x,所以logstash也需要6.x。输入下面命令安装，并解压<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget http://yellowcong.qiniudn.com/logstash-6.0.1.tar.gz</span><br><span class="line"></span><br><span class="line">tar -zxvf logstash-6.0.1.tar.gz</span><br></pre></td></tr></table></figure></p>
+<p>使用下面命令测试你的logstash能够正常运行，出现下面结果表示成功。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./logstash-6.0.1/bin/logstash -e &quot;input &#123;stdin&#123;&#125;&#125; output &#123;stdout&#123;&#125;&#125;&quot;</span><br></pre></td></tr></table></figure></p>
+<p><img src="/2018/07/07/logstash-MySQL-Data-Input/1.png" alt="你想输入的替代文字"></p>
+<h3 id="logstash-input-jdbc插件安装"><a href="#logstash-input-jdbc插件安装" class="headerlink" title="logstash-input-jdbc插件安装"></a>logstash-input-jdbc插件安装</h3><p>logstash需要安装<code>logstash-input-jdbc</code>插件，才可以对数据库进行操作。下载插件过程中最大的坑是下载插件相关的依赖的时候下不动，因为国内网络的原因，访问不到亚马逊的服务器。解决办法，改成国内的ruby仓库镜像。此镜像托管于淘宝的阿里云服务器上.。</p>
+<p>如果没有安装 gem 的话 安装gem，本测试环境是ubuntu,使用以下的命令安装gem<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install gem</span><br></pre></td></tr></table></figure></p>
+<p>替换成淘宝的镜像，查看镜像是否切换成功，确保只有 <a href="https://ruby.taobao.org" target="_blank" rel="noopener">https://ruby.taobao.org</a> 不然会因为墙的原因，导致下载失败。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gem sources --add https://ruby.taobao.org/ --remove https://rubygems.org/</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gem sources -l</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/07/07/logstash-MySQL-Data-Input/2.png" alt="你想输入的替代文字"></p>
+<p>进入logstash的安装目录，修改Gemfile的数据源地址。修改source的值为”<a href="https://ruby.taobao.org&quot;" target="_blank" rel="noopener">https://ruby.taobao.org&quot;</a></p>
+<p><img src="/2018/07/07/logstash-MySQL-Data-Input/3.png" alt="你想输入的替代文字"></p>
+<p>修改Gemfile.jruby-2.3.lock，找到 remote 修改它的值为： <a href="https://ruby.taobao.org" target="_blank" rel="noopener">https://ruby.taobao.org</a></p>
+<p><img src="/2018/07/07/logstash-MySQL-Data-Input/4.png" alt="你想输入的替代文字"></p>
+<p>进入到logstash/bin的目录下，执行下面的命令安装logstash-input-jdbc ，这个过程要比较久，耐心等待，如果安装不成功，看这里换一种方法<a href="https://blog.csdn.net/yeyuma/article/details/50240595" target="_blank" rel="noopener">安装logstash-input-jdbc其他方法</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./logstash-plugin install logstash-input-jdbc</span><br></pre></td></tr></table></figure></p>
+<h3 id="logstash的应用"><a href="#logstash的应用" class="headerlink" title="logstash的应用"></a>logstash的应用</h3><p>上面的安装都已经完成了，现在只需要配置一些文件，就可以往elasticsearch中导入MySQL的数据了。首先需要两个文件jdbc.conf、jdbc.sql 名字随便起，以及mysql的java驱动包<code>mysql-connector-java-5.1.36-bin.jar</code>，驱动包网上很好找。</p>
+<p>看一下jdbc.conf的配置<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">input &#123;</span><br><span class="line">    stdin &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    jdbc &#123;</span><br><span class="line">	  <span class="comment"># 数据库的地址，以及要操作的数据库名</span></span><br><span class="line">      jdbc_connection_string =&gt; <span class="string">"jdbc:mysql://10.1.13.29:3306/test"</span></span><br><span class="line">	  <span class="comment"># 链接数据库的用户密码</span></span><br><span class="line">      jdbc_user =&gt; <span class="string">"root"</span></span><br><span class="line">      jdbc_password =&gt; <span class="string">"tdlabDatabase"</span></span><br><span class="line">	  <span class="comment"># 存放MySQL驱动的位置</span></span><br><span class="line">      jdbc_driver_library =&gt; <span class="string">"/usr/local/logstash-6.0.0/mysql-pro/mysql-connector-java-5.1.18-bin.jar"</span></span><br><span class="line">      <span class="comment"># the name of the driver class for mysql</span></span><br><span class="line">      jdbc_driver_class =&gt; <span class="string">"com.mysql.jdbc.Driver"</span></span><br><span class="line">      jdbc_paging_enabled =&gt; <span class="string">"true"</span></span><br><span class="line">      jdbc_page_size =&gt; <span class="string">"50000"</span></span><br><span class="line">	  <span class="comment"># 存放你的sql操作位置</span></span><br><span class="line">      statement_filepath =&gt; <span class="string">"/usr/local/logstash-6.0.0/mysql-pro/jdbc.sql"</span></span><br><span class="line">      schedule =&gt; <span class="string">"* * * * *"</span></span><br><span class="line">      <span class="built_in">type</span> =&gt; <span class="string">"jdbc"</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">output &#123;</span><br><span class="line">    elasticsearch &#123;</span><br><span class="line">		<span class="comment"># 你elasticsearch服务的IP</span></span><br><span class="line">        hosts =&gt; <span class="string">"10.1.13.32"</span></span><br><span class="line">		<span class="comment"># elasticsearch索引</span></span><br><span class="line">        index =&gt; <span class="string">"book"</span></span><br><span class="line">		<span class="comment"># elasticsearch类型</span></span><br><span class="line">		document_type =&gt; <span class="string">"mybook"</span></span><br><span class="line">        document_id =&gt; <span class="string">"%&#123;id&#125;"</span></span><br><span class="line">    &#125;</span><br><span class="line">    stdout &#123;</span><br><span class="line">        codec =&gt; json_lines</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>jdbc.sql的内容，简单的表查询<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select id,keyNo,word FROM bbb</span><br></pre></td></tr></table></figure></p>
+<p>上面的文件配置完成后，就启动logstash，进入到logstash的bin目录下，执行下面命令，得到大约1分钟，你就可以看到数据已经导入到elasticsearch中。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./logstash -f jdbc.conf</span><br></pre></td></tr></table></figure></p>
+<p>现在 logstash 已经开始监听mysql 的表了，里面数据会被导入到elasticsearch中，并且如果数据发生变动，elasticsearch也会相应变动。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/elasticsearch/" rel="tag"># elasticsearch</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/07/elasticsearch集群搭建、head插件安装/" rel="next" title="elasticsearch集群搭建、head插件安装">
+                <i class="fa fa-chevron-left"></i> elasticsearch集群搭建、head插件安装
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#logstash的安装"><span class="nav-number">2.</span> <span class="nav-text">logstash的安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#logstash-input-jdbc插件安装"><span class="nav-number">3.</span> <span class="nav-text">logstash-input-jdbc插件安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#logstash的应用"><span class="nav-number">4.</span> <span class="nav-text">logstash的应用</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
