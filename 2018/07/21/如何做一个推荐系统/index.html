@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="推荐," />
 
 
 
@@ -79,14 +79,20 @@
 
 
 
+<meta name="description" content="前言前阵子在知乎上看到一条：作为程序猿，你的老板提出过哪些无理的需求。 在下面的回答看到一条说： 老板要他一个人完成一个类似知乎的推荐系统。下面的评论多数是在调侃老板的无理的需求，还有的人说直接给一个随机值就好了，哈哈哈。 其实推荐系统实现是不难，网上有很多完成好了的轮子，我们只要知道如何去使用即可。这篇我来记录一下，实验室项目中的推荐功能和实现方式。功能大体是，用户填写自己的需求，然后系统推荐出">
+<meta name="keywords" content="推荐">
 <meta property="og:type" content="article">
 <meta property="og:title" content="如何做一个推荐系统">
 <meta property="og:url" content="http://yoursite.com/2018/07/21/如何做一个推荐系统/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言前阵子在知乎上看到一条：作为程序猿，你的老板提出过哪些无理的需求。 在下面的回答看到一条说： 老板要他一个人完成一个类似知乎的推荐系统。下面的评论多数是在调侃老板的无理的需求，还有的人说直接给一个随机值就好了，哈哈哈。 其实推荐系统实现是不难，网上有很多完成好了的轮子，我们只要知道如何去使用即可。这篇我来记录一下，实验室项目中的推荐功能和实现方式。功能大体是，用户填写自己的需求，然后系统推荐出">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-07-21T04:55:40.597Z">
+<meta property="og:image" content="http://yoursite.com/2018/07/21/如何做一个推荐系统/1.png">
+<meta property="og:updated_time" content="2018-07-21T08:13:16.319Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="如何做一个推荐系统">
+<meta name="twitter:description" content="前言前阵子在知乎上看到一条：作为程序猿，你的老板提出过哪些无理的需求。 在下面的回答看到一条说： 老板要他一个人完成一个类似知乎的推荐系统。下面的评论多数是在调侃老板的无理的需求，还有的人说直接给一个随机值就好了，哈哈哈。 其实推荐系统实现是不难，网上有很多完成好了的轮子，我们只要知道如何去使用即可。这篇我来记录一下，实验室项目中的推荐功能和实现方式。功能大体是，用户填写自己的需求，然后系统推荐出">
+<meta name="twitter:image" content="http://yoursite.com/2018/07/21/如何做一个推荐系统/1.png">
 
 
 
@@ -279,6 +285,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/推荐/" itemprop="url" rel="index">
+                    <span itemprop="name">推荐</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -306,7 +334,25 @@
       
 
       
-        
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前阵子在知乎上看到一条：作为程序猿，你的老板提出过哪些无理的需求。 在下面的回答看到一条说： 老板要他一个人完成一个类似知乎的推荐系统。下面的评论多数是在调侃老板的无理的需求，还有的人说直接给一个随机值就好了，哈哈哈。</p>
+<p>其实推荐系统实现是不难，网上有很多完成好了的轮子，我们只要知道如何去使用即可。这篇我来记录一下，实验室项目中的推荐功能和实现方式。功能大体是，用户填写自己的需求，然后系统推荐出和这个需求最相关的专家以及论文等成果。</p>
+<p><img src="/2018/07/21/如何做一个推荐系统/1.png" alt="你想输入的替代文字"></p>
+<a id="more"></a>
+<h3 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h3><p>推荐功能大都是基于<code>文本向量化</code>来实现的，说的直白点，就是把每一个词训练化成一个向量。如<code>男人</code>这个词会被训练成向量为[0.15,0.584,-0.453… ,0.548]，每一个词都数据化了。把词转为向量之后，我们就可以计算一个词与另外一个词之间的向量距离。那么如何把词训练成词向量呢？</p>
+<p>大概在2013的时候，谷歌就推出了<code>word2vec</code>，详细的算法这里不去复述，你们只要知道word2vec可以把词训练成词向量。Python、C、Java都有其实现的功能包。这里我介绍一下python中的如何使用word2vec。</p>
+<p>在python中，使用<code>gensim</code>模块来实现word2vec。训练好的<code>wm_file</code>是一个以<code>bin</code>为后缀的文件，这个就是词向量文件了。为了方便理解可以把它想成一个<code>hashmap</code>，key是词，value是词向量。<code>sentences</code>是你的语料库，语料库越大，效果越好。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># sentences-语料库 size-维度 window-词共现窗口长度 sg-skipgram cbow二选一 min_count-最小词频 workers-线程</span></span><br><span class="line">model = gensim.models.word2vec.Word2Vec(sentences, size=200, window=4, sg=1, min_count=0, workers=4)</span><br><span class="line">model.save_word2vec_format(wm_file, binary=True)</span><br></pre></td></tr></table></figure>
+<h3 id="数据处理"><a href="#数据处理" class="headerlink" title="数据处理"></a>数据处理</h3><p>在上一步中，我们得到了一个词向量的文件，下面我们需要给我们要推荐的数据附上这个向量值。</p>
+<p>拿商品推荐来说，简单的认为每一个商品的数据格式为：商品id 商品名称 商品链接 商品价格。 现在我们拿着商品名称 到 训练好的bin文件中拿到，该商品名称对应的词向量。</p>
+<p>那么现在数据格式就成了：商品id 商品名称 商品链接 商品价格 <code>商品名称的词向量</code>。我们基于这个表就可以做推荐了，好比如我经常搜索 衣服。我们可以把用户搜索的记录保存下来，然后拿着保留下的值转化成搜索词向量，然后在我们的数据库中一个个去遍历计算和这个搜索词向量最近的商品词向量，然后返回这条数据即可。</p>
+<h3 id="推荐的优化"><a href="#推荐的优化" class="headerlink" title="推荐的优化"></a>推荐的优化</h3><p>上面说一个个去遍历商品，然后去计算搜索词向量和商品词向量的最近的商品，这一步其实的时间复杂度是<code>O(n)</code>，是可以优化的。在python里我们可以使用<code>AnnoyIndexer</code>。在上一步中，商品的数据格式为：商品id 商品名称 商品链接 商品价格 <code>商品名称的词向量</code>，基于这张表，我们整理出一份子表数据，数据格式为:商品id <code>商品名称词向量</code>，保存为<code>goods.vec</code>文件。</p>
+<p>把我们的goods.vec 以AnnoyIndexer类的存储方式保存在<code>goods.ind</code>，查看源码发现，我们的vec文件和ind文件都有数据格式的要求，就是要确保是每一行是一个id + 向量。id当然可以根据我们需求来填写。这里我们就填写商品的id。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">model = gensim.models.word2vec.Word2Vec.load_word2vec_format(<span class="string">'goods.vec'</span>, binary=False)</span><br><span class="line">index = AnnoyIndexer(model, 100)</span><br><span class="line">index.save(<span class="string">'goods.ind'</span>)</span><br></pre></td></tr></table></figure>
+<p>到时候如果要使用的话，就可以不去一个个遍历，直接使用goods.ind文件了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ind = AnnoyIndexer()</span><br><span class="line">ind.load(<span class="string">'goods.ind'</span>)</span><br><span class="line"><span class="comment">#返回前二十与商品词向量最近的结果</span></span><br><span class="line">results = ind.most_similar(<span class="string">'搜索的词向量'</span>,20)</span><br></pre></td></tr></table></figure>
+<p>注意一下，这个result的是一个数组，每一个值的数据格式为(商品id，商品的词向量和搜索词向量的距离值),只要把获得的id拿到数据去查询就可以拿到要推荐商品的数据了。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> id, score <span class="keyword">in</span> results:</span><br><span class="line">	<span class="built_in">print</span> <span class="string">"商品的id为："</span>,id,<span class="string">"向量距离为："</span>,score</span><br></pre></td></tr></table></figure></p>
+<h3 id="功能服务化"><a href="#功能服务化" class="headerlink" title="功能服务化"></a>功能服务化</h3><p>python提供了web服务的模块，我们可以使用<code>tornado</code>模块，下面是一个简单的demo，在浏览器输入<code>127.0.0.1:/recommend/test.do?words=篮球</code>，就可以测试成功了。到时候只要在初始化的时候把ind加载进来，然后获得words词向量话，丢到ind中就可以得到结果了。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python </span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line">import tornado.ioloop</span><br><span class="line">import tornado.web</span><br><span class="line">from tornado.concurrent import run_on_executor</span><br><span class="line">from concurrent.futures import ThreadPoolExecutor</span><br><span class="line">from multiprocessing import cpu_count</span><br><span class="line">import tornado.httpserver</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">class TestHandler(tornado.web.RequestHandler):</span><br><span class="line">    executor = ThreadPoolExecutor(cpu_count())</span><br><span class="line"></span><br><span class="line">    @run_on_executor</span><br><span class="line">    def get(self):</span><br><span class="line">        words = self.get_query_argument(<span class="string">'words'</span>)</span><br><span class="line">        self.write(words)</span><br><span class="line"></span><br><span class="line">def make_app():</span><br><span class="line">    <span class="built_in">return</span> tornado.web.Application([</span><br><span class="line">        tornado.web.url(r<span class="string">"/recommend/test.do"</span>, TestHandler),</span><br><span class="line">    ])</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="built_in">print</span> u<span class="string">'Number of threads: %s'</span> % cpu_count()</span><br><span class="line">    app = make_app()</span><br><span class="line">    app.listen(8640)</span><br><span class="line">    <span class="built_in">print</span> u<span class="string">'Server run on port 8640'</span></span><br><span class="line">    tornado.ioloop.IOLoop.current().start()</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -320,6 +366,12 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/推荐/" rel="tag"># 推荐</a>
+          
+        </div>
       
 
       
@@ -390,8 +442,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -417,7 +478,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -428,7 +489,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -451,6 +512,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#准备工作"><span class="nav-number">2.</span> <span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据处理"><span class="nav-number">3.</span> <span class="nav-text">数据处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#推荐的优化"><span class="nav-number">4.</span> <span class="nav-text">推荐的优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#功能服务化"><span class="nav-number">5.</span> <span class="nav-text">功能服务化</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
