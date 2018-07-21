@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Solr," />
+  <meta name="keywords" content="JVM," />
 
 
 
@@ -79,21 +79,21 @@
 
 
 
-<meta name="description" content="前言在前面几篇博客上，我对solr的使用以及注意的一些事项有了简单的说明。但是有时候某个具体的业务在配置上是难做到的。举个例子,有这么一份数据，包含了文章的标题、内容、质量(一个整数值)、发布时间等，现在我希望搜索的结果是根据发布时间和文章质量来决定的，即发布时间越早就越靠前、质量越高就越靠前。 目前我所知道的有两种方法，1.利用dismax，在查询的时候提高某个字段的权值。2.修改solr的底层">
-<meta name="keywords" content="Solr">
+<meta name="description" content="前言实验室维护的项目在用户使用量增大的时候，隔三差五就会出现OOMOutOfMemory的情况，而且多数是发生在第二天的凌晨，为了缓解这个问题，写了一个定时任务，每次服务宕机的时候，就重启一下Tomcat服务。但是这样子处理问题治标不治本，还是需要从代码的优化角度去减少这种情况的发生。">
+<meta name="keywords" content="JVM">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Solr dismax使用">
-<meta property="og:url" content="http://yoursite.com/2018/05/28/Solr dismax使用/index.html">
+<meta property="og:title" content="oom分析处理过程">
+<meta property="og:url" content="http://yoursite.com/2018/07/10/oom分析处理过程/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言在前面几篇博客上，我对solr的使用以及注意的一些事项有了简单的说明。但是有时候某个具体的业务在配置上是难做到的。举个例子,有这么一份数据，包含了文章的标题、内容、质量(一个整数值)、发布时间等，现在我希望搜索的结果是根据发布时间和文章质量来决定的，即发布时间越早就越靠前、质量越高就越靠前。 目前我所知道的有两种方法，1.利用dismax，在查询的时候提高某个字段的权值。2.修改solr的底层">
+<meta property="og:description" content="前言实验室维护的项目在用户使用量增大的时候，隔三差五就会出现OOMOutOfMemory的情况，而且多数是发生在第二天的凌晨，为了缓解这个问题，写了一个定时任务，每次服务宕机的时候，就重启一下Tomcat服务。但是这样子处理问题治标不治本，还是需要从代码的优化角度去减少这种情况的发生。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2018/05/28/Solr%20dismax使用/1.png">
-<meta property="og:image" content="http://yoursite.com/2018/05/28/Solr%20dismax使用/2.png">
-<meta property="og:updated_time" content="2018-07-07T13:12:51.873Z">
+<meta property="og:image" content="http://yoursite.com/2018/07/10/oom分析处理过程/4.png">
+<meta property="og:image" content="http://yoursite.com/2018/07/10/oom分析处理过程/3.png">
+<meta property="og:updated_time" content="2018-07-21T05:47:19.399Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Solr dismax使用">
-<meta name="twitter:description" content="前言在前面几篇博客上，我对solr的使用以及注意的一些事项有了简单的说明。但是有时候某个具体的业务在配置上是难做到的。举个例子,有这么一份数据，包含了文章的标题、内容、质量(一个整数值)、发布时间等，现在我希望搜索的结果是根据发布时间和文章质量来决定的，即发布时间越早就越靠前、质量越高就越靠前。 目前我所知道的有两种方法，1.利用dismax，在查询的时候提高某个字段的权值。2.修改solr的底层">
-<meta name="twitter:image" content="http://yoursite.com/2018/05/28/Solr%20dismax使用/1.png">
+<meta name="twitter:title" content="oom分析处理过程">
+<meta name="twitter:description" content="前言实验室维护的项目在用户使用量增大的时候，隔三差五就会出现OOMOutOfMemory的情况，而且多数是发生在第二天的凌晨，为了缓解这个问题，写了一个定时任务，每次服务宕机的时候，就重启一下Tomcat服务。但是这样子处理问题治标不治本，还是需要从代码的优化角度去减少这种情况的发生。">
+<meta name="twitter:image" content="http://yoursite.com/2018/07/10/oom分析处理过程/4.png">
 
 
 
@@ -123,13 +123,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/05/28/Solr dismax使用/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/07/10/oom分析处理过程/"/>
 
 
 
 
 
-  <title>Solr dismax使用 | Don't Stop</title>
+  <title>oom分析处理过程 | Don't Stop</title>
   
 
 
@@ -246,7 +246,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/28/Solr dismax使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/10/oom分析处理过程/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -263,7 +263,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Solr dismax使用</h1>
+          <h1 class="post-title" itemprop="name headline">oom分析处理过程</h1>
         
 
         <div class="post-meta">
@@ -275,8 +275,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-28T20:58:02+08:00">
-                2018-05-28
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-10T19:53:21+08:00">
+                2018-07-10
               </time>
             
 
@@ -298,8 +298,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Solr/" itemprop="url" rel="index">
-                    <span itemprop="name">Solr</span>
+                  <a href="/categories/JVM/" itemprop="url" rel="index">
+                    <span itemprop="name">JVM</span>
                   </a>
                 </span>
 
@@ -335,21 +335,19 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在前面几篇博客上，我对solr的使用以及注意的一些事项有了简单的说明。但是有时候某个具体的业务在配置上是难做到的。举个例子,有这么一份数据，包含了文章的标题、内容、质量(一个整数值)、发布时间等，现在我希望搜索的结果是根据发布时间和文章质量来决定的，即发布时间越早就越靠前、质量越高就越靠前。</p>
-<p>目前我所知道的有两种方法，1.利用dismax，在查询的时候提高某个字段的权值。2.修改solr的底层框架Lucene的源码。在这篇我们先来讨论第一种方法。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>实验室维护的项目在用户使用量增大的时候，隔三差五就会出现<code>OOM</code>OutOfMemory的情况，而且多数是发生在第二天的凌晨，为了缓解这个问题，写了一个定时任务，每次服务宕机的时候，就重启一下<code>Tomcat</code>服务。但是这样子处理问题治标不治本，还是需要从代码的优化角度去减少这种情况的发生。</p>
 <a id="more"></a>
-<h3 id="dismax的使用"><a href="#dismax的使用" class="headerlink" title="dismax的使用"></a>dismax的使用</h3><p>dismax可以是在solr的管理界面去配置，也可以在<code>solrconfig.xml</code>中去配置。</p>
-<p><img src="/2018/05/28/Solr dismax使用/1.png" alt="你想输入的替代文字"></p>
-<h3 id="DisMax-查询解析器参数"><a href="#DisMax-查询解析器参数" class="headerlink" title="DisMax 查询解析器参数"></a>DisMax 查询解析器参数</h3><p>除了常见的请求参数、突出显示参数和简单的 facet 参数外，DisMax 查询解析器还支持下面描述的参数。与标准查询解析器一样，DisMax 查询解析器允许在 solrconfig. xml 中指定默认参数值，或者在请求中由查询时间值重写。以下部分详细解释这些参数。</p>
-<h4 id="q-alt-参数"><a href="#q-alt-参数" class="headerlink" title="q.alt 参数"></a>q.alt 参数</h4><p>如果指定，q.alt 参数定义一个查询（默认情况下将使用标准查询解析语法进行解析），当主 q 参数未指定或为空时。q.alt 当您需要一个类似于查询的东西来匹配所有的文档时（不要忘记 &amp;rows=0），q.alt 参数就派上用场了，可以获得收集范围的 faceting 计数。</p>
-<h4 id="qf（Query-Fields）参数"><a href="#qf（Query-Fields）参数" class="headerlink" title="qf（Query Fields）参数"></a>qf（Query Fields）参数</h4><p>qf 参数引入了一个字段列表，每个字段都分配了一个 boost 因子来增加或减少该字段在查询中的重要性。例如，下面的查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">qf=&quot;fieldOne^2.3 fieldTwo fieldThree^0.4&quot;</span><br></pre></td></tr></table></figure></p>
-<p>分配 fieldOne 一个 2.3 的提升， fieldTwo 为默认提升（因为没有 boost 因素被指定），并且 fieldThree 提高 0.4。这些 boost 因素使 fieldOne 中的匹配比 fieldTwo 的匹配更加重要，它比 fieldThree 中的匹配更为重要。</p>
-<h4 id="pf（Phrase-Fields）参数"><a href="#pf（Phrase-Fields）参数" class="headerlink" title="pf（Phrase Fields）参数"></a>pf（Phrase Fields）参数</h4><p>一旦使用 fq 和 qf 参数确定了匹配文档的列表，就可以使用 pf 参数“boost”文档的得分，因为 q 参数中的所有项都出现在非常接近的情况下。该格式与 qf 参数所使用的格式相同：当从整个 q 参数中进行短语查询时，字段列表和“boosts”将与每个字段相关联。</p>
-<h4 id="bq（Boost-Query）参数"><a href="#bq（Boost-Query）参数" class="headerlink" title="bq（Boost Query）参数"></a>bq（Boost Query）参数</h4><p>bq 参数指定一个附加的可选查询子句，将添加到用户的主要查询中以影响 score。例如，如果您想为id为5的文档添加相关性 boost：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bq=id:5</span><br></pre></td></tr></table></figure></p>
-<h4 id="bf（Boost-Functions）参数"><a href="#bf（Boost-Functions）参数" class="headerlink" title="bf（Boost Functions）参数"></a>bf（Boost Functions）参数</h4><p>bf 参数指定将用于构造 FunctionQueries 的函数（具有可选的 boosts），该函数将作为将影响 score 的可选子句添加到用户的主查询中。可以使用由 Solr 本地支持的任何函数，以及 boost 值。例如：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sum(sqrt(<span class="built_in">log</span>(ms(createTime))))</span><br></pre></td></tr></table></figure></p>
-<p>上面的函数就是把创建时间的字段考虑到排序中，具体的函数说明可以查看这里 <a href="https://wiki.apache.org/solr/FunctionQuery" target="_blank" rel="noopener">函数查看</a>。</p>
-<h3 id="solrconfig中去配置"><a href="#solrconfig中去配置" class="headerlink" title="solrconfig中去配置"></a>solrconfig中去配置</h3><p>和在solr管理界面差不多，只要在<code>solrconfig.xml</code>添加上自定义的<code>requestHandler</code>。如下所示：<br><img src="/2018/05/28/Solr dismax使用/2.png" alt="你想输入的替代文字"></p>
-<p>浏览器输入：<code>http://localhost:8983/solr/test/myselect?q=数据挖掘&amp;wt=json&amp;indent=true</code>，使用自定义的这个<code>myselect</code>，效果和在管理界面中配置是一样的。</p>
+<h3 id="运行环境分析"><a href="#运行环境分析" class="headerlink" title="运行环境分析"></a>运行环境分析</h3><p>环境：<code>Windows sever</code> 、<code>jdk1.8</code> 、<code>tomcat7</code> 。如果你的Tomcat是安装版的，想要修改运行参数需要从注册表中修改.</p>
+<p>如果是解压版的，若是命令行方式启动tomcat，则修改脚本文件(Windows下为<code>catalina.bat</code>，Linux下为<code>catalina.sh</code>,在最顶上添加如下行)。具体的参数还需要去了解JVM的一些知识，如GC策略、年轻老年代的大小调优等，需要根据自己的业务场景去修改配置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> JAVA_OPTS=-Xms1024m -Xmx2048m -XX:PermSize=256m -XX:MaxPermSize=512m。</span><br></pre></td></tr></table></figure>
+<p>如果是通过tomact7w.exe的方式启动，可以在界面添加 参数。我的环境用的第三种方式启动。出现oom的情况，可以适当的提高一下参数值，但OOM的问题还是会出现，只是推迟这种情况的发生。</p>
+<h3 id="OOM处理过程"><a href="#OOM处理过程" class="headerlink" title="OOM处理过程"></a>OOM处理过程</h3><p>前面提到，在最初的时候，是通过设置-Xmx、-Xms、-Xmn等参数来改变堆内存最大初始等值。如下图在tomat7w.exe中的java栏设置，将堆的初始值和最大值设为400M。</p>
+<p>上面的操作只会减缓OOM的到达时间而已，所以还需要把OOM出现时的堆快照保存下来，然后去分析堆中哪些对象有异常大小的情况。在刚刚设置堆大小的页面中的Java Options添加<code>-XX:+HeapDumpOnOutOfMemoryError</code>当内存出现OOM时把文件dump出来。<code>-XX:HeapDumpPath=D:\heap\dump\</code>导出的文件存放位置。</p>
+<p><img src="/2018/07/10/oom分析处理过程/4.png" alt="你想输入的替代文字"></p>
+<p>当堆的快照文件被dump出，你可以看到在对应的文件夹下回生成一个<code>file.hprof</code>文件，这个文件存对象占用堆内存的一些使用情况。接着我们使用<code>eclipse</code>的插件<code>MAT</code>（Memory Analysis Tools）去分析，MAT的安装就不在复述，网上的资料很多。MAT打开<code>hprof</code>文件,界面如下</p>
+<p><img src="/2018/07/10/oom分析处理过程/3.png" alt="你想输入的替代文字"></p>
+<p>MAT的功能界面可以再网上找资料，这里我只是简单记录一下处理的过程。内存溢出的处理需要JVM的基础知识，这样才可以帮你更好的解决问题。我在早期记录一些关于JVM的博客，一点笔记可以方便知识的回顾。<a href="https://blog.csdn.net/makecontral/article/category/7048061" target="_blank" rel="noopener">点击查看</a>。</p>
+<p>除了MAT，内存分析工具还是比较多的，像<code>VisualVM</code>是Java自带的分析工具，不过在jdk9中就不在提供，需要额外下载。<code>jaht</code>是一个实验性的, 老旧的工具, 不再被支持. 虽然JEP没有指明替代工具, InfoQ 推荐大家使用VisualVM来完成堆内存的创建,分析和可视化任务。</p>
 
       
     </div>
@@ -367,7 +365,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Solr/" rel="tag"># Solr</a>
+            <a href="/tags/JVM/" rel="tag"># JVM</a>
           
         </div>
       
@@ -380,8 +378,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/05/09/solr路上的坑/" rel="next" title="Solr路上的坑">
-                <i class="fa fa-chevron-left"></i> Solr路上的坑
+              <a href="/2018/07/07/logstash-MySQL-Data-Input/" rel="next" title="logstash MySQL Data Input">
+                <i class="fa fa-chevron-left"></i> logstash MySQL Data Input
               </a>
             
           </div>
@@ -390,8 +388,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/05/31/solr源码修改/" rel="prev" title="Solr源码修改">
-                Solr源码修改 <i class="fa fa-chevron-right"></i>
+              <a href="/2018/07/21/如何做一个推荐系统/" rel="prev" title="如何做一个推荐系统">
+                如何做一个推荐系统 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -524,7 +522,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dismax的使用"><span class="nav-number">2.</span> <span class="nav-text">dismax的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DisMax-查询解析器参数"><span class="nav-number">3.</span> <span class="nav-text">DisMax 查询解析器参数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#q-alt-参数"><span class="nav-number">3.1.</span> <span class="nav-text">q.alt 参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#qf（Query-Fields）参数"><span class="nav-number">3.2.</span> <span class="nav-text">qf（Query Fields）参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pf（Phrase-Fields）参数"><span class="nav-number">3.3.</span> <span class="nav-text">pf（Phrase Fields）参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#bq（Boost-Query）参数"><span class="nav-number">3.4.</span> <span class="nav-text">bq（Boost Query）参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#bf（Boost-Functions）参数"><span class="nav-number">3.5.</span> <span class="nav-text">bf（Boost Functions）参数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#solrconfig中去配置"><span class="nav-number">4.</span> <span class="nav-text">solrconfig中去配置</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行环境分析"><span class="nav-number">2.</span> <span class="nav-text">运行环境分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OOM处理过程"><span class="nav-number">3.</span> <span class="nav-text">OOM处理过程</span></a></li></ol></div>
             
 
           </div>
