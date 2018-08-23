@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="分布式," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言我们知道在多线程中，有时候为了保证一个代码块只被一个线程执行，从而通过加锁的方式实现，如Java中的synchronized语法。这可以保证一个进程不同线程的同步，那分布式集群中又是如何来保证线程间的同步呢?">
+<meta name="keywords" content="分布式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式锁的实现">
+<meta property="og:url" content="http://yoursite.com/2018/08/21/分布式锁的实现/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言我们知道在多线程中，有时候为了保证一个代码块只被一个线程执行，从而通过加锁的方式实现，如Java中的synchronized语法。这可以保证一个进程不同线程的同步，那分布式集群中又是如何来保证线程间的同步呢?">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-08-23T07:23:49.699Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="分布式锁的实现">
+<meta name="twitter:description" content="前言我们知道在多线程中，有时候为了保证一个代码块只被一个线程执行，从而通过加锁的方式实现，如Java中的synchronized语法。这可以保证一个进程不同线程的同步，那分布式集群中又是如何来保证线程间的同步呢?">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/08/21/分布式锁的实现/"/>
+
+
+
+
+
+  <title>分布式锁的实现 | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/21/分布式锁的实现/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">分布式锁的实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-21T19:21:24+08:00">
+                2018-08-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/分布式/" itemprop="url" rel="index">
+                    <span itemprop="name">分布式</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>我们知道在多线程中，有时候为了保证一个代码块只被一个线程执行，从而通过加锁的方式实现，如Java中的<code>synchronized</code>语法。这可以保证一个进程不同线程的同步，那分布式集群中又是如何来保证线程间的同步呢?<br><a id="more"></a></p>
+<h3 id="redis实现分布式锁"><a href="#redis实现分布式锁" class="headerlink" title="redis实现分布式锁"></a>redis实现分布式锁</h3><p>要想实现分布式集群的同步，可以采用分布式锁，实现分布式锁的方式有很多，如<code>redis</code>、<code>zookeeper</code>、<code>Memcached</code>。先来讲一下如何利用redis来实现分布式锁。</p>
+<h4 id="版本一"><a href="#版本一" class="headerlink" title="版本一"></a>版本一</h4><p>我们知道redis是一种以key-value形式存储的一种<code>NoSQL</code>，可以在需要同步的代码前去判断一个key是否存在，如果这个key不存在，那么才可以执行同步快代码。如果key存在说明有其他线程在执行，就等待该线程释放这个key为止。用下面版本一代码来说明。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">	<span class="keyword">if</span> (jredis.exesit(key)==0)//(1) 如果不存在该key，才可跳出循环执行逻辑代码</span><br><span class="line">		<span class="built_in">break</span>;</span><br><span class="line">&#125;</span><br><span class="line">jredis.set(key,value)</span><br><span class="line">逻辑处理...</span><br><span class="line">jredis.del(key)</span><br></pre></td></tr></table></figure>
+<h4 id="版本二"><a href="#版本二" class="headerlink" title="版本二"></a>版本二</h4><p>但是上面的代码是有问题的，因为exesit和set方法不能够保证原子性，两个线程可以同时执行到(1)，然后跳出循环。我们可以利用Redis的<code>setnx</code>（set while not exesit）命令。此命令是原子性操作，只有在key不存在的情况下，才能set成功。伪代码改动成版本二。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">	<span class="keyword">if</span> (jredis.setnx(key,vaule)==1)//当对key设置成功，才可以执行下面的逻辑代码</span><br><span class="line">		<span class="built_in">break</span>;</span><br><span class="line">&#125;</span><br><span class="line">逻辑处理...</span><br><span class="line">jredis.del(key)</span><br></pre></td></tr></table></figure>
+<h4 id="版本三"><a href="#版本三" class="headerlink" title="版本三"></a>版本三</h4><p>看起来已经没问题了，但是假设一个极端的情况，当一个线程在执行完逻辑部分的代码之后，突然宕机了，导致del key没能执行，那边其他线程将永远不能跳出死循环了。</p>
+<p>所以我们需要为了防止一个key的”长生不死”,在set的时候，给这个key设定一个有效时间，时间一到就会自动del掉这个key。当然我们也要保证设定这个有效时间的方法和setnx方法是原子性的。幸好<code>Redis 2.6.12</code>以上版本为set指令增加了可选参数，伪代码如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">	<span class="keyword">if</span> (jredis.set(key,vaule,30,nx)==1)//<span class="built_in">set</span>中可以加入nx参数表示意思与setnx一样，30是该key的有效时间</span><br><span class="line">		<span class="built_in">break</span>;</span><br><span class="line">&#125;</span><br><span class="line">逻辑处理...</span><br><span class="line">jredis.del(key)</span><br></pre></td></tr></table></figure>
+<h4 id="版本四"><a href="#版本四" class="headerlink" title="版本四"></a>版本四</h4><p>嘎嘎嘎，没错，版本三还是存在问题。再考虑一种极端情况由于特殊原因，如果某些原因导致线程A执行的很慢很慢，过了30秒都没执行完，这时候锁过期自动释放，线程B得到了锁。随后，线程A执行完了任务，线程A接着执行del指令来释放锁。但这时候线程B还没执行完，线程A实际上删除的是线程B加的锁。</p>
+<p>怎么避免这种情况呢？可以在del释放锁之前做一个判断，验证当前的锁是不是自己加的锁。至于具体的实现，可以在加锁的时候把当前的线程ID当做value，并在删除之前验证key对应的value是不是自己线程的ID。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">String threadId = Thread.currentThread().getId()</span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">	<span class="keyword">if</span> (jredis.set(key,threadId,30,nx)==1)//<span class="built_in">set</span>中可以加入nx参数表示意思与setnx一样，30是该key的有效时间</span><br><span class="line">		<span class="built_in">break</span>;</span><br><span class="line">&#125;</span><br><span class="line">逻辑处理...</span><br><span class="line"><span class="keyword">if</span>（threadId .equals(redisClient.get(key))）&#123;</span><br><span class="line">    jredis.del(key) //(2)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="版本五"><a href="#版本五" class="headerlink" title="版本五"></a>版本五</h4><p>但这么做，又会出现一个问题，因为判断和删除并不是一个原子性操作。假设A线程在版本四(2)代码处停留了30秒,那么A还是会删除B设定的锁。所以这块可以用<code>lua</code>脚本去完成，redis可以保证lua脚本是以原子性的操作去执行的。关于redis和lua的说明，可以看这篇博客<a href="https://www.cnblogs.com/itrena/p/5926878.html" target="_blank" rel="noopener">点击查看</a>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">String threadId = Thread.currentThread().getId()</span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">	<span class="keyword">if</span> (jredis.set(key,threadId,30,nx)==1)//<span class="built_in">set</span>中可以加入nx参数表示意思与setnx一样，30是该key的有效时间</span><br><span class="line">		<span class="built_in">break</span>;</span><br><span class="line">&#125;</span><br><span class="line">逻辑处理...</span><br><span class="line">String luaScript = <span class="string">"if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end"</span>;</span><br><span class="line">redisClient.eval(luaScript , Collections.singletonList(key), Collections.singletonList(threadId));</span><br></pre></td></tr></table></figure>
+<p>除了用Lua脚本，还可以实现守护线程，对将要过期的key续命，比如执行到29秒的时候，还没释放，守护线程就给这个key再设定20秒，当线程A执行完任务，会显式关掉守护线程。以上是基于<a href="https://mp.weixin.qq.com/s/8fdBKAyHZrfHmSajXT_dnA" target="_blank" rel="noopener">程序员小灰</a>的文章的一个总结，感谢！</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/分布式/" rel="tag"># 分布式</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/21/状态/" rel="next" title="月记">
+                <i class="fa fa-chevron-left"></i> 月记
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#redis实现分布式锁"><span class="nav-number">2.</span> <span class="nav-text">redis实现分布式锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#版本一"><span class="nav-number">2.1.</span> <span class="nav-text">版本一</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#版本二"><span class="nav-number">2.2.</span> <span class="nav-text">版本二</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#版本三"><span class="nav-number">2.3.</span> <span class="nav-text">版本三</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#版本四"><span class="nav-number">2.4.</span> <span class="nav-text">版本四</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#版本五"><span class="nav-number">2.5.</span> <span class="nav-text">版本五</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
