@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="随记," />
+  <meta name="keywords" content="分布式,Zookeeper," />
 
 
 
@@ -79,18 +79,21 @@
 
 
 
-<meta name="description" content="状态：距离上一篇博客已经有一个月了，这说明最近的学习状态的确不够理想。在休息之前，一直告诉自己，乘着放松的时间把状态调整好，现在是休息好了，但是状态却找不回来。老师交代的论文也没怎么看，说实话我觉得论文这块不是我的菜，看多了反而觉得烦。 值得庆幸的是，学习的步伐始终没有停下来，每天早上会去看公总号推荐的技术性文章，这是一个好习惯，希望保持住。不论学习的效率问题，至少我对这个行业的初心还是保持不变，">
-<meta name="keywords" content="随记">
+<meta name="description" content="前言ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置共享、命名服务、分布式同步、服务注册等。 上一篇博客中我们了解到Zookeeper可以用来实现分布式同步，主要是利用了顺序临时节点和watcher的机制来实现的，所以今天再来讲一下Zookeeper在其他场景上的应用。">
+<meta name="keywords" content="分布式,Zookeeper">
 <meta property="og:type" content="article">
-<meta property="og:title" content="月记">
-<meta property="og:url" content="http://yoursite.com/2018/08/21/状态/index.html">
+<meta property="og:title" content="Zookeeper的应用">
+<meta property="og:url" content="http://yoursite.com/2018/08/24/Zookeeper的应用/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="状态：距离上一篇博客已经有一个月了，这说明最近的学习状态的确不够理想。在休息之前，一直告诉自己，乘着放松的时间把状态调整好，现在是休息好了，但是状态却找不回来。老师交代的论文也没怎么看，说实话我觉得论文这块不是我的菜，看多了反而觉得烦。 值得庆幸的是，学习的步伐始终没有停下来，每天早上会去看公总号推荐的技术性文章，这是一个好习惯，希望保持住。不论学习的效率问题，至少我对这个行业的初心还是保持不变，">
+<meta property="og:description" content="前言ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置共享、命名服务、分布式同步、服务注册等。 上一篇博客中我们了解到Zookeeper可以用来实现分布式同步，主要是利用了顺序临时节点和watcher的机制来实现的，所以今天再来讲一下Zookeeper在其他场景上的应用。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-08-21T11:18:52.958Z">
+<meta property="og:image" content="http://yoursite.com/2018/08/24/Zookeeper的应用/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/08/24/Zookeeper的应用/2.png">
+<meta property="og:updated_time" content="2018-08-24T12:36:59.840Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="月记">
-<meta name="twitter:description" content="状态：距离上一篇博客已经有一个月了，这说明最近的学习状态的确不够理想。在休息之前，一直告诉自己，乘着放松的时间把状态调整好，现在是休息好了，但是状态却找不回来。老师交代的论文也没怎么看，说实话我觉得论文这块不是我的菜，看多了反而觉得烦。 值得庆幸的是，学习的步伐始终没有停下来，每天早上会去看公总号推荐的技术性文章，这是一个好习惯，希望保持住。不论学习的效率问题，至少我对这个行业的初心还是保持不变，">
+<meta name="twitter:title" content="Zookeeper的应用">
+<meta name="twitter:description" content="前言ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置共享、命名服务、分布式同步、服务注册等。 上一篇博客中我们了解到Zookeeper可以用来实现分布式同步，主要是利用了顺序临时节点和watcher的机制来实现的，所以今天再来讲一下Zookeeper在其他场景上的应用。">
+<meta name="twitter:image" content="http://yoursite.com/2018/08/24/Zookeeper的应用/1.png">
 
 
 
@@ -120,13 +123,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/08/21/状态/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/08/24/Zookeeper的应用/"/>
 
 
 
 
 
-  <title>月记 | Don't Stop</title>
+  <title>Zookeeper的应用 | Don't Stop</title>
   
 
 
@@ -253,7 +256,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/21/状态/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/24/Zookeeper的应用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -270,7 +273,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">月记</h1>
+          <h1 class="post-title" itemprop="name headline">Zookeeper的应用</h1>
         
 
         <div class="post-meta">
@@ -282,8 +285,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-21T18:49:57+08:00">
-                2018-08-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-24T15:54:47+08:00">
+                2018-08-24
               </time>
             
 
@@ -305,8 +308,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/随记/" itemprop="url" rel="index">
-                    <span itemprop="name">随记</span>
+                  <a href="/categories/Zookeeper/" itemprop="url" rel="index">
+                    <span itemprop="name">Zookeeper</span>
                   </a>
                 </span>
 
@@ -342,11 +345,27 @@
       
 
       
-        <p>状态：<br>距离上一篇博客已经有一个月了，这说明最近的学习状态的确不够理想。在休息之前，一直告诉自己，乘着放松的时间把状态调整好，现在是休息好了，但是状态却找不回来。老师交代的论文也没怎么看，说实话我觉得论文这块不是我的菜，看多了反而觉得烦。</p>
-<p>值得庆幸的是，学习的步伐始终没有停下来，每天早上会去看公总号推荐的技术性文章，这是一个好习惯，希望保持住。不论学习的效率问题，至少我对这个行业的初心还是保持不变，我也相信这会是我学习路上最好的老师。</p>
-<p>新get的知识：<br>在前面一个月，由一篇关于分布式锁的博客，学到了如何利用redis来实现分布式锁，认识到zookeeper在实现分布式锁上更加具有优势，这些在后面的博客会记录下来。</p>
-<p>架构方面：<br>这两天在看service mesh，有点楞，还体会不到这个微服务网格的好处在哪，记得上次师兄们在群里聊到蚂蚁有自己的一套SOFA MESh，当时是完全不知道他们在讲什么，至少现在我知道了，说明我也在进步。<br>在这一个月里，微服务的RPC的框架有了一定的了解，也写了一个demo，后面会针对Dubbo实现的demo来解释加深对RPC的认识。</p>
-<p>展望：<br>把前面的提到知识点梳理好，相应的博客也要接着写掉。然后抓紧把实验做了，其实要自己实现word2vec是没什么难度的，但是总觉得和自己前进的方向没有什么重合点，以至于我不想动。架构学习上多参加开源社区，增加知识面的广度，当然还是要有自己的一个擅长的领域。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置共享、命名服务、分布式同步、服务注册等。</p>
+<p>上一篇博客中我们了解到Zookeeper可以用来实现分布式同步，主要是利用了顺序临时节点和<code>watcher</code>的机制来实现的，所以今天再来讲一下Zookeeper在其他场景上的应用。<br><a id="more"></a></p>
+<h3 id="服务注册"><a href="#服务注册" class="headerlink" title="服务注册"></a>服务注册</h3><p>dubbo是阿里的RPC微服务框架的具体实现，dubbo中的服务注册就是基于Zookeeper的。那么什么是服务注册呢？为了支持高并发，我们需要将服务部署成集群，当客服端来调用服务的时候，会在集群列表中找到对应的服务节点。</p>
+<p>但是这个列表是静态的（在配置文件中写死的），如果服务的提供者发生了变化，例如有些机器down了，或者又新增了服务节点的实例，客户端根本不知道，可能还在傻乎乎地尝试那些已经坏掉的实例呢！</p>
+<p>看来这个配置文件的确不方便，需要有一个更灵活的方式来告知客服端有哪些服务节点可以使用。要解决的问题有，如何知道哪些机器down了，以及服务要实现动态的注册，不能是写死的。刚好Zookeeper上的心跳检测以及提供创建节点的方法刚好可以解决上述的问题。</p>
+<p>先来看一下服务的提供者如何在Zookeeper中注册服务。假设这里有4个服务提供者，提供一个orderService的方法，首先Zookeeper上创建一个orderService的Znode，然后四个服务提供者在这个节点下创建对应的临时节点。</p>
+<p><img src="/2018/08/24/Zookeeper的应用/1.png" alt="你想输入的替代文字"></p>
+<p>/orderService 表达了一个服务的概念， 下面的每个节点表示了一个服务的实例。 例如<code>/orderService/node2</code>表示的order service 的第二个实例， 每个节点上可以记录下该实例的url , 这样就可以查询了。</p>
+<p>客户端就到Zookeeper这里来查询，只需要给出名称orderService，注册中心找到该节点下的所有可用节点，然后根据均衡算法给出一个可以使用的节点中的url。</p>
+<p>注册中心还可以和各个服务实例直接建立Session, 让各个服务实例定期地发送心跳，如果过了特定时间收不到心跳，就认为这个服务实例挂掉了，Session 过期， 把它从树形结构中删除。</p>
+<h3 id="配置共享"><a href="#配置共享" class="headerlink" title="配置共享"></a>配置共享</h3><p>集中式的配置管理在应用集群中是非常常见的，一般商业公司内部都会实现一套集中的配置管理中心，应对不同的应用集群对于共享各自配置的需求，并且在配置变更时能够通知到集群中的每一个机器。简单来说就是集群中的配置要修改的时候，不用一个个去改，而是通过Zookeeper的Watcher机制来实现。</p>
+<p>假设一个集群有三个服务节点，server1,server2,server3，先在Zookeeper上创建一个/config的Znode节点，Znode上的值可以是配置文件的初始值。然后每一个server去获取/config节点上的数据。</p>
+<p>Zookeeper有exists，getData，getChildren读操作。Zookeeper客户端在请求读操作的时候，可以选择是否设置Watch。我们可以理解成是注册在特定Znode上的触发器。当这个Znode发生改变，也就是调用了create，delete，setData方法的时候，将会触发Znode上注册的对应事件，请求Watch的客户端会接收到异步通知。</p>
+<p>那么让这三个server在getData的时候，设定watch为true，这样只要这个Znode的数据发生改变，就会触发process方法，我们就可以在process方法中做相应的配置修改操作了。具体交互过程如下：</p>
+<p>1.客户端调用getData方法，watch参数是true。服务端接到请求，返回节点数据，并且在对应的哈希表里插入被Watch的Znode路径，以及Watcher列表。</p>
+<p><img src="/2018/08/24/Zookeeper的应用/2.png" alt="你想输入的替代文字"></p>
+<p>2.当被Watch的Znode已删除，服务端会查找哈希表，找到该Znode对应的所有Watcher，异步通知客户端，并且删除哈希表中对应的Key-Value。</p>
+<h3 id="命名服务"><a href="#命名服务" class="headerlink" title="命名服务"></a>命名服务</h3><p>在我们熟悉的关系型数据库中，各个表都需要一个主键来唯一标识某条数据记录，这个主键就是 这样的唯一ID。</p>
+<p>在过去的单库表型系统中，通常可以使用数据库字段自带的auto_increatement属性来自动为每条数据库记录生成一个唯一的ID,数据库会保证生成的这个ID在全局唯一。但是随着数据数据规模增大，分库分表随之出现，而auto_increatement属性仅能针对单表中的记录自动生成ID，因此在这种情况下，我们必须寻求一种能够在分布式环境下生成全局唯一的ID的方法。</p>
+<p>说起全局唯一ID，大家都会联想到UUID。但是UUID因为长度过长，需要花费很多的空间，而且含义不明。</p>
+<p>而我们通过Zookeeper节点创建的API接口可以创建一个顺序节点，并且API返回值中会返回这个节点的完整名字。利用这个特性，我们就可以借助Zookeeper来生成全局唯一的ID了。</p>
 
       
     </div>
@@ -364,7 +383,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/随记/" rel="tag"># 随记</a>
+            <a href="/tags/分布式/" rel="tag"># 分布式</a>
+          
+            <a href="/tags/Zookeeper/" rel="tag"># Zookeeper</a>
           
         </div>
       
@@ -377,8 +398,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/07/21/如何做一个推荐系统/" rel="next" title="如何做一个推荐系统">
-                <i class="fa fa-chevron-left"></i> 如何做一个推荐系统
+              <a href="/2018/08/23/分布式锁的实现二/" rel="next" title="分布式锁的实现二（转载+整理）">
+                <i class="fa fa-chevron-left"></i> 分布式锁的实现二（转载+整理）
               </a>
             
           </div>
@@ -386,10 +407,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/08/21/分布式锁的实现/" rel="prev" title="分布式锁的实现">
-                分布式锁的实现 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -441,8 +458,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -502,6 +528,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务注册"><span class="nav-number">2.</span> <span class="nav-text">服务注册</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置共享"><span class="nav-number">3.</span> <span class="nav-text">配置共享</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命名服务"><span class="nav-number">4.</span> <span class="nav-text">命名服务</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
