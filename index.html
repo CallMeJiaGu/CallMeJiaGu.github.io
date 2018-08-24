@@ -268,7 +268,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/08/23/分布式锁的实现二/" itemprop="url">分布式锁的实现二</a></h1>
+                <a class="post-title-link" href="/2018/08/23/分布式锁的实现二/" itemprop="url">分布式锁的实现二（转载+整理）</a></h1>
         
 
         <div class="post-meta">
@@ -290,6 +290,28 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/分布式/" itemprop="url" rel="index">
+                    <span itemprop="name">分布式</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -319,9 +341,14 @@
 
       
         
-          
-            
-          
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇博客中，我们可以用redis来实现分布式锁，但是仔细观察下面的伪代码，你会发现redis的竞争锁的机制太低效了，因为我们是通过自旋的方式去获得锁，而且实现比较复杂，需要考虑原子性、误删的问题。所以这篇我将介绍如何使用<code>Zookeeper</code>来实现分布式锁。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">String threadId = Thread.currentThread().getId()</span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;//通过自旋的方式去竞争锁，低效浪费cpu</span><br><span class="line">	<span class="keyword">if</span> (jredis.set(key,threadId,30,nx)==1)</span><br><span class="line">		<span class="built_in">break</span>;</span><br><span class="line">&#125;</span><br><span class="line">逻辑处理...</span><br></pre></td></tr></table></figure></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/08/23/分布式锁的实现二/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -1750,7 +1777,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
