@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="分布式,Zookeeper," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言在前面两篇的博客中，Zookeeper提供的功能包括：配置共享、命名服务、分布式同步、服务注册等。设想一下如果存放Zookeeper服务的机器宕机了，那这些功能不就没得用了嘛！ 所以Zookeeper需要维护一个集群，就算一个机器宕机了，还有其他的可以替上。随之而然解决集群中的数据一致性就成为了Zookeeper集群的首要问题。Zookeeper中使用了Zab协议来保证各个ZK之间的同步。 Z">
+<meta name="keywords" content="分布式,Zookeeper">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zookeeper的Zab协议与拓展（转载+整理）">
+<meta property="og:url" content="http://yoursite.com/2018/08/25/Zookeeper的一致性/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言在前面两篇的博客中，Zookeeper提供的功能包括：配置共享、命名服务、分布式同步、服务注册等。设想一下如果存放Zookeeper服务的机器宕机了，那这些功能不就没得用了嘛！ 所以Zookeeper需要维护一个集群，就算一个机器宕机了，还有其他的可以替上。随之而然解决集群中的数据一致性就成为了Zookeeper集群的首要问题。Zookeeper中使用了Zab协议来保证各个ZK之间的同步。 Z">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-08-25T08:52:47.056Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zookeeper的Zab协议与拓展（转载+整理）">
+<meta name="twitter:description" content="前言在前面两篇的博客中，Zookeeper提供的功能包括：配置共享、命名服务、分布式同步、服务注册等。设想一下如果存放Zookeeper服务的机器宕机了，那这些功能不就没得用了嘛！ 所以Zookeeper需要维护一个集群，就算一个机器宕机了，还有其他的可以替上。随之而然解决集群中的数据一致性就成为了Zookeeper集群的首要问题。Zookeeper中使用了Zab协议来保证各个ZK之间的同步。 Z">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/08/25/Zookeeper的一致性/"/>
+
+
+
+
+
+  <title>Zookeeper的Zab协议与拓展（转载+整理） | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/25/Zookeeper的一致性/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Zookeeper的Zab协议与拓展（转载+整理）</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-25T14:07:56+08:00">
+                2018-08-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Zookeeper/" itemprop="url" rel="index">
+                    <span itemprop="name">Zookeeper</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在前面两篇的博客中，Zookeeper提供的功能包括：配置共享、命名服务、分布式同步、服务注册等。设想一下如果存放Zookeeper服务的机器宕机了，那这些功能不就没得用了嘛！</p>
+<p>所以Zookeeper需要维护一个集群，就算一个机器宕机了，还有其他的可以替上。随之而然解决集群中的数据一致性就成为了Zookeeper集群的首要问题。Zookeeper中使用了<code>Zab</code>协议来保证各个ZK之间的同步。</p>
+<p>Zab协议有两种模式，崩溃恢复模式和消息广播模式。其中崩溃恢复模式是在服务启动或者leader宕机的时候，原来选举出leader。消息广播模式用来保持各个副本之间的数据一致性。总结就是一句话，崩溃恢复模式来保证服务的高可用性，消息广播模式保持节点之间的数据一致性。<br><a id="more"></a></p>
+<h3 id="崩溃恢复模式"><a href="#崩溃恢复模式" class="headerlink" title="崩溃恢复模式"></a>崩溃恢复模式</h3><p>Zookeeper集群中有三种服务器角色：Leader、Follower、Observe，接下来从Leader选举过程去分析一下在服务启动和Leader宕机两种情况。</p>
+<h4 id="服务启动时期选举"><a href="#服务启动时期选举" class="headerlink" title="服务启动时期选举"></a>服务启动时期选举</h4><p>假设有三台ZK服务，ZK1,ZK2,ZK3。每一台Zk都有自己的一个MyId来标识。假设ZK1、ZK2先与ZK3启动。</p>
+<p><font size="4" face="黑体"> 1.每个ZK发出投票。</font>由于是初始情况，ZK1和ZK2都会将自己作为Leader服务器来进行投票，每次投票会包含所推举的服务器的MyId和ZXID（是一个事务的ID，用来唯一标识服务器状态的变更，最初是0）。ZK1发送由于是初始情况，ZK1和ZK2都会将自己作为Leader服务器来进行投票，每次投票会包含所推举的服务器的myid和ZXID。ZK1发送(1,0)ZK2发送(2,0)</p>
+<p><font size="4" face="黑体"> 2.每个ZK检查接受到投票有效性。</font>如检查是否是本轮投票、是否来自LOOKING状态的服务器。</p>
+<p><font size="4" face="黑体"> 3.每个ZK统计票数。</font>针对每一个投票，服务器都需要将别人的投票和自己的投票进行PK，PK规则如下</p>
+<p>　　　　· 优先检查ZXID。ZXID比较大的服务器优先作为Leader。</p>
+<p>　　　　· 如果ZXID相同，那么就比较myid。myid较大的服务器作为Leader服务器。</p>
+<p>对于ZK1而言，它的投票是(1, 0)，接收ZK2的投票为(2, 0)，首先会比较两者的ZXID，均为0，再比较myid，此时ZK2的myid最大，于是更新自己的投票为(2, 0)，然后重新投票，对于ZK2而言，其无须更新自己的投票，只是再次向集群中所有机器发出上一次投票信息即可。</p>
+<p><font size="4" face="黑体"> 4.统计投票。</font>每次投票后，服务器都会统计投票信息，判断是否已经有过半机器接受到相同的投票信息，对于ZK1、ZK2而言，都统计出集群中已经有两台机器接受了(2, 0)的投票信息，此时便认为已经选出了Leader。</p>
+<p><font size="4" face="黑体"> 5.改变服务器状态。</font>一旦确定了Leader，每个服务器就会更新自己的状态，如果是Follower，那么就变更为FOLLOWING，如果是Leader，就变更为LEADING。</p>
+<h4 id="运行期选举"><a href="#运行期选举" class="headerlink" title="运行期选举"></a>运行期选举</h4><p>在Zookeeper运行期间，Leader与非Leader服务器各司其职，即便当有非Leader服务器宕机或新加入，此时也不会影响Leader，但是一旦Leader服务器挂了，那么整个集群将暂停对外服务，进入新一轮Leader选举，其过程和启动时期的Leader选举过程基本一致。</p>
+<p>假设正在运行的有ZK1、ZK2、ZK3三台服务器，当前Leader是ZK2，若某一时刻Leader挂了，此时便开始Leader选举。选举过程如下</p>
+<p><font size="4" face="黑体">1.变更状态。</font>Leader挂后，余下的非ObZK服务器都会讲自己的服务器状态变更为LOOKING，然后开始进入Leader选举过程。</p>
+<p><font size="4" face="黑体">2.每个ZK会发出一个投票。</font>在运行期间，每个服务器上的ZXID可能不同，此时假定ZK1的ZXID为123，ZK3的ZXID为122；在第一轮投票中，ZK1和ZK3都会投自己，产生投票(1, 123)，(3, 122)，然后各自将投票发送给集群中所有机器。</p>
+<p><font size="4" face="黑体">3.接收来自各个服务器的投票。</font>与启动时过程相同。</p>
+<p><font size="4" face="黑体">4.处理投票。</font>与启动时过程相同，此时，ZK1将会成为Leader。</p>
+<p><font size="4" face="黑体">5.统计投票。</font>与启动时过程相同。</p>
+<p><font size="4" face="黑体">6.改变服务器的状态。</font>与启动时过程相同。</p>
+<h3 id="消息广播模式"><a href="#消息广播模式" class="headerlink" title="消息广播模式"></a>消息广播模式</h3><p>客户端每发送一个更新请求，ZooKeeper都会生成一个全局唯一的递增编号，这个编号反映了所有事务操作的先后顺序，这个唯一编号就是事务ID(ZXID)，只有更新请求才算是事务请求。</p>
+<p>为保证按照事务的ZXID先后顺序来处理，Leader服务器会分别为每个Follower服务器创建一个队列，并将事务的先后顺序放入队列中，并按照FIFO的策略进行消息发送。</p>
+<p>收到需要处理的事务后，Follower服务器会首先以及事务日志的形式写入服务器的磁盘中，写入成功后，会向Leader服务器发送ACK响应。当Leader服务器收到超过一半的Follower服务器的ACK响应后，会向所有Follower服务器广播Commit消息，</p>
+<p>收到Commit消息的Follower服务器也会完成对事务的提交。</p>
+<p>如果接收到事务请求的是Follower服务器，它会将请求转发给Leader服务器处理。</p>
+<h3 id="Zookeeper的扩展"><a href="#Zookeeper的扩展" class="headerlink" title="Zookeeper的扩展"></a>Zookeeper的扩展</h3><h4 id="ZooKeeper的一致性"><a href="#ZooKeeper的一致性" class="headerlink" title="ZooKeeper的一致性"></a>ZooKeeper的一致性</h4><p>zookeeper建议部署的节点个数为奇数个，只有超过一半的机器不可用整个zk集群才不可用。zookeeper集群中主要有两个角色leader和flower，每个客户端可以连接集群中的任何一个zookeeper节点，同时从其上面read信息，但是针对write操作，flower节点会转发给leader，由leader负责原子广播，从而保证集群中各个节点的数据一致性，zookeeper中规定只有当多余一半的节点同步完成整个write操作才算完成。也就是说可能会有少于一半的数据不是新数据，因此zookeeper中不是强一致性而是实现的最终一致性。</p>
+<h4 id="Observe角色"><a href="#Observe角色" class="headerlink" title="Observe角色"></a>Observe角色</h4><p>Observers 的需求源于 ZooKeeper  follower服务器在上述工作流程中实际扮演了两个角色。它们从客户端接受连接与操作请求，之后对操作结果进行投票。这两个职能在 ZooKeeper集群扩展的时候彼此制约。如果我们希望增加 ZooKeeper 集群服务的客户数量（我们经常考虑到有上万个客户端的情况），那么我们必须增加服务器的数量，来支持这么多的客户端。然而，从一致性协议的描述可以看到，增加服务器的数量增加了对协议的投票部分的压力。领导节点必须等待集群中过半数的服务器响应投票。于是，节点的增加使得部分计算机运行较慢，从而拖慢整个投票过程的可能性也随之提高，投票操作的会随之下降。这正是我们在实际操作中看到的问题——随着 ZooKeeper 集群变大，投票操作的吞吐量会下降。</p>
+<p>所以需要增加客户节点数量的期望和我们希望保持较好吞吐性能的期望间进行权衡。要打破这一耦合关系，引入了不参与投票的服务器，称为 Observers。 Observers 可以接受客户端的连接，将写请求转发给领导节点。但是，领导节点不会要求 Observers 参加投票。相反，Observers 不参与投票过程，仅仅和其他服务节点一起得到投票结果。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/分布式/" rel="tag"># 分布式</a>
+          
+            <a href="/tags/Zookeeper/" rel="tag"># Zookeeper</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/24/Zookeeper的应用/" rel="next" title="Zookeeper的应用">
+                <i class="fa fa-chevron-left"></i> Zookeeper的应用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#崩溃恢复模式"><span class="nav-number">2.</span> <span class="nav-text">崩溃恢复模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#服务启动时期选举"><span class="nav-number">2.1.</span> <span class="nav-text">服务启动时期选举</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#运行期选举"><span class="nav-number">2.2.</span> <span class="nav-text">运行期选举</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息广播模式"><span class="nav-number">3.</span> <span class="nav-text">消息广播模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Zookeeper的扩展"><span class="nav-number">4.</span> <span class="nav-text">Zookeeper的扩展</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ZooKeeper的一致性"><span class="nav-number">4.1.</span> <span class="nav-text">ZooKeeper的一致性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Observe角色"><span class="nav-number">4.2.</span> <span class="nav-text">Observe角色</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
