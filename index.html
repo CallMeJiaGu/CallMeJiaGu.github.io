@@ -460,16 +460,15 @@
 
       
         
-          
-            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>RPC（Remote Procedure Call）—远程过程调用，它是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。直白点说它可以让你调用远程接口，就像调用本地方法一样，要实现这个功能需要的技术栈有socket编程、IO、服务注册等。</p>
-<p><code>dubbo</code>就是阿里实现的RPC微服务的一种框架了，这篇我利用BIO、Socket实现自己的第一版RPC框架。</p>
-<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>我的想法很简单。<br>      1.客服端将想要调用的类名、方法名、参数等利用socket发送请求到服务端。<br>      2.服务端根据这些参数选择对应接口，然后返回执行完毕的结果。<br>      3.客服端得到服务端返回的结果，做出相应的操作。</p>
-<h3 id="核心代码解释"><a href="#核心代码解释" class="headerlink" title="核心代码解释"></a>核心代码解释</h3><h3 id="注意的地方"><a href="#注意的地方" class="headerlink" title="注意的地方"></a>注意的地方</h3><p>output.flush()，数据量会先在缓冲区，达到一定量时会被写到套接字的接收方。所以有时候需要手动调用flush()方法。</p>
-<p>我当时在想直接把反射的类传回来不就好了嘛，其实是不对的，因为我们需要服务器上的环境去执行，就算你本地有对应的实现类，但是没有服务器上的资源还是不行的，</p>
-<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><p>第一版在客服端没有屏蔽网络请求或者IO操作，所以代码有很大的侵入性，不过这个不要紧，后面会将这些代码封装到注册组件上。</p>
-<p>使用BIO对性能有比较大的影响。</p>
-
-          
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>RPC（Remote Procedure Call）—远程过程调用，它是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。直白点说它可以让你调用远程接口，就像调用本地方法一样，要实现这个简易版功能要用到<code>socket编程</code>、<code>JDK动态代理</code>、<code>反射</code>等。</p>
+<p><code>dubbo</code>就是阿里实现的RPC微服务的一种框架了，这篇记录一下自己的第一版RPC框架。代码上传至github,<a href="https://github.com/CallMeJiaGu/RPC_V1.git" target="_blank" rel="noopener">链接</a></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/08/28/实现自己的RPC框架/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
