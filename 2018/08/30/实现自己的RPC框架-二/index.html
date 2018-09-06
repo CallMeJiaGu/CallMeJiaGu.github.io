@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="微服务,RPC,NIO," />
 
 
 
@@ -79,14 +79,18 @@
 
 
 
+<meta name="description" content="前言在上一篇的RPC实现，使用了Socket来进行通信，这种方式的缺点很明显，Socket的IO是同步阻塞的，即你的线程会一直等到有服务进来或者read()有消息。这时候有其他线程想要链接，为了不被阻塞，只能再开一个线程去处理。 虽然可以通过线程池来复用线程，但是通信线程多起来还是会影响到整个服务的性能。所以这篇我们将使用NIO来代替BIO来实现服务之间的通信。代码上传至github，链接。">
+<meta name="keywords" content="微服务,RPC,NIO">
 <meta property="og:type" content="article">
 <meta property="og:title" content="实现自己的RPC框架(二)">
 <meta property="og:url" content="http://yoursite.com/2018/08/30/实现自己的RPC框架-二/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言在上一篇的RPC实现，使用了Socket来进行通信，这种方式的缺点很明显，Socket的IO是同步阻塞的，即你的线程会一直等到有服务进来或者read()有消息。这时候有其他线程想要链接，为了不被阻塞，只能再开一个线程去处理。 虽然可以通过线程池来复用线程，但是通信线程多起来还是会影响到整个服务的性能。所以这篇我们将使用NIO来代替BIO来实现服务之间的通信。代码上传至github，链接。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-08-30T01:56:47.642Z">
+<meta property="og:updated_time" content="2018-09-06T07:42:14.523Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="实现自己的RPC框架(二)">
+<meta name="twitter:description" content="前言在上一篇的RPC实现，使用了Socket来进行通信，这种方式的缺点很明显，Socket的IO是同步阻塞的，即你的线程会一直等到有服务进来或者read()有消息。这时候有其他线程想要链接，为了不被阻塞，只能再开一个线程去处理。 虽然可以通过线程池来复用线程，但是通信线程多起来还是会影响到整个服务的性能。所以这篇我们将使用NIO来代替BIO来实现服务之间的通信。代码上传至github，链接。">
 
 
 
@@ -289,6 +293,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/微服务/" itemprop="url" rel="index">
+                    <span itemprop="name">微服务</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -316,7 +342,23 @@
       
 
       
-        
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇的RPC实现，使用了Socket来进行通信，这种方式的缺点很明显，Socket的IO是同步阻塞的，即你的线程会一直等到有服务进来或者<code>read()</code>有消息。这时候有其他线程想要链接，为了不被阻塞，只能再开一个线程去处理。</p>
+<p>虽然可以通过线程池来复用线程，但是通信线程多起来还是会影响到整个服务的性能。所以这篇我们将使用<code>NIO</code>来代替BIO来实现服务之间的通信。代码上传至github，<a href="https://github.com/CallMeJiaGu/RPC_V2.git" target="_blank" rel="noopener">链接</a>。</p>
+<a id="more"></a>
+<h3 id="NIO组件"><a href="#NIO组件" class="headerlink" title="NIO组件"></a>NIO组件</h3><h4 id="Selector"><a href="#Selector" class="headerlink" title="Selector"></a>Selector</h4><p>可以说它是NIO中最关键的一个部分，Selector的作用就是用来轮询每个注册的Channel，一旦发现Channel有注册的事件发生，便获取事件然后进行处理。</p>
+<h4 id="Channel"><a href="#Channel" class="headerlink" title="Channel"></a>Channel</h4><p>传统IO中，Stream是单向的，比如InputStream只能进行读取操作，OutputStream只能进行写操作。而Channel是双向的，既可用来进行读操作，又可用来进行写操作。</p>
+<h4 id="Buffer"><a href="#Buffer" class="headerlink" title="Buffer"></a>Buffer</h4><p>是NIO中非常重要的一个东西，实际上就是一个容器，是一个连续数组。在NIO中所有数据的读和写都离不开Buffer。在NIO中，读取的数据只能放在Buffer中。同样地，写入数据也是先写入到Buffer中。</p>
+<p>打个比喻，一个小巷有5条街，一个巡检在这些街道不停的巡逻。当某个街道发生状况时，巡检会带着他的记录册子去记录事件状况。这个巡检也很懒，他要报案的人来记录这个状况。</p>
+<p>先看BIO的情况：当巡检在某条街道看到有状况发生，让涉嫌人员把状况记录完毕（耗时操作），等记录完毕了，巡检查看状况作出相应措施。也就是说这个巡检是在等到记录完成之后才能执行下一步操作！那在这个时间段如果其他街道有事情发生不就不能及时解决了吗！</p>
+<p>再看NIO的情况：当巡检在某条街道看到有状况发生，让涉嫌人员把状况记录下来，记录的时候巡检还可以继续巡逻街道。等小哥处理好了，给巡检发个消息说记录好了，巡检在来这个街道查看记录状况，然后对事件进行相应的处理。</p>
+<p>对应上面的例子，Selector就是巡检，Buffer是记录的小册子，Channel就是街道。</p>
+<h3 id="核心代码"><a href="#核心代码" class="headerlink" title="核心代码"></a>核心代码</h3><p>和第一版的主要差别是在通信部分变成NIO</p>
+<p><code>NIOServer 核心</code><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    System.out.println(<span class="string">"Server: 等待触发事件..."</span>);</span><br><span class="line">    selector.select();//没有事情产生会被阻塞在这</span><br><span class="line">    Iterator&lt;SelectionKey&gt; keyIterator = selector.selectedKeys().iterator();</span><br><span class="line">    <span class="keyword">while</span>(keyIterator.hasNext())&#123;</span><br><span class="line">    SelectionKey skey = keyIterator.next();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(skey.isAcceptable())&#123;</span><br><span class="line">        System.out.println(<span class="string">"Server: 有链接进来"</span>);</span><br><span class="line">        sc =  ((ServerSocketChannel) skey.channel()).accept();</span><br><span class="line">        sc.configureBlocking(<span class="literal">false</span>);</span><br><span class="line">        sc.register(selector,SelectionKey.OP_READ);</span><br><span class="line">        System.out.println(<span class="string">"Server: 与Client建立链接"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(skey.isReadable())&#123;</span><br><span class="line">        System.out.println(<span class="string">"Server: 有可读操作进来"</span>);</span><br><span class="line">        sc = (SocketChannel) skey.channel();</span><br><span class="line">        byteBuffer.clear();</span><br><span class="line">        <span class="keyword">while</span>(sc.read(byteBuffer)&gt;0) &#123;//因为有可能字节数很多，byteBuffer一次读不了</span><br><span class="line">        //读取channel中的数据</span><br><span class="line">        //byteBuffer.flip();</span><br><span class="line">        ByteArrayInputStream bInput = new ByteArrayInputStream(byteBuffer.array());</span><br><span class="line">        ObjectInputStream oInput = new ObjectInputStream(bInput);</span><br><span class="line">        ReqMessage reqMessage = (ReqMessage) oInput.readObject();</span><br><span class="line">        result = getResultByParams(reqMessage);</span><br><span class="line">        sc.register(selector, SelectionKey.OP_WRITE);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(skey.isWritable())&#123;</span><br><span class="line">        System.out.println(<span class="string">"Server: 有可写操作进来"</span>);</span><br><span class="line">        sc = (SocketChannel) skey.channel();</span><br><span class="line">        ByteArrayOutputStream bOut = new ByteArrayOutputStream();</span><br><span class="line">        ObjectOutputStream oOut = new ObjectOutputStream(bOut);</span><br><span class="line">        oOut.writeObject(result);</span><br><span class="line">        sc.write(ByteBuffer.wrap(bOut.toByteArray()));</span><br><span class="line">        sc.close();</span><br><span class="line">    &#125;</span><br><span class="line">        //移除当前监听的事件</span><br><span class="line">        keyIterator.remove();</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>NIOInvokeHandler 核心</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">public Object invoke(Object proxy, Method method, Object[] args) throws Throwable &#123;</span><br><span class="line">    SocketChannel sc = SocketChannel.open();</span><br><span class="line">    Object result =null;</span><br><span class="line">    sc.connect(new InetSocketAddress(8088));</span><br><span class="line">    sc.configureBlocking(<span class="literal">false</span>);</span><br><span class="line">    ByteBuffer byteBuffer = ByteBuffer.allocate(1024);</span><br><span class="line">    //创建消息对象</span><br><span class="line">    ReqMessage reqMessage = new ReqMessage();</span><br><span class="line">    reqMessage.setClassName(target.getName());</span><br><span class="line">    reqMessage.setMethodName(method.getName());</span><br><span class="line">    reqMessage.setTypeParameters(method.getParameterTypes());</span><br><span class="line">    reqMessage.setParametersVal(args);</span><br><span class="line">    //写操作</span><br><span class="line">    ByteArrayOutputStream bOut = new ByteArrayOutputStream();</span><br><span class="line">    ObjectOutputStream oOut = new ObjectOutputStream(bOut);</span><br><span class="line">    oOut.writeObject(reqMessage);</span><br><span class="line">    sc.write(ByteBuffer.wrap(bOut.toByteArray()));</span><br><span class="line"></span><br><span class="line">    //读结果</span><br><span class="line">    byteBuffer.clear();</span><br><span class="line">    int count ;</span><br><span class="line">    <span class="keyword">while</span>( (count = sc.read(byteBuffer))!=-1) &#123;//如果数据还没传过来，那么count值就为0，那么byteBuffer就会因为没有数据而在下面的，ObjectInputStream(bInput)的时候报错</span><br><span class="line">        <span class="keyword">if</span>(count&gt;0) &#123;</span><br><span class="line">            byteBuffer.flip();</span><br><span class="line">            ByteArrayInputStream bInput = new ByteArrayInputStream(byteBuffer.array());</span><br><span class="line">            ObjectInputStream oInput = new ObjectInputStream(bInput);</span><br><span class="line">            result = oInput.readObject();</span><br><span class="line">    &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    sc.close();</span><br><span class="line">    <span class="built_in">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="缺点与改进"><a href="#缺点与改进" class="headerlink" title="缺点与改进"></a>缺点与改进</h3><p>NIO的实现上比较繁琐，半包\粘包的问题也不好解决。ByteBuffer使用上也非常不方便，需要注意filp、compact调用时机，且不支持动态扩容。后面用Netty来实现通信，针对上面的问题Netty都要合适的解决途径。</p>
+<p>服务不支持动态注册，下个版本使用Zookeeper来解决这个问题。</p>
+
       
     </div>
     
@@ -330,6 +372,16 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/微服务/" rel="tag"># 微服务</a>
+          
+            <a href="/tags/RPC/" rel="tag"># RPC</a>
+          
+            <a href="/tags/NIO/" rel="tag"># NIO</a>
+          
+        </div>
       
 
       
@@ -349,6 +401,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/05/实现自己的RPC框架-三/" rel="prev" title="实现自己的RPC框架(三)">
+                实现自己的RPC框架(三) <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -400,8 +456,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -416,7 +481,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-count">20</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -438,7 +503,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -461,6 +526,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NIO组件"><span class="nav-number">2.</span> <span class="nav-text">NIO组件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Selector"><span class="nav-number">2.1.</span> <span class="nav-text">Selector</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Channel"><span class="nav-number">2.2.</span> <span class="nav-text">Channel</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Buffer"><span class="nav-number">2.3.</span> <span class="nav-text">Buffer</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#核心代码"><span class="nav-number">3.</span> <span class="nav-text">核心代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缺点与改进"><span class="nav-number">4.</span> <span class="nav-text">缺点与改进</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
