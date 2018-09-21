@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="lambda,Stream," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言Oracle的发布周期缩短，即以后每半年一个版本，JDK11马上都要发布出来，但现在实验室和生成环境使用的还是JDK8。 JDK8新特性听到最多的就是Lambda和Stream了，为了更好的了解后续版本的特性，我们先来了解学习一下JDK8中的这两个特性。">
+<meta name="keywords" content="lambda,Stream">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JDK1.8 Lambda&#x2F;Stream">
+<meta property="og:url" content="http://yoursite.com/2018/09/21/JDK1-8-lamdba-Stream/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言Oracle的发布周期缩短，即以后每半年一个版本，JDK11马上都要发布出来，但现在实验室和生成环境使用的还是JDK8。 JDK8新特性听到最多的就是Lambda和Stream了，为了更好的了解后续版本的特性，我们先来了解学习一下JDK8中的这两个特性。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-09-21T07:45:54.897Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JDK1.8 Lambda&#x2F;Stream">
+<meta name="twitter:description" content="前言Oracle的发布周期缩短，即以后每半年一个版本，JDK11马上都要发布出来，但现在实验室和生成环境使用的还是JDK8。 JDK8新特性听到最多的就是Lambda和Stream了，为了更好的了解后续版本的特性，我们先来了解学习一下JDK8中的这两个特性。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/09/21/JDK1-8-lamdba-Stream/"/>
+
+
+
+
+
+  <title>JDK1.8 Lambda/Stream | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/21/JDK1-8-lamdba-Stream/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">JDK1.8 Lambda/Stream</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-21T12:55:39+08:00">
+                2018-09-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Oracle的发布周期缩短，即以后每半年一个版本，<code>JDK11</code>马上都要发布出来，但现在实验室和生成环境使用的还是<code>JDK8</code>。</p>
+<p>JDK8新特性听到最多的就是<code>Lambda</code>和<code>Stream</code>了，为了更好的了解后续版本的特性，我们先来了解学习一下JDK8中的这两个特性。</p>
+<a id="more"></a>
+<h3 id="Lambda表达式"><a href="#Lambda表达式" class="headerlink" title="Lambda表达式"></a>Lambda表达式</h3><p>首先要知道的是，lambda是用来简化我们的代码量的。直观上来看它可以让一个让一个表达式作为参数。如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ArrayList&lt;Stu&gt; data = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">data.add(<span class="keyword">new</span> Stu(<span class="number">18</span>,<span class="string">"Job"</span>));</span><br><span class="line">data.stream().forEach(s-&gt; System.out.println(s.name+s.age));</span><br></pre></td></tr></table></figure>
+<p>注意上面forEach()填入了一个<code>&quot;s-&gt; System.out.println(s.name+s.age)&quot;</code>这样的表达式，先不管这个表达式是什么意思，但是我们知道有些方法是可以以表达式的方式作为参数进行使用。</p>
+<p>那么就是说forEach是接受一个表达式参数的，点开发现它是接受一个叫做<code>Consumer&lt;? super T&gt; action</code>。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">forEach</span><span class="params">(Consumer&lt;? <span class="keyword">super</span> T&gt; action)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>那Consumer又是什么呢？点开发现这是一个被FunctionalInterface修饰的接口。这个jdk1.8新引入的。被这个修饰的接口称为函数式接口，里面只能有一个自定义方法。如Consumer有一个自定义方法accept()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Consumer</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">accept</span><span class="params">(T t)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么forEach的接受的参数就是一个实现了Consumer接口的类。那我们也可以像下面这样做：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">ArrayList&lt;Stu&gt; data = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">data.add(<span class="keyword">new</span> Stu(<span class="number">18</span>,<span class="string">"Job"</span>));</span><br><span class="line">data.stream().forEach(<span class="keyword">new</span> Consumer&lt;Stu&gt;() &#123;</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">accept</span><span class="params">(Stu stu)</span> </span>&#123;</span><br><span class="line">		System.out.println(stu.name + stu.age);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>上面的这种写法不就是很熟悉的匿名内部类实现吗！既然可以这样做，为什么还要弄成什么lambda表达式？前面也提到了，Lambda表达式就是为了简化我们代码量的。那么继续来看内部类的实现是如何变成简短的表达式的。</p>
+<p>首先函数式接口只有一个一个自定义的方法，像上面的Consumer接口中的accept方法。<code>new Consumer&lt;Stu&gt;()</code>这段系统肯定是帮你生成好的，所以可以不用写。既然只有一个方法，那么<code>public void accept(Stu stu)</code>这段是不是没有什么必要了，因为实现的方法体也只能对应到唯一一个方法中。参数类型Stu也不需要，java内部就可以识别，所以只要一个参数名s即可。简化之后就差不多是下面的式子了。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(参数)-&gt; 方法体</span><br><span class="line">s-&gt; System.out.println(s.name+s.age)</span><br></pre></td></tr></table></figure></p>
+<h3 id="Stream"><a href="#Stream" class="headerlink" title="Stream"></a>Stream</h3><p>这里的Stream不是我们在IO上看到的Stream，简单来说这个是用来处理集合的。还是上面那个实例，对ArrayList进行遍历。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Jdk1.8之前遍历</span></span><br><span class="line"><span class="keyword">for</span>(Stu s:data)&#123;</span><br><span class="line">    System.out.println(s.name+s.age);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//或者用迭代器来做</span></span><br><span class="line">Iterator&lt;Stu&gt; iterator = data.iterator();</span><br><span class="line">   <span class="keyword">while</span>(iterator.hasNext())&#123;</span><br><span class="line">   System.out.println(iterator.next());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//JDK1.8，一句就可以完成</span></span><br><span class="line">data.stream().forEach(s-&gt; System.out.println(s.name+s.age));</span><br></pre></td></tr></table></figure>
+<p>那如果想要针对sex字段(Male,Female)值，映射成中文(男，女)forEach就做不了吧，的确是的。但是stream还提供了map这个方法，map是一个接受Function接口实现的。Function和Consumer都是1.8自带的函数式接口，这样可以减少我们自己去生成没什么作用的函数式接口。</p>
+<p>jdk1.8已经生成了好多个函数式接口，常用有如下四个：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//接受一个类型，不返回值，那基本就是做一个输出</span></span><br><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Consumer</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">accept</span><span class="params">(T t)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//不接受参数，直接返回一个值，可能是用来提供某个随机值。因为它没有参数</span></span><br><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Supplier</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function">T <span class="title">get</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//接受两个参数，一个是用来计算，另一个是返回类型，可以说是一个映射，和stream中的map是一个意思</span></span><br><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Function</span>&lt;<span class="title">T</span>, <span class="title">R</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function">R <span class="title">apply</span><span class="params">(T t)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//根据一个参数，去判断这个参数的某个属性</span></span><br><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Predicate</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">test</span><span class="params">(T t)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>stream中好多方法就是接受一个如上面函数接口来实现功能，如Stream中的map接受一个Function接口的实现，Skip接受Predicate的接口实现。下面列出Stream常用的方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//根据年龄和名字进行排序，然后再输出，sorted这里要接受一个comparator的函数式接口的实现</span></span><br><span class="line">data.stream().sorted((s1,s2)-&gt;&#123;</span><br><span class="line">    <span class="keyword">if</span>(s1.age==s2.age)</span><br><span class="line">        <span class="keyword">return</span> s1.name.compareTo(s2.name);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> s1.age-s2.age;</span><br><span class="line">&#125;).forEach(s-&gt; System.out.println(s.name+s.age));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//根据年龄的奇偶来输出一个中文，那就是一个简单的映射，用map。map是一个接受Function接口实现的</span></span><br><span class="line">data.stream().map(p-&gt;&#123;</span><br><span class="line">    <span class="keyword">if</span>(p.age%<span class="number">2</span>==<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"奇数"</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">"偶数"</span>;</span><br><span class="line">&#125;).forEach(p-&gt; System.out.println(p));</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line"><span class="comment">//map用了只能使用映射的值，如果还要实现，一种方式是在return的时候就把 "奇数偶数"+age+name重新封装成一个newStu类，然后返回</span></span><br><span class="line"><span class="comment">//第二中就是使用flatMap来实现,flatMap接受一个s之后，再生成一个stream返回</span></span><br><span class="line">data.stream().flatMap(s-&gt;&#123;</span><br><span class="line">    ArrayList&lt;NewStu&gt; stuArrayList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    <span class="keyword">if</span>(s.age%<span class="number">2</span>==<span class="number">1</span>)</span><br><span class="line">        stuArrayList.add(<span class="keyword">new</span> NewStu(s.age,s.name,<span class="string">"奇数"</span>));</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        stuArrayList.add(<span class="keyword">new</span> NewStu(s.age,s.name,<span class="string">"偶数"</span>));</span><br><span class="line">    <span class="keyword">return</span> stuArrayList.stream();</span><br><span class="line">&#125;).forEach(ns-&gt; System.out.println(ns.age+ns.name+ns.joValue));</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line"><span class="comment">//filter接受一个参数，根据参数值进行筛选，它需要接受一个predicate的接口实现</span></span><br><span class="line">data.stream().filter(s-&gt;&#123;</span><br><span class="line">    <span class="keyword">if</span>(s.age&gt;=<span class="number">16</span> &amp;&amp; s.age&lt;=<span class="number">20</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;).forEach(s-&gt; System.out.println(s.age+s.name));</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line"><span class="comment">//limit和skip的结合使用，skip忽略前面几个，limit容纳几个。集合就是输出第几个到第几个</span></span><br><span class="line">data.stream().skip(<span class="number">2</span>).limit(<span class="number">4</span>).forEach(s-&gt; System.out.println(s.age+s.name));</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line"><span class="comment">//distinct,根据hashcode和equals来去重的，如果是基本数据类型，比较的就是值，如果是类的话，要看是否是同一个实列对象</span></span><br><span class="line">data.stream().distinct().forEach(System.out::println);</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line"><span class="comment">//allMatch——检查是否匹配所有元素 ,anyMatch——检查是否至少匹配一个元素,noneMatch——检查是否没有匹配的元素</span></span><br><span class="line"><span class="comment">//findFirst——返回第一个元素,findAny——返回当前流中的任意元素,count——返回流中元素的总个数</span></span><br><span class="line"><span class="comment">//max——返回流中最大值,min——返回流中最小值</span></span><br><span class="line">Optional&lt;Stu&gt; sMax = data.stream().min((s1, s2)-&gt;(s1.age-s2.age));</span><br><span class="line">System.out.println(sMax.get().age);</span><br></pre></td></tr></table></figure>
+<h3 id="惰性计算"><a href="#惰性计算" class="headerlink" title="惰性计算"></a>惰性计算</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//惰性计算：如果没有执行integerStream.forEach，System.out.println("大于十八");不会输出。</span></span><br><span class="line"><span class="comment">//即如果这个流没有被使用，它是不会去执行的，所以叫做惰性</span></span><br><span class="line">Stream&lt;Integer&gt; integerStream = data.stream().map(p-&gt;&#123;</span><br><span class="line">    <span class="keyword">if</span>(p.age&gt;=<span class="number">18</span>) &#123;</span><br><span class="line">        System.out.println(<span class="string">"大于十八"</span>);</span><br><span class="line">        <span class="keyword">return</span> p.age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">integerStream.forEach(p-&gt; System.out.println(p));</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/lambda/" rel="tag"># lambda</a>
+          
+            <a href="/tags/Stream/" rel="tag"># Stream</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/20/月记180920/" rel="next" title="月记">
+                <i class="fa fa-chevron-left"></i> 月记
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">22</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lambda表达式"><span class="nav-number">2.</span> <span class="nav-text">Lambda表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stream"><span class="nav-number">3.</span> <span class="nav-text">Stream</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#惰性计算"><span class="nav-number">4.</span> <span class="nav-text">惰性计算</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
