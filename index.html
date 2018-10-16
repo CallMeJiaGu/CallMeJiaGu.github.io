@@ -341,9 +341,8 @@
 
       
         
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>今天看到推送的文章中有篇是关于的<code>ThreadLocal</code>，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。</p>
-<p>不深刻在于，我不理解为什么要为一个线程维护一个变量副本！熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。</p>
-<p>下面以JDBC中的connection做个简单解释。</p>
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>今天看到推送的文章中有篇是关于的<code>ThreadLocal</code>，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。不深刻在于，我不理解为什么要为一个线程维护一个变量副本！</p>
+<p>熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。下面以JDBC中的connection做个简单解释。</p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2018/10/16/ThreadLocal-源码简析/#more" rel="contents">

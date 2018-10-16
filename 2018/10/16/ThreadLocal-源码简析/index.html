@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="前言今天看到推送的文章中有篇是关于的ThreadLocal，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。 不深刻在于，我不理解为什么要为一个线程维护一个变量副本！熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。 下面以JDBC中的connection做个简单解释。">
+<meta name="description" content="前言今天看到推送的文章中有篇是关于的ThreadLocal，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。不深刻在于，我不理解为什么要为一个线程维护一个变量副本！ 熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。下面以JDBC中的connection做个简单解释。">
 <meta name="keywords" content="JDK源码">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ThreadLocal 源码简析">
 <meta property="og:url" content="http://yoursite.com/2018/10/16/ThreadLocal-源码简析/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言今天看到推送的文章中有篇是关于的ThreadLocal，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。 不深刻在于，我不理解为什么要为一个线程维护一个变量副本！熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。 下面以JDBC中的connection做个简单解释。">
+<meta property="og:description" content="前言今天看到推送的文章中有篇是关于的ThreadLocal，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。不深刻在于，我不理解为什么要为一个线程维护一个变量副本！ 熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。下面以JDBC中的connection做个简单解释。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-10-16T14:10:20.254Z">
+<meta property="og:updated_time" content="2018-10-16T14:13:17.376Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ThreadLocal 源码简析">
-<meta name="twitter:description" content="前言今天看到推送的文章中有篇是关于的ThreadLocal，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。 不深刻在于，我不理解为什么要为一个线程维护一个变量副本！熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。 下面以JDBC中的connection做个简单解释。">
+<meta name="twitter:description" content="前言今天看到推送的文章中有篇是关于的ThreadLocal，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。不深刻在于，我不理解为什么要为一个线程维护一个变量副本！ 熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。下面以JDBC中的connection做个简单解释。">
 
 
 
@@ -342,11 +342,10 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>今天看到推送的文章中有篇是关于的<code>ThreadLocal</code>，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。</p>
-<p>不深刻在于，我不理解为什么要为一个线程维护一个变量副本！熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。</p>
-<p>下面以JDBC中的connection做个简单解释。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>今天看到推送的文章中有篇是关于的<code>ThreadLocal</code>，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。不深刻在于，我不理解为什么要为一个线程维护一个变量副本！</p>
+<p>熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。下面以JDBC中的connection做个简单解释。</p>
 <a id="more"></a>
-<h3 id="ThreadLocal应用场景"><a href="#ThreadLocal应用场景" class="headerlink" title="ThreadLocal应用场景"></a>ThreadLocal应用场景</h3><p>先来看一个问题：j2ee的应用中，有一个用户请求就会启动一个线程。而如果我们把connection放在Threadlocal里的话，那么我们的程序只需要一个connection连接数据库就行了，每个线程都是用的connection的一个副本，<br>那为什么还有必要要数据库连接池呢？</p>
+<h3 id="ThreadLocal应用场景"><a href="#ThreadLocal应用场景" class="headerlink" title="ThreadLocal应用场景"></a>ThreadLocal应用场景</h3><p>先来看一个问题：j2ee的应用中，有一个用户请求就会启动一个线程。而如果我们把connection放在Threadlocal里的话，那么我们的程序只需要一个connection连接数据库就行了，每个线程都是用的connection的一个副本，那为什么还有必要要数据库连接池呢？</p>
 <p>这个问题初看有点绕，我觉得是提这个问题的人理解错为ThreadLocal是<code>专门</code>用来提供connection的一个对象。为什么要用专门这个词因为它忽视了TheadLocal是给每个线程维护一个变量副本的事实。</p>
 <p>假设有这么一个场景，用户下单的操作涉及到多个DAO，一个是库存的减和消费记录的加。这个过程要保证事务的特性的。为了要确保这多个特性就需要使用同一个connection。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">库存Server.delet();</span><br><span class="line">消费记录Server.add();</span><br></pre></td></tr></table></figure>
