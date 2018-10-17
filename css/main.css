@@ -186,7 +186,7 @@ th {
 body {
   position: relative;
   font-family: 'Lato', "PingFang SC", "Microsoft YaHei", sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   line-height: 2;
   color: #555;
   background: #fff;
@@ -203,7 +203,7 @@ body {
 }
 @media (min-width: 1600px) {
   body {
-    font-size: 13px;
+    font-size: 16px;
   }
 }
 h1,
@@ -1237,7 +1237,7 @@ pre .javascript .function {
 .post-body .figure .caption {
   margin: -20px auto 15px;
   text-align: center;
-  font-size: 11px;
+  font-size: 14px;
   color: #999;
   font-weight: bold;
   line-height: 1;
@@ -1822,7 +1822,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #3b5c06;
+  background: #f4ed54;
 }
 .links-of-blogroll {
   font-size: 13px;
@@ -2795,7 +2795,7 @@ hr {
 }
 @media (max-width: 767px) {
   .posts-expand .post-body {
-    font-size: 9px;
+    font-size: 12px;
   }
 }
 .posts-expand .post-body img {
@@ -2821,7 +2821,7 @@ hr {
 }
 .post-button a {
   padding: 0;
-  font-size: 11px;
+  font-size: 14px;
   background: none;
   border: none;
   border-bottom: 2px solid #666;
@@ -2829,12 +2829,12 @@ hr {
 }
 @media (max-width: 767px) {
   .post-button a {
-    font-size: 9px;
+    font-size: 12px;
   }
 }
 @media (min-width: 1600px) {
   .post-button a {
-    font-size: 13px;
+    font-size: 16px;
   }
 }
 .post-button a:hover {
