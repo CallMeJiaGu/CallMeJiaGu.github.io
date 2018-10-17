@@ -113,7 +113,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言今天看到推送的文章中有篇是关于的ThreadLocal，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。不深刻在于，我不理解为什么要为一个线程维护一个变量副本！ 熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。下面以JDBC中的connection做个简单解释。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-10-17T03:28:15.008Z">
+<meta property="og:updated_time" content="2018-10-17T03:31:45.584Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ThreadLocal 源码简析">
 <meta name="twitter:description" content="前言今天看到推送的文章中有篇是关于的ThreadLocal，虽然之前有过了解，但是没有结合其应用场景，所以一直理解的不深刻。不深刻在于，我不理解为什么要为一个线程维护一个变量副本！ 熟悉数据库连接的朋友们都知道为了提高使用效率会使用连接池，而为了线程安全的问题还要使用ThreadLocal。下面以JDBC中的connection做个简单解释。">
@@ -374,7 +374,7 @@
 <h3 id="ThreadLocal应用场景"><a href="#ThreadLocal应用场景" class="headerlink" title="ThreadLocal应用场景"></a>ThreadLocal应用场景</h3><p>先来看一个问题：j2ee的应用中，有一个用户请求就会启动一个线程。而如果我们把connection放在Threadlocal里的话，那么我们的程序只需要一个connection连接数据库就行了，每个线程都是用的connection的一个副本，那为什么还有必要要数据库连接池呢？</p>
 <p>这个问题初看有点绕，我觉得是提这个问题的人理解错为ThreadLocal是<code>专门</code>用来提供connection的一个对象。为什么要用专门这个词因为它忽视了TheadLocal是给每个线程维护一个变量副本的事实。</p>
 <p>假设有这么一个场景，用户下单的操作涉及到多个DAO，一个是库存的减和消费记录的加。这个过程要保证事务的特性的。为了要确保这多个特性就需要使用同一个connection。</p>
-<p>库存Server.delet();<br>消费记录Server.add();</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">库存Server.delet();</span><br><span class="line">消费记录Server.add();</span><br></pre></td></tr></table></figure>
 <p>当执行第一步delet操作时，该方法会向连接池调用getConnection，然后在这个connection上执行减的操作。</p>
 <p>当执行第二步add时，问题就来了。因为我们是向连接池getConnection，返回的connection本身就是一个随机对象，这就保证不了该connceiton与第一步是同一个对象。</p>
 <p>所以这里就引入了TheadLocal。第一步执行的connection放入到TheadLocal中保存（上述代码中的注释(1)），第二步中的conncetion就从ThreadLocal中去拿即可。详细看下面代码。</p>
