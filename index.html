@@ -294,7 +294,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/" itemprop="url">基于MySQL网络协议 编写自己的数据库驱动</a></h1>
+                <a class="post-title-link" href="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/" itemprop="url">基于MySQL网络协议 编写自己的数据库驱动（一）</a></h1>
         
 
         <div class="post-meta">
@@ -369,8 +369,7 @@
         
           <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇博客中，为了解释ThreadLocal的应用场景，所以提到了<code>JDBC</code>中的<code>connection</code>。用过的朋友们一定熟悉下面的代码。具体就是先获取一个connnection，然后在connection中进行CURD。或者是基于<code>ORM</code>框架如<code>hibernate</code>、<code>Mybatis</code>,但其实他们的底层都是基于<code>mysql-connector-java.jar</code> 。</p>
 <p><img src="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/2.png" alt="你想输入的替代文字"></p>
-<p>很多时候我们并不清楚程序是如何和数据库进行交互的，比如简单的查询命令，程序是如何从MySQL中获取的呢？</p>
-<p>这个就是我这篇博客的主题，我会简单解释一下MySQL的网络通信协议，以及所需的技术栈。</p>
+<p>很多时候我们并不清楚程序是如何和数据库进行交互的，比如简单的查询命令，程序是如何从MySQL中获取的呢？这个就是我这篇博客的主题，我会简单解释一下MySQL的网络通信协议，以及所需的技术栈。</p>
 <p>在后续的博客中根据协议去实现自己的<code>connector.jar</code></p>
           <!--noindex-->
           <div class="post-button text-center">
