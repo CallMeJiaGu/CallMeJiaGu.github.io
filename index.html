@@ -367,89 +367,18 @@
 
       
         
-          
-            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇博客中，为了解释ThreadLocal的应用场景，所以提到了<code>JDBC</code>中的<code>connection</code>。用过的朋友们一定熟悉下面的代码。具体就是先获取一个connnection，然后在connection中进行CURD。或者是基于<code>ORM</code>框架如<code>hibernate</code>、<code>Mybatis</code>,但其实他们的底层都是基于<code>mysql-connector-java.jar</code> 。</p>
-<p><img src="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/1.png" alt="你想输入的替代文字"></p>
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇博客中，为了解释ThreadLocal的应用场景，所以提到了<code>JDBC</code>中的<code>connection</code>。用过的朋友们一定熟悉下面的代码。具体就是先获取一个connnection，然后在connection中进行CURD。或者是基于<code>ORM</code>框架如<code>hibernate</code>、<code>Mybatis</code>,但其实他们的底层都是基于<code>mysql-connector-java.jar</code> 。</p>
 <p><img src="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/2.png" alt="你想输入的替代文字"></p>
 <p>很多时候我们并不清楚程序是如何和数据库进行交互的，比如简单的查询命令，程序是如何从MySQL中获取的呢？</p>
 <p>这个就是我这篇博客的主题，我会简单解释一下MySQL的网络通信协议，以及所需的技术栈。</p>
 <p>在后续的博客中根据协议去实现自己的<code>connector.jar</code></p>
-<h3 id="MySQL连接方式"><a href="#MySQL连接方式" class="headerlink" title="MySQL连接方式"></a>MySQL连接方式</h3><p>根据网上查到资料，MySQL目前有五种连接方式，分别是TCP/IP，TLS/SSL，Unix Sockets，Shared Memory，Named pipes，下面我们就来看看这五种的区别：</p>
-<table>
-<thead>
-<tr>
-<th>方式</th>
-<th>默认开启</th>
-<th>支持系统</th>
-<th>只支持本机</th>
-<th>如何开启</th>
-<th>参数配置</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>TCP/IP</td>
-<td>是</td>
-<td>所有系统</td>
-<td>否</td>
-<td>–skip-networking=yes/no.</td>
-<td>–port –bind-address</td>
-</tr>
-<tr>
-<td>TLS/SSL</td>
-<td>是</td>
-<td>所有系统（基于TCP/IP)之上</td>
-<td>否</td>
-<td>–ssl=yes/no.</td>
-<td>–ssl-* options</td>
-</tr>
-<tr>
-<td>Unix Sockets</td>
-<td>是</td>
-<td>类Unix系统</td>
-<td>是</td>
-<td>设置–socket=<empty> 来关闭.</empty></td>
-<td>–socket=socket path</td>
-</tr>
-<tr>
-<td>Shared Memory</td>
-<td>否</td>
-<td>Windows系统</td>
-<td>是</td>
-<td>–shared-memory=on/off.</td>
-<td>–shared-memory-base-name=<name></name></td>
-</tr>
-<tr>
-<td>Named pipes</td>
-<td>否</td>
-<td>Windows系统</td>
-<td>否</td>
-<td>–enable-named-pipe=on/off.</td>
-<td>–socket=<name></name></td>
-</tr>
-</tbody>
-</table>
-<p>首先看一下Unix Sockets和Shared Memory都是只支持本机的，所以如果你的程序和数据库是在一台机子的，就可以考虑这两种协议。</p>
-<p>这两种协议我也不是很清楚，<strong>所以本文是基于我比较熟悉的TCP/IP协议。</strong></p>
-<h3 id="MySQL通信协议"><a href="#MySQL通信协议" class="headerlink" title="MySQL通信协议"></a>MySQL通信协议</h3><p>借网上一张图，简单的给大家解释一下MySQL通信过程中数据包。</p>
-<p><img src="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/3.png" alt="你想输入的替代文字"></p>
-<p>用户发送CRUD操作给数据库的数据包过程：</p>
-<ol>
-<li>首先Client先与Server通过TCP三次握手建立连接</li>
-<li>建立连接之后，Server发送Handshake数据包给Client，Handshake含有数据库的版本、协议版本、用于后期加密的Salt等。</li>
-<li>Client接收到Server的Handshake包之后，解析其中数据，最主要是获得Salt，然后把用户名、密码（利用salt+sha1进行加密）、schema（要操作的数据库名）等信息打包成一个AuthPacket，用来认证请求。</li>
-<li>Server接受到AuthPacket之后，对其的身份进行验证，验证成功发送一个OK Packet。否则发送Error Packet。</li>
-<li>Client接受到OK Packet之后就发送Query Packet给Server。</li>
-<li>Server返回结果查询的，将Result Packet返回给Client。</li>
-<li>Client解析Result Packet完毕，发送Request Quit。</li>
-<li>四次握手断开连接。</li>
-</ol>
-<p>上述是一次Query数据库的过程，其中涉及到数据包，后面将会用<code>WireShark</code>来详细解释上诉包的数据结构。</p>
-<h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><p>有了上面的铺垫，我想你们大致也有了一个思路了。这里可以利用Socket或者NIO来实现数据库的通信。然后通过了解MySQL的网络协议数据包的结构，用WireShark来分析，分析之后打包发送。</p>
-<p>其中wireShark和网络协议是这块技术的核心。另外编程中涉及到一些加密的皮毛，进制位上的转换的细节等，这写在后面会详细的解释。</p>
-<p>下一篇主要是针对wireShark的使用，以及MySQL网络协议数据包的解析。这两部分结合一起说明效果会更好。</p>
-
-          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
