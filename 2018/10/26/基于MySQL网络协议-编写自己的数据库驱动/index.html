@@ -115,7 +115,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/2.png">
 <meta property="og:image" content="http://yoursite.com/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/3.png">
-<meta property="og:updated_time" content="2018-10-26T07:00:48.466Z">
+<meta property="og:updated_time" content="2018-10-26T07:16:39.873Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="基于MySQL网络协议 编写自己的数据库驱动（一）">
 <meta name="twitter:description" content="前言在上一篇博客中，为了解释ThreadLocal的应用场景，所以提到了JDBC中的connection。用过的朋友们一定熟悉下面的代码。具体就是先获取一个connnection，然后在connection中进行CURD。或者是基于ORM框架如hibernate、Mybatis,但其实他们的底层都是基于mysql-connector-java.jar 。  很多时候我们并不清楚程序是如何和数据库进">
@@ -374,7 +374,7 @@
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇博客中，为了解释ThreadLocal的应用场景，所以提到了<code>JDBC</code>中的<code>connection</code>。用过的朋友们一定熟悉下面的代码。具体就是先获取一个connnection，然后在connection中进行CURD。或者是基于<code>ORM</code>框架如<code>hibernate</code>、<code>Mybatis</code>,但其实他们的底层都是基于<code>mysql-connector-java.jar</code> 。</p>
 <p><img src="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/2.png" alt="你想输入的替代文字"></p>
 <p>很多时候我们并不清楚程序是如何和数据库进行交互的，比如简单的查询命令，程序是如何从MySQL中获取的呢？这个就是我这篇博客的主题，我会简单解释一下MySQL的网络通信协议，以及所需的技术栈。</p>
-<p>在后续的博客中根据协议去实现自己的<code>connector.jar</code></p>
+<p>原本想在网上找一下有没有类似的轮子，发现多数是将jdbc重新分装一些，本质使用的还是Java中实现好的connector。所以在后续的博客中根据协议去实现自己的<code>connector.jar</code></p>
 <a id="more"></a>
 <h3 id="MySQL连接方式"><a href="#MySQL连接方式" class="headerlink" title="MySQL连接方式"></a>MySQL连接方式</h3><p>根据网上查到资料，MySQL目前有五种连接方式，分别是TCP/IP，TLS/SSL，Unix Sockets，Shared Memory，Named pipes，下面我们就来看看这五种的区别：</p>
 <table>
@@ -494,6 +494,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2018/10/26/WireShark-分析MySQL网络协议中的数据包（二）/" rel="prev" title="WireShark 分析MySQL网络协议中的数据包（二）">
+                WireShark 分析MySQL网络协议中的数据包（二） <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -569,7 +573,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-count">26</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -591,7 +595,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
