@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="JVM," />
+  <meta name="keywords" content="MySQL网络协议,造轮子," />
 
 
 
@@ -105,21 +105,22 @@
 
 
 
-<meta name="description" content="前言实验室维护的项目在用户使用量增大的时候，隔三差五就会出现OOMOutOfMemory的情况，而且多数是发生在第二天的凌晨，为了缓解这个问题，写了一个定时任务，每次服务宕机的时候，就重启一下Tomcat服务。但是这样子处理问题治标不治本，还是需要从代码的优化角度去减少这种情况的发生。">
-<meta name="keywords" content="JVM">
+<meta name="description" content="前言在上一篇博客中，为了解释ThreadLocal的应用场景，所以提到了JDBC中的connection。用过的朋友们一定熟悉下面的代码。具体就是先获取一个connnection，然后在connection中进行CURD。或者是基于ORM框架如hibernate、Mybatis,但其实他们的底层都是基于mysql-connector-java.jar 。   很多时候我们并不清楚程序是如何和数据库">
+<meta name="keywords" content="MySQL网络协议,造轮子">
 <meta property="og:type" content="article">
-<meta property="og:title" content="oom分析处理过程">
-<meta property="og:url" content="http://yoursite.com/2018/07/10/oom分析处理过程/index.html">
+<meta property="og:title" content="基于MySQL网络协议 编写自己的数据库驱动">
+<meta property="og:url" content="http://yoursite.com/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言实验室维护的项目在用户使用量增大的时候，隔三差五就会出现OOMOutOfMemory的情况，而且多数是发生在第二天的凌晨，为了缓解这个问题，写了一个定时任务，每次服务宕机的时候，就重启一下Tomcat服务。但是这样子处理问题治标不治本，还是需要从代码的优化角度去减少这种情况的发生。">
+<meta property="og:description" content="前言在上一篇博客中，为了解释ThreadLocal的应用场景，所以提到了JDBC中的connection。用过的朋友们一定熟悉下面的代码。具体就是先获取一个connnection，然后在connection中进行CURD。或者是基于ORM框架如hibernate、Mybatis,但其实他们的底层都是基于mysql-connector-java.jar 。   很多时候我们并不清楚程序是如何和数据库">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2018/07/10/oom分析处理过程/4.png">
-<meta property="og:image" content="http://yoursite.com/2018/07/10/oom分析处理过程/3.png">
-<meta property="og:updated_time" content="2018-07-21T05:47:19.399Z">
+<meta property="og:image" content="http://yoursite.com/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/2.png">
+<meta property="og:image" content="http://yoursite.com/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/3.png">
+<meta property="og:updated_time" content="2018-10-26T06:52:08.696Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="oom分析处理过程">
-<meta name="twitter:description" content="前言实验室维护的项目在用户使用量增大的时候，隔三差五就会出现OOMOutOfMemory的情况，而且多数是发生在第二天的凌晨，为了缓解这个问题，写了一个定时任务，每次服务宕机的时候，就重启一下Tomcat服务。但是这样子处理问题治标不治本，还是需要从代码的优化角度去减少这种情况的发生。">
-<meta name="twitter:image" content="http://yoursite.com/2018/07/10/oom分析处理过程/4.png">
+<meta name="twitter:title" content="基于MySQL网络协议 编写自己的数据库驱动">
+<meta name="twitter:description" content="前言在上一篇博客中，为了解释ThreadLocal的应用场景，所以提到了JDBC中的connection。用过的朋友们一定熟悉下面的代码。具体就是先获取一个connnection，然后在connection中进行CURD。或者是基于ORM框架如hibernate、Mybatis,但其实他们的底层都是基于mysql-connector-java.jar 。   很多时候我们并不清楚程序是如何和数据库">
+<meta name="twitter:image" content="http://yoursite.com/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/1.png">
 
 
 
@@ -149,13 +150,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/07/10/oom分析处理过程/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/"/>
 
 
 
 
 
-  <title>oom分析处理过程 | Don't Stop</title>
+  <title>基于MySQL网络协议 编写自己的数据库驱动 | Don't Stop</title>
   
 
 
@@ -282,7 +283,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/10/oom分析处理过程/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -299,7 +300,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">oom分析处理过程</h1>
+          <h1 class="post-title" itemprop="name headline">基于MySQL网络协议 编写自己的数据库驱动</h1>
         
 
         <div class="post-meta">
@@ -311,8 +312,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-10T19:53:21+08:00">
-                2018-07-10
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-26T13:18:25+08:00">
+                2018-10-26
               </time>
             
 
@@ -334,8 +335,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/JVM/" itemprop="url" rel="index">
-                    <span itemprop="name">JVM</span>
+                  <a href="/categories/实现自己的数据库驱动/" itemprop="url" rel="index">
+                    <span itemprop="name">实现自己的数据库驱动</span>
                   </a>
                 </span>
 
@@ -371,19 +372,86 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>实验室维护的项目在用户使用量增大的时候，隔三差五就会出现<code>OOM</code>OutOfMemory的情况，而且多数是发生在第二天的凌晨，为了缓解这个问题，写了一个定时任务，每次服务宕机的时候，就重启一下<code>Tomcat</code>服务。但是这样子处理问题治标不治本，还是需要从代码的优化角度去减少这种情况的发生。</p>
-<a id="more"></a>
-<h3 id="运行环境分析"><a href="#运行环境分析" class="headerlink" title="运行环境分析"></a>运行环境分析</h3><p>环境：<code>Windows sever</code> 、<code>jdk1.8</code> 、<code>tomcat7</code> 。如果你的Tomcat是安装版的，想要修改运行参数需要从注册表中修改.</p>
-<p>如果是解压版的，若是命令行方式启动tomcat，则修改脚本文件(Windows下为<code>catalina.bat</code>，Linux下为<code>catalina.sh</code>,在最顶上添加如下行)。具体的参数还需要去了解JVM的一些知识，如GC策略、年轻老年代的大小调优等，需要根据自己的业务场景去修改配置。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> JAVA_OPTS=-Xms1024m -Xmx2048m -XX:PermSize=256m -XX:MaxPermSize=512m。</span><br></pre></td></tr></table></figure>
-<p>如果是通过tomact7w.exe的方式启动，可以在界面添加 参数。我的环境用的第三种方式启动。出现oom的情况，可以适当的提高一下参数值，但OOM的问题还是会出现，只是推迟这种情况的发生。</p>
-<h3 id="OOM处理过程"><a href="#OOM处理过程" class="headerlink" title="OOM处理过程"></a>OOM处理过程</h3><p>前面提到，在最初的时候，是通过设置-Xmx、-Xms、-Xmn等参数来改变堆内存最大初始等值。如下图在tomat7w.exe中的java栏设置，将堆的初始值和最大值设为400M。</p>
-<p>上面的操作只会减缓OOM的到达时间而已，所以还需要把OOM出现时的堆快照保存下来，然后去分析堆中哪些对象有异常大小的情况。在刚刚设置堆大小的页面中的Java Options添加<code>-XX:+HeapDumpOnOutOfMemoryError</code>当内存出现OOM时把文件dump出来。<code>-XX:HeapDumpPath=D:\heap\dump\</code>导出的文件存放位置。</p>
-<p><img src="/2018/07/10/oom分析处理过程/4.png" alt="你想输入的替代文字"></p>
-<p>当堆的快照文件被dump出，你可以看到在对应的文件夹下回生成一个<code>file.hprof</code>文件，这个文件存对象占用堆内存的一些使用情况。接着我们使用<code>eclipse</code>的插件<code>MAT</code>（Memory Analysis Tools）去分析，MAT的安装就不在复述，网上的资料很多。MAT打开<code>hprof</code>文件,界面如下</p>
-<p><img src="/2018/07/10/oom分析处理过程/3.png" alt="你想输入的替代文字"></p>
-<p>MAT的功能界面可以再网上找资料，这里我只是简单记录一下处理的过程。内存溢出的处理需要JVM的基础知识，这样才可以帮你更好的解决问题。我在早期记录一些关于JVM的博客，一点笔记可以方便知识的回顾。<a href="https://blog.csdn.net/makecontral/article/category/7048061" target="_blank" rel="noopener">点击查看</a>。</p>
-<p>除了MAT，内存分析工具还是比较多的，像<code>VisualVM</code>是Java自带的分析工具，不过在jdk9中就不在提供，需要额外下载。<code>jaht</code>是一个实验性的, 老旧的工具, 不再被支持. 虽然JEP没有指明替代工具, InfoQ 推荐大家使用VisualVM来完成堆内存的创建,分析和可视化任务。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇博客中，为了解释ThreadLocal的应用场景，所以提到了<code>JDBC</code>中的<code>connection</code>。用过的朋友们一定熟悉下面的代码。具体就是先获取一个connnection，然后在connection中进行CURD。或者是基于<code>ORM</code>框架如<code>hibernate</code>、<code>Mybatis</code>,但其实他们的底层都是基于<code>mysql-connector-java.jar</code> 。</p>
+<p><img src="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/1.png" alt="你想输入的替代文字"></p>
+<p><img src="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/2.png" alt="你想输入的替代文字"></p>
+<p>很多时候我们并不清楚程序是如何和数据库进行交互的，比如简单的查询命令，程序是如何从MySQL中获取的呢？</p>
+<p>这个就是我这篇博客的主题，我会简单解释一下MySQL的网络通信协议，以及所需的技术栈。</p>
+<p>在后续的博客中根据协议去实现自己的<code>connector.jar</code></p>
+<h3 id="MySQL连接方式"><a href="#MySQL连接方式" class="headerlink" title="MySQL连接方式"></a>MySQL连接方式</h3><p>根据网上查到资料，MySQL目前有五种连接方式，分别是TCP/IP，TLS/SSL，Unix Sockets，Shared Memory，Named pipes，下面我们就来看看这五种的区别：</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>默认开启</th>
+<th>支持系统</th>
+<th>只支持本机</th>
+<th>如何开启</th>
+<th>参数配置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TCP/IP</td>
+<td>是</td>
+<td>所有系统</td>
+<td>否</td>
+<td>–skip-networking=yes/no.</td>
+<td>–port –bind-address</td>
+</tr>
+<tr>
+<td>TLS/SSL</td>
+<td>是</td>
+<td>所有系统（基于TCP/IP)之上</td>
+<td>否</td>
+<td>–ssl=yes/no.</td>
+<td>–ssl-* options</td>
+</tr>
+<tr>
+<td>Unix Sockets</td>
+<td>是</td>
+<td>类Unix系统</td>
+<td>是</td>
+<td>设置–socket=<empty> 来关闭.</empty></td>
+<td>–socket=socket path</td>
+</tr>
+<tr>
+<td>Shared Memory</td>
+<td>否</td>
+<td>Windows系统</td>
+<td>是</td>
+<td>–shared-memory=on/off.</td>
+<td>–shared-memory-base-name=<name></name></td>
+</tr>
+<tr>
+<td>Named pipes</td>
+<td>否</td>
+<td>Windows系统</td>
+<td>否</td>
+<td>–enable-named-pipe=on/off.</td>
+<td>–socket=<name></name></td>
+</tr>
+</tbody>
+</table>
+<p>首先看一下Unix Sockets和Shared Memory都是只支持本机的，所以如果你的程序和数据库是在一台机子的，就可以考虑这两种协议。</p>
+<p>这两种协议我也不是很清楚，<strong>所以本文是基于我比较熟悉的TCP/IP协议。</strong></p>
+<h3 id="MySQL通信协议"><a href="#MySQL通信协议" class="headerlink" title="MySQL通信协议"></a>MySQL通信协议</h3><p>借网上一张图，简单的给大家解释一下MySQL通信过程中数据包。</p>
+<p><img src="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/3.png" alt="你想输入的替代文字"></p>
+<p>用户发送CRUD操作给数据库的数据包过程：</p>
+<ol>
+<li>首先Client先与Server通过TCP三次握手建立连接</li>
+<li>建立连接之后，Server发送Handshake数据包给Client，Handshake含有数据库的版本、协议版本、用于后期加密的Salt等。</li>
+<li>Client接收到Server的Handshake包之后，解析其中数据，最主要是获得Salt，然后把用户名、密码（利用salt+sha1进行加密）、schema（要操作的数据库名）等信息打包成一个AuthPacket，用来认证请求。</li>
+<li>Server接受到AuthPacket之后，对其的身份进行验证，验证成功发送一个OK Packet。否则发送Error Packet。</li>
+<li>Client接受到OK Packet之后就发送Query Packet给Server。</li>
+<li>Server返回结果查询的，将Result Packet返回给Client。</li>
+<li>Client解析Result Packet完毕，发送Request Quit。</li>
+<li>四次握手断开连接。</li>
+</ol>
+<p>上述是一次Query数据库的过程，其中涉及到数据包，后面将会用<code>WireShark</code>来详细解释上诉包的数据结构。</p>
+<h3 id="技术栈"><a href="#技术栈" class="headerlink" title="技术栈"></a>技术栈</h3><p>有了上面的铺垫，我想你们大致也有了一个思路了。这里可以利用Socket或者NIO来实现数据库的通信。然后通过了解MySQL的网络协议数据包的结构，用WireShark来分析，分析之后打包发送。</p>
+<p>其中wireShark和网络协议是这块技术的核心。另外编程中涉及到一些加密的皮毛，进制位上的转换的细节等，这写在后面会详细的解释。</p>
+<p>下一篇主要是针对wireShark的使用，以及MySQL网络协议数据包的解析。这两部分结合一起说明效果会更好。</p>
 
       
     </div>
@@ -401,7 +469,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/JVM/" rel="tag"># JVM</a>
+            <a href="/tags/MySQL网络协议/" rel="tag"># MySQL网络协议</a>
+          
+            <a href="/tags/造轮子/" rel="tag"># 造轮子</a>
           
         </div>
       
@@ -414,8 +484,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/07/07/logstash-MySQL-Data-Input/" rel="next" title="logstash MySQL Data Input">
-                <i class="fa fa-chevron-left"></i> logstash MySQL Data Input
+              <a href="/2018/10/16/ThreadLocal-源码简析/" rel="next" title="ThreadLocal 源码简析">
+                <i class="fa fa-chevron-left"></i> ThreadLocal 源码简析
               </a>
             
           </div>
@@ -423,10 +493,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/07/21/如何做一个推荐系统/" rel="prev" title="如何做一个推荐系统">
-                如何做一个推荐系统 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -558,7 +624,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行环境分析"><span class="nav-number">2.</span> <span class="nav-text">运行环境分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OOM处理过程"><span class="nav-number">3.</span> <span class="nav-text">OOM处理过程</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL连接方式"><span class="nav-number">2.</span> <span class="nav-text">MySQL连接方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL通信协议"><span class="nav-number">3.</span> <span class="nav-text">MySQL通信协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#技术栈"><span class="nav-number">4.</span> <span class="nav-text">技术栈</span></a></li></ol></div>
             
 
           </div>
