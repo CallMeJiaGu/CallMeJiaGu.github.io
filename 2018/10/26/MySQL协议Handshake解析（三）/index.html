@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="微服务,service Mesh," />
+  <meta name="keywords" content="Handshake,MySQL网络协议,造轮子," />
 
 
 
@@ -105,24 +105,21 @@
 
 
 
-<meta name="description" content="Service Mesh：下一代微服务原文链接，这篇是我觉得把Service Mesh讲的最清楚的文章了。内容为QCon 2017年上海会议上的演讲实录。为了防止原链接的失效，还保存一份word。点击下载 提取码: tz6w。">
-<meta name="keywords" content="微服务,service Mesh">
+<meta name="description" content="前言在前一篇的博客中，当客户端发送SQL请求到Server端时，产生了一系列Packet。第一个Packet就是本篇要介绍的HandShake。不了解的可以点击上篇博客。">
+<meta name="keywords" content="Handshake,MySQL网络协议,造轮子">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Service Mesh：下一代微服务">
-<meta property="og:url" content="http://yoursite.com/2018/09/21/Service-Mesh：下一代微服务/index.html">
+<meta property="og:title" content="MySQL协议Handshake解析（三）">
+<meta property="og:url" content="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="Service Mesh：下一代微服务原文链接，这篇是我觉得把Service Mesh讲的最清楚的文章了。内容为QCon 2017年上海会议上的演讲实录。为了防止原链接的失效，还保存一份word。点击下载 提取码: tz6w。">
+<meta property="og:description" content="前言在前一篇的博客中，当客户端发送SQL请求到Server端时，产生了一系列Packet。第一个Packet就是本篇要介绍的HandShake。不了解的可以点击上篇博客。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2018/09/21/Service-Mesh：下一代微服务/5.png">
-<meta property="og:image" content="http://yoursite.com/2018/09/21/Service-Mesh：下一代微服务/1.png">
-<meta property="og:image" content="http://yoursite.com/2018/09/21/Service-Mesh：下一代微服务/4.png">
-<meta property="og:image" content="http://yoursite.com/2018/09/21/Service-Mesh：下一代微服务/2.png">
-<meta property="og:image" content="http://yoursite.com/2018/09/21/Service-Mesh：下一代微服务/3.png">
-<meta property="og:updated_time" content="2018-09-21T13:06:23.911Z">
+<meta property="og:image" content="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/2.png">
+<meta property="og:updated_time" content="2018-10-27T02:32:06.737Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Service Mesh：下一代微服务">
-<meta name="twitter:description" content="Service Mesh：下一代微服务原文链接，这篇是我觉得把Service Mesh讲的最清楚的文章了。内容为QCon 2017年上海会议上的演讲实录。为了防止原链接的失效，还保存一份word。点击下载 提取码: tz6w。">
-<meta name="twitter:image" content="http://yoursite.com/2018/09/21/Service-Mesh：下一代微服务/5.png">
+<meta name="twitter:title" content="MySQL协议Handshake解析（三）">
+<meta name="twitter:description" content="前言在前一篇的博客中，当客户端发送SQL请求到Server端时，产生了一系列Packet。第一个Packet就是本篇要介绍的HandShake。不了解的可以点击上篇博客。">
+<meta name="twitter:image" content="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/1.png">
 
 
 
@@ -152,13 +149,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/09/21/Service-Mesh：下一代微服务/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/"/>
 
 
 
 
 
-  <title>Service Mesh：下一代微服务 | Don't Stop</title>
+  <title>MySQL协议Handshake解析（三） | Don't Stop</title>
   
 
 
@@ -285,7 +282,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/21/Service-Mesh：下一代微服务/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -302,7 +299,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Service Mesh：下一代微服务</h1>
+          <h1 class="post-title" itemprop="name headline">MySQL协议Handshake解析（三）</h1>
         
 
         <div class="post-meta">
@@ -314,8 +311,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-21T20:09:32+08:00">
-                2018-09-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-26T20:12:34+08:00">
+                2018-10-26
               </time>
             
 
@@ -337,8 +334,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/微服务/" itemprop="url" rel="index">
-                    <span itemprop="name">微服务</span>
+                  <a href="/categories/实现自己的数据库驱动/" itemprop="url" rel="index">
+                    <span itemprop="name">实现自己的数据库驱动</span>
                   </a>
                 </span>
 
@@ -374,20 +371,110 @@
       
 
       
-        <h3 id="Service-Mesh：下一代微服务"><a href="#Service-Mesh：下一代微服务" class="headerlink" title="Service Mesh：下一代微服务"></a>Service Mesh：下一代微服务</h3><p><a href="https://servicemesh.gitbooks.io/awesome-servicemesh/mesh/2017/service-mesh-next-generation-of-microservice/" target="_blank" rel="noopener">原文链接</a>，这篇是我觉得把Service Mesh讲的最清楚的文章了。内容为QCon 2017年上海会议上的演讲实录。为了防止原链接的失效，还保存一份word。<a href="https://pan.baidu.com/s/150CCEiSkD7ah5vBRi97FMg" target="_blank" rel="noopener">点击下载</a> 提取码: tz6w。</p>
-<p><img src="/2018/09/21/Service-Mesh：下一代微服务/5.png" alt="你想输入的替代文字"></p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在前一篇的博客中，当客户端发送SQL请求到Server端时，产生了一系列Packet。第一个Packet就是本篇要介绍的HandShake。不了解的可以点击上篇博客。</p>
 <a id="more"></a>
-<h3 id="我对Service-Mesh的理解"><a href="#我对Service-Mesh的理解" class="headerlink" title="我对Service Mesh的理解"></a>我对Service Mesh的理解</h3><p>传统的微服务中，拿dubbo来说，客户端想要远程调用服务端，这个过程肯定设计到网络通信。</p>
-<p>先不讨论网络通信是否稳定，业务人员只是想要编写客户的CURD，可是远程调用会混杂大量非功能块的代码。如服务发现、负载均衡、熔断等。这对刚接触到业务的同事来说是比较难的。</p>
-<p>那么我们要做的就是把这层网络通信抽象出来，我们称它为Sidecar。</p>
-<p><img src="/2018/09/21/Service-Mesh：下一代微服务/1.png" alt="你想输入的替代文字"></p>
-<p>Sidecar这个词中文翻译为边车，或者车斗，也有一个乡土气息浓重的翻译叫做边三轮。Sidecar这个东西出现的时间挺长的，它在原有的客户端和服务端之间加多了一个代理。</p>
-<p><img src="/2018/09/21/Service-Mesh：下一代微服务/4.png" alt="你想输入的替代文字"></p>
-<p>多个服务调用的情况，在这个图上我们可以看到Service Mesh在所有的服务的下面，这一层被称之为服务间通讯专用基础设施层。Service Mesh会接管整个网络，把所有的请求在服务之间做转发。在这种情况下，我们会看到上面的服务不再负责传递请求的具体逻辑，只负责完成业务处理。服务间通讯的环节就从应用里面剥离出来，呈现出一个抽象层。</p>
-<p><img src="/2018/09/21/Service-Mesh：下一代微服务/2.png" alt="你想输入的替代文字"></p>
-<p>如果有大量的服务，就会表现出来网格。图中左边绿色方格是应用，右边蓝色的方框是Service Mesh，蓝色之间的线条是表示服务之间的调用关系。Sidecar之间的连接就会形成一个网络，这个就是服务网格名字的由来。这个时候代理体现出来的就和前面的sidecar不一样了，形成网状。</p>
-<p><img src="/2018/09/21/Service-Mesh：下一代微服务/3.png" alt="你想输入的替代文字"></p>
-<p>大家注意看，上面的图中，网络在这种情况下，可能不是特别明显。但是如果把左边的应用程序去掉，现在只呈现出来Service Mesh和他们之间的调用，这个时候关系就会特别清晰，就是一个完整的网络。这是Service Mesh定义当中一个非常重要的关键点，和Sidecar不相同的地方：不再将代理视为单独的组件，而是强调由这些代理连接而形成的网络。在Service Mesh里面非常强调代理连接组成的网络，而不像sidecar那样看待个体。</p>
+<h3 id="Handshake-Packet格式"><a href="#Handshake-Packet格式" class="headerlink" title="Handshake Packet格式"></a>Handshake Packet格式</h3><p>Handshake packet是由Server向Client发送的初始化包，因为所有从Server向Client端发送的包都是一样的格式，前面的四个字节是<strong>包头</strong>，其中前三位代表Handshake packet数据长度，第四位是包序列号。下面是Handshake packet具体内容的格式：</p>
+<table>
+<thead>
+<tr>
+<th>相对包内容的位置</th>
+<th>长度（字节）</th>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>协议版本</td>
+<td>协议版本的版本号，通常为10（0x0A）</td>
+</tr>
+<tr>
+<td>1</td>
+<td>len = strlen (server_version) + 1</td>
+<td>数据库版本</td>
+<td>长度为数据库版本字符串的长度+上标示结束的的一个字节</td>
+</tr>
+<tr>
+<td>len + 1</td>
+<td>4</td>
+<td>线程ID</td>
+<td>此次连接MySQL Server启动的线程ID</td>
+</tr>
+<tr>
+<td>len + 5</td>
+<td>8 + 1（0x00表示结束)</td>
+<td>挑战随机数（第一部分）</td>
+<td>用于后续账户密码验证</td>
+</tr>
+<tr>
+<td>len + 14</td>
+<td>2</td>
+<td>数据库提供的功能</td>
+<td>用于与客户端协商通讯方式</td>
+</tr>
+<tr>
+<td>len + 16</td>
+<td>1</td>
+<td>编码格式</td>
+<td>标识数据库目前的编码方式</td>
+</tr>
+<tr>
+<td>len + 17</td>
+<td>2</td>
+<td>服务器状态</td>
+<td>用于表示服务器状态，比如是否是事务模式或者自动提交模式</td>
+</tr>
+<tr>
+<td><strong>len + 19</strong></td>
+<td>2</td>
+<td>扩展的协议，数据库提供的功能</td>
+<td>用于与客户端协商通讯方式</td>
+</tr>
+<tr>
+<td><strong>len + 21</strong></td>
+<td>1</td>
+<td>Authentication Plugin length</td>
+<td>身份验证插件长度</td>
+</tr>
+<tr>
+<td>len + 22</td>
+<td>10</td>
+<td>保留字节</td>
+<td>未来可能会用到，预留字节</td>
+</tr>
+<tr>
+<td>len + 32</td>
+<td>12 + 1（0x00表示结束)</td>
+<td>挑战随机数（第二部分）</td>
+<td>用于后续账户密码验证</td>
+</tr>
+</tbody>
+</table>
+<p><strong>在网上查的资料当时保留字节是13位，而我用的MySQL是8.x的，观察我捕获到的包做了点修改，即len+19和len+21位的使用保留字节，所以现在只剩下10个预留字节了。</strong></p>
+<h3 id="WireShark分析HandShake-Packet"><a href="#WireShark分析HandShake-Packet" class="headerlink" title="WireShark分析HandShake Packet"></a>WireShark分析HandShake Packet</h3><p>上面的数据格式的描述可能不够具体，所以这里用WireShark来捕获Handshake看看数据是否真如上面所描述的。</p>
+<p><img src="/2018/10/26/MySQL协议Handshake解析（三）/1.png" alt="你想输入的替代文字"></p>
+<p>点击<code>Server Greeting proto=10 version=8.0.12</code> 可以看到从<code>Frame</code>物理层到<code>MySQL Protocol</code>应用层各层的具体内容。点击<code>MySQL Protocol</code>可以看到具体的十六进制的内容，以及它的ASCII码。</p>
+<p>其中<code>Packet Length</code>和<code>Packet Number</code>就是包的数据头，从上面我们知道，<code>Packet Length</code>是占三个字节的。那么就是说<code>0x00004a</code>表示的就是数据长度，转为十进制发现就是74。</p>
+<p>这里有人可能会有疑惑，为什么不是<code>0x4a0000</code>这是因为MySQL采用的是<strong>小端存储形式</strong>。为什么采用这个形式，可以看最后一段过程中遇到问题的说明。</p>
+<p>这里再解释一下<code>Version</code>这个字段，根据上面的描述，我们知道它的长度为数据库版本字符串的长度+上标示结束的一个字节。就是说实际上存储的时候还有一个<code>0x00</code>的字节跟着<code>version</code>字段表示结束符。你会发现有好多这种字段跟上结束符的数据，所以在填充数据的时候，需要把<code>0x00</code>也一起填上。</p>
+<p><img src="/2018/10/26/MySQL协议Handshake解析（三）/2.png" alt="你想输入的替代文字"></p>
+<p>有了上面两个字段的解释，我相信每个字段的数据你们都能对应上去了，所以这里就不解释了。</p>
+<h3 id="过程中遇到的问题"><a href="#过程中遇到的问题" class="headerlink" title="过程中遇到的问题"></a>过程中遇到的问题</h3><ol>
+<li>为什么会有大小端？为什么采用小端计算机计算会更加方便？</li>
+</ol>
+<blockquote>
+<p>你算加减乘的时候是从高位还是低位开始的？ </p>
+<p>为什么不从高位开始？因为存在着进位，如果从高位开始，算到后面发现有进位，就要回退到高位处理进位<br>如果从低位开始，可以一下子算出来。早期的计算机是纸带机，纸带上储存的是2进制数据 </p>
+<p>如果使用小端储存，做加减乘运算时，计算机的写出头可以一直往一个方向移动，而不用回退写出头处理进位问题。</p>
+</blockquote>
+<ol start="2">
+<li>既然小端像上面所说的一样有计算方便的优势，为什么还要出现大端呢？</li>
+</ol>
+<blockquote>
+<p>大端也有自己的优势，在判定正负时，符号位固定为第一个字节，容易判断。</p>
+</blockquote>
 
       
     </div>
@@ -405,9 +492,11 @@
       
         <div class="post-tags">
           
-            <a href="/tags/微服务/" rel="tag"># 微服务</a>
+            <a href="/tags/Handshake/" rel="tag"># Handshake</a>
           
-            <a href="/tags/service-Mesh/" rel="tag"># service Mesh</a>
+            <a href="/tags/MySQL网络协议/" rel="tag"># MySQL网络协议</a>
+          
+            <a href="/tags/造轮子/" rel="tag"># 造轮子</a>
           
         </div>
       
@@ -420,8 +509,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/09/21/JDK1-8-lamdba-Stream/" rel="next" title="JDK1.8 Lambda/Stream">
-                <i class="fa fa-chevron-left"></i> JDK1.8 Lambda/Stream
+              <a href="/2018/10/26/WireShark-分析MySQL网络协议中的数据包（二）/" rel="next" title="WireShark 分析MySQL网络协议中的数据包（二）">
+                <i class="fa fa-chevron-left"></i> WireShark 分析MySQL网络协议中的数据包（二）
               </a>
             
           </div>
@@ -429,10 +518,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/10/16/ThreadLocal-源码简析/" rel="prev" title="ThreadLocal 源码简析">
-                ThreadLocal 源码简析 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -564,7 +649,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Service-Mesh：下一代微服务"><span class="nav-number">1.</span> <span class="nav-text">Service Mesh：下一代微服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#我对Service-Mesh的理解"><span class="nav-number">2.</span> <span class="nav-text">我对Service Mesh的理解</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Handshake-Packet格式"><span class="nav-number">2.</span> <span class="nav-text">Handshake Packet格式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WireShark分析HandShake-Packet"><span class="nav-number">3.</span> <span class="nav-text">WireShark分析HandShake Packet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#过程中遇到的问题"><span class="nav-number">4.</span> <span class="nav-text">过程中遇到的问题</span></a></li></ol></div>
             
 
           </div>
