@@ -108,7 +108,7 @@
 <meta name="description" content="前言要编写自己的数据库驱动，必须要清楚MySQL协议中各种传输包的数据格式。这里推荐的是WireShark工具，WireShark可以帮我们监听服务器上传输的数据包，上手比较快，而且界面功能都比较友好，最主要是开源的，所以可以免费放心的使用。 要注意的是，如果客户端和数据库服务是在同一台电脑的，会导致WireShark捕获不到数据。因为两个源地址和目的地址是一样的。互相访问时流量并没有经过网卡，W">
 <meta name="keywords" content="MySQL网络协议,造轮子,WireShark">
 <meta property="og:type" content="article">
-<meta property="og:title" content="WireShark 分析MySQL网络协议中的数据包（二）">
+<meta property="og:title" content="实现自己的数据库驱动——WireShark分析MySQL网络协议中的数据包（二）">
 <meta property="og:url" content="http://yoursite.com/2018/10/26/WireShark-分析MySQL网络协议中的数据包（二）/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言要编写自己的数据库驱动，必须要清楚MySQL协议中各种传输包的数据格式。这里推荐的是WireShark工具，WireShark可以帮我们监听服务器上传输的数据包，上手比较快，而且界面功能都比较友好，最主要是开源的，所以可以免费放心的使用。 要注意的是，如果客户端和数据库服务是在同一台电脑的，会导致WireShark捕获不到数据。因为两个源地址和目的地址是一样的。互相访问时流量并没有经过网卡，W">
@@ -116,9 +116,9 @@
 <meta property="og:image" content="http://yoursite.com/2018/10/26/WireShark-分析MySQL网络协议中的数据包（二）/2.png">
 <meta property="og:image" content="http://yoursite.com/2018/10/26/WireShark-分析MySQL网络协议中的数据包（二）/3.png">
 <meta property="og:image" content="http://yoursite.com/2018/10/26/WireShark-分析MySQL网络协议中的数据包（二）/1.png">
-<meta property="og:updated_time" content="2018-10-26T12:05:39.177Z">
+<meta property="og:updated_time" content="2018-10-27T02:44:31.437Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="WireShark 分析MySQL网络协议中的数据包（二）">
+<meta name="twitter:title" content="实现自己的数据库驱动——WireShark分析MySQL网络协议中的数据包（二）">
 <meta name="twitter:description" content="前言要编写自己的数据库驱动，必须要清楚MySQL协议中各种传输包的数据格式。这里推荐的是WireShark工具，WireShark可以帮我们监听服务器上传输的数据包，上手比较快，而且界面功能都比较友好，最主要是开源的，所以可以免费放心的使用。 要注意的是，如果客户端和数据库服务是在同一台电脑的，会导致WireShark捕获不到数据。因为两个源地址和目的地址是一样的。互相访问时流量并没有经过网卡，W">
 <meta name="twitter:image" content="http://yoursite.com/2018/10/26/WireShark-分析MySQL网络协议中的数据包（二）/2.png">
 
@@ -156,7 +156,7 @@
 
 
 
-  <title>WireShark 分析MySQL网络协议中的数据包（二） | Don't Stop</title>
+  <title>实现自己的数据库驱动——WireShark分析MySQL网络协议中的数据包（二） | Don't Stop</title>
   
 
 
@@ -300,7 +300,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">WireShark 分析MySQL网络协议中的数据包（二）</h1>
+          <h1 class="post-title" itemprop="name headline">实现自己的数据库驱动——WireShark分析MySQL网络协议中的数据包（二）</h1>
         
 
         <div class="post-meta">
@@ -441,8 +441,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/" rel="next" title="基于MySQL网络协议 编写自己的数据库驱动（一）">
-                <i class="fa fa-chevron-left"></i> 基于MySQL网络协议 编写自己的数据库驱动（一）
+              <a href="/2018/10/26/基于MySQL网络协议-编写自己的数据库驱动/" rel="next" title="实现自己的数据库驱动——MySQL网络协议（一）">
+                <i class="fa fa-chevron-left"></i> 实现自己的数据库驱动——MySQL网络协议（一）
               </a>
             
           </div>
@@ -451,8 +451,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/10/26/MySQL协议Handshake解析（三）/" rel="prev" title="MySQL协议Handshake解析（三）">
-                MySQL协议Handshake解析（三） <i class="fa fa-chevron-right"></i>
+              <a href="/2018/10/26/MySQL协议Handshake解析（三）/" rel="prev" title="实现自己的数据库驱动——MySQL协议Handshake解析（三）">
+                实现自己的数据库驱动——MySQL协议Handshake解析（三） <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
