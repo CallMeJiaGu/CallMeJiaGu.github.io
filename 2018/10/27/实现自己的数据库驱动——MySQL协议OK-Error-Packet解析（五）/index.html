@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="Handshake,MySQL网络协议,造轮子," />
+  <meta name="keywords" content="MySQL网络协议,造轮子," />
 
 
 
@@ -105,21 +105,23 @@
 
 
 
-<meta name="description" content="前言在前一篇的博客中，当客户端发送SQL请求到Server端时，产生了一系列Packet。第一个Packet就是本篇要介绍的HandShake。不了解的可以点击上篇博客。">
-<meta name="keywords" content="Handshake,MySQL网络协议,造轮子">
+<meta name="description" content="前言OK/Error Packet是由Server端向Client发送的请求回应。所以这篇主要来解析一下这两个Packet，以及解释一下为什么Wireshark抓到的包与网上的格式有所差别。">
+<meta name="keywords" content="MySQL网络协议,造轮子">
 <meta property="og:type" content="article">
-<meta property="og:title" content="实现自己的数据库驱动——MySQL协议Handshake解析（三）">
-<meta property="og:url" content="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/index.html">
+<meta property="og:title" content="实现自己的数据库驱动——MySQL协议OK&#x2F;Error包解析（五）">
+<meta property="og:url" content="http://yoursite.com/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言在前一篇的博客中，当客户端发送SQL请求到Server端时，产生了一系列Packet。第一个Packet就是本篇要介绍的HandShake。不了解的可以点击上篇博客。">
+<meta property="og:description" content="前言OK/Error Packet是由Server端向Client发送的请求回应。所以这篇主要来解析一下这两个Packet，以及解释一下为什么Wireshark抓到的包与网上的格式有所差别。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/1.png">
-<meta property="og:image" content="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/2.png">
-<meta property="og:updated_time" content="2018-10-27T02:43:56.045Z">
+<meta property="og:image" content="http://yoursite.com/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/2.png">
+<meta property="og:image" content="http://yoursite.com/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/3.png">
+<meta property="og:image" content="http://yoursite.com/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/4.png">
+<meta property="og:updated_time" content="2018-10-28T03:07:24.287Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="实现自己的数据库驱动——MySQL协议Handshake解析（三）">
-<meta name="twitter:description" content="前言在前一篇的博客中，当客户端发送SQL请求到Server端时，产生了一系列Packet。第一个Packet就是本篇要介绍的HandShake。不了解的可以点击上篇博客。">
-<meta name="twitter:image" content="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/1.png">
+<meta name="twitter:title" content="实现自己的数据库驱动——MySQL协议OK&#x2F;Error包解析（五）">
+<meta name="twitter:description" content="前言OK/Error Packet是由Server端向Client发送的请求回应。所以这篇主要来解析一下这两个Packet，以及解释一下为什么Wireshark抓到的包与网上的格式有所差别。">
+<meta name="twitter:image" content="http://yoursite.com/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/1.png">
 
 
 
@@ -149,13 +151,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/"/>
 
 
 
 
 
-  <title>实现自己的数据库驱动——MySQL协议Handshake解析（三） | Don't Stop</title>
+  <title>实现自己的数据库驱动——MySQL协议OK/Error包解析（五） | Don't Stop</title>
   
 
 
@@ -282,7 +284,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/26/MySQL协议Handshake解析（三）/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -299,7 +301,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">实现自己的数据库驱动——MySQL协议Handshake解析（三）</h1>
+          <h1 class="post-title" itemprop="name headline">实现自己的数据库驱动——MySQL协议OK/Error包解析（五）</h1>
         
 
         <div class="post-meta">
@@ -311,8 +313,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-26T20:12:34+08:00">
-                2018-10-26
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-27T18:43:33+08:00">
+                2018-10-27
               </time>
             
 
@@ -371,9 +373,16 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在前一篇的博客中，当客户端发送SQL请求到Server端时，产生了一系列Packet。第一个Packet就是本篇要介绍的HandShake。不了解的可以点击上篇博客。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>OK/Error Packet是由Server端向Client发送的请求回应。所以这篇主要来解析一下这两个Packet，以及解释一下为什么Wireshark抓到的包与网上的格式有所差别。</p>
 <a id="more"></a>
-<h3 id="Handshake-Packet格式"><a href="#Handshake-Packet格式" class="headerlink" title="Handshake Packet格式"></a>Handshake Packet格式</h3><p>Handshake packet是由Server向Client发送的初始化包，因为所有从Server向Client端发送的包都是一样的格式，前面的四个字节是<strong>包头</strong>，其中前三位代表Handshake packet数据长度，第四位是包序列号。下面是Handshake packet具体内容的格式：</p>
+<h3 id="OK-Packet"><a href="#OK-Packet" class="headerlink" title="OK Packet"></a>OK Packet</h3><h4 id="OK-Packet数据格式"><a href="#OK-Packet数据格式" class="headerlink" title="OK Packet数据格式"></a>OK Packet数据格式</h4><p>普通的OK包会在以下几种情况下产生，由Server发送给相应的接收方：</p>
+<ul>
+<li>COM_PING: 连接或者测试数据库</li>
+<li>COM_QUERY： 不需要查询结果集的操作，比如INSERT, UPDATE, or ALTER TABLE</li>
+<li>COM_REFRESH： 数据刷新</li>
+<li>COM_REGISTER_SLAVE： 注册从服务器</li>
+</ul>
+<p>首先前面的四个字节是<strong>包头</strong>，其中前三位代表packet数据长度，第四位是包序列号。以下是OK Packet的四字节后的内容。</p>
 <table>
 <thead>
 <tr>
@@ -387,94 +396,94 @@
 <tr>
 <td>0</td>
 <td>1</td>
-<td>协议版本</td>
-<td>协议版本的版本号，通常为10（0x0A）</td>
+<td>包头标识</td>
+<td>0x00 代表这是一个OK 包</td>
 </tr>
 <tr>
 <td>1</td>
-<td>len = strlen (server_version) + 1</td>
-<td>数据库版本</td>
-<td>长度为数据库版本字符串的长度+上标示结束的的一个字节</td>
+<td>rows_len</td>
+<td>影响行数</td>
+<td>相应操作影响的行数，比如一个Update操作的记录是5条，那么这个值就为5</td>
 </tr>
 <tr>
-<td>len + 1</td>
-<td>4</td>
-<td>线程ID</td>
-<td>此次连接MySQL Server启动的线程ID</td>
+<td>1 + rows_len</td>
+<td>id_len</td>
+<td>自增id</td>
+<td>插入一条记录时，如果是自增id的话，返回的id值</td>
 </tr>
 <tr>
-<td>len + 5</td>
-<td>8 + 1（0x00表示结束)</td>
-<td>挑战随机数（第一部分）</td>
-<td>用于后续账户密码验证</td>
-</tr>
-<tr>
-<td>len + 14</td>
-<td>2</td>
-<td>数据库提供的功能</td>
-<td>用于与客户端协商通讯方式</td>
-</tr>
-<tr>
-<td>len + 16</td>
-<td>1</td>
-<td>编码格式</td>
-<td>标识数据库目前的编码方式</td>
-</tr>
-<tr>
-<td>len + 17</td>
+<td>1 + rows_len + id_len</td>
 <td>2</td>
 <td>服务器状态</td>
 <td>用于表示服务器状态，比如是否是事务模式或者自动提交模式</td>
 </tr>
 <tr>
-<td><strong>len + 19</strong></td>
+<td>3 + rows_len + id_len</td>
 <td>2</td>
-<td>扩展的协议，数据库提供的功能</td>
-<td>用于与客户端协商通讯方式</td>
+<td>警告数</td>
+<td>上次命令引起的警告数</td>
 </tr>
 <tr>
-<td><strong>len + 21</strong></td>
-<td>1</td>
-<td>Authentication Plugin length</td>
-<td>身份验证插件长度</td>
-</tr>
-<tr>
-<td>len + 22</td>
-<td>10</td>
-<td>保留字节</td>
-<td>未来可能会用到，预留字节</td>
-</tr>
-<tr>
-<td>len + 32</td>
-<td>12 + 1（0x00表示结束)</td>
-<td>挑战随机数（第二部分）</td>
-<td>用于后续账户密码验证</td>
+<td>5 + rows_len + id_len</td>
+<td>msg_len</td>
+<td>额外信息</td>
+<td>此次操作的一些额外信息</td>
 </tr>
 </tbody>
 </table>
-<p><strong>在网上查的资料当时保留字节是13位，而我用的MySQL是8.x的，观察我捕获到的包做了点修改，即len+19和len+21位的使用保留字节，所以现在只剩下10个预留字节了。</strong></p>
-<h3 id="WireShark分析HandShake-Packet"><a href="#WireShark分析HandShake-Packet" class="headerlink" title="WireShark分析HandShake Packet"></a>WireShark分析HandShake Packet</h3><p>上面的数据格式的描述可能不够具体，所以这里用WireShark来捕获Handshake看看数据是否真如上面所描述的。</p>
-<p><img src="/2018/10/26/MySQL协议Handshake解析（三）/1.png" alt="你想输入的替代文字"></p>
-<p>点击<code>Server Greeting proto=10 version=8.0.12</code> 可以看到从<code>Frame</code>物理层到<code>MySQL Protocol</code>应用层各层的具体内容。点击<code>MySQL Protocol</code>可以看到具体的十六进制的内容，以及它的ASCII码。</p>
-<p>其中<code>Packet Length</code>和<code>Packet Number</code>就是包的数据头，从上面我们知道，<code>Packet Length</code>是占三个字节的。那么就是说<code>0x00004a</code>表示的就是数据长度，转为十进制发现就是74。</p>
-<p>这里有人可能会有疑惑，为什么不是<code>0x4a0000</code>这是因为MySQL采用的是<strong>小端存储形式</strong>。为什么采用这个形式，可以看最后一段过程中遇到问题的说明。</p>
-<p>这里再解释一下<code>Version</code>这个字段，根据上面的描述，我们知道它的长度为数据库版本字符串的长度+上标示结束的一个字节。就是说实际上存储的时候还有一个<code>0x00</code>的字节跟着<code>version</code>字段表示结束符。你会发现有好多这种字段跟上结束符的数据，所以在填充数据的时候，需要把<code>0x00</code>也一起填上。</p>
-<p><img src="/2018/10/26/MySQL协议Handshake解析（三）/2.png" alt="你想输入的替代文字"></p>
-<p>有了上面两个字段的解释，我相信每个字段的数据你们都能对应上去了，所以这里就不解释了。</p>
-<h3 id="过程中遇到的问题"><a href="#过程中遇到的问题" class="headerlink" title="过程中遇到的问题"></a>过程中遇到的问题</h3><ol>
-<li>为什么会有大小端？为什么采用小端计算机计算会更加方便？</li>
-</ol>
-<blockquote>
-<p>你算加减乘的时候是从高位还是低位开始的？ </p>
-<p>为什么不从高位开始？因为存在着进位，如果从高位开始，算到后面发现有进位，就要回退到高位处理进位<br>如果从低位开始，可以一下子算出来。早期的计算机是纸带机，纸带上储存的是2进制数据 </p>
-<p>如果使用小端储存，做加减乘运算时，计算机的写出头可以一直往一个方向移动，而不用回退写出头处理进位问题。</p>
-</blockquote>
-<ol start="2">
-<li>既然小端像上面所说的一样有计算方便的优势，为什么还要出现大端呢？</li>
-</ol>
-<blockquote>
-<p>大端也有自己的优势，在判定正负时，符号位固定为第一个字节，容易判断。</p>
-</blockquote>
+<p>初看这个格式，你们会发现你们的OK包和上面的数据格式是对不上的。用WireShark来解析一下。</p>
+<p><strong>要讲的第一个点就是包头标志</strong>。用Wireshark分析的时候，可以看到<code>MySQL Protocol</code>中没有包头标志这个数据的。但是实际上你看具体的16进制数据会发现，<code>Packet Number</code> 和 <code>Affected Rows</code>之间还有<code>0x00</code>就是我框出来的<code>00</code>。所以数据还是有的，只是<code>MySQL Protocol</code>没有显示而已。</p>
+<p><img src="/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/1.png" alt="你想输入的替代文字"></p>
+<p><strong>第二个要讲的是自增id</strong>。在上面的包中也没有显示，但是在下面具体数据中可以看到<code>Affected Rows</code>和<code>Server status</code>还有一个<code>0x00</code>来存放自增长ID。当我们<strong>执行插入语句</strong>时就会发现这个字段就可以看到了。</p>
+<p><img src="/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/2.png" alt="你想输入的替代文字"></p>
+<p><strong>第三个要说明的是额外信息</strong>。在执行更新操作时，就可以看到额外信息了。</p>
+<p><img src="/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/3.png" alt="你想输入的替代文字"></p>
+<p>宗上面的分析，<code>OK Packet</code>的格式是能对应上的，只是根据不同SQL请求，字段的数据才会显示出来。</p>
+<h3 id="Error-Packet"><a href="#Error-Packet" class="headerlink" title="Error Packet"></a>Error Packet</h3><h4 id="Error-Packet数据格式"><a href="#Error-Packet数据格式" class="headerlink" title="Error Packet数据格式"></a>Error Packet数据格式</h4><p>同样下面是第四字节后具体内容。</p>
+<table>
+<thead>
+<tr>
+<th>相对包内容的位置</th>
+<th>长度（字节）</th>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>包头标识</td>
+<td>0xFF 代表这是一个Error 包</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>错误代码</td>
+<td>该错误的相应错误代码</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>标识位</td>
+<td>SQL执行状态标识位，用’#’进行标识</td>
+</tr>
+<tr>
+<td>4</td>
+<td>5</td>
+<td>执行状态</td>
+<td>SQL的具体执行状态</td>
+</tr>
+<tr>
+<td>9</td>
+<td>msg_len</td>
+<td>错误信息</td>
+<td>具体的错误信息</td>
+</tr>
+</tbody>
+</table>
+<p>Wireshark分析的界面如下，最重要的信息是错误msg。</p>
+<p><img src="/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/4.png" alt="你想输入的替代文字"></p>
 
       
     </div>
@@ -492,8 +501,6 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Handshake/" rel="tag"># Handshake</a>
-          
             <a href="/tags/MySQL网络协议/" rel="tag"># MySQL网络协议</a>
           
             <a href="/tags/造轮子/" rel="tag"># 造轮子</a>
@@ -509,8 +516,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/10/26/WireShark-分析MySQL网络协议中的数据包（二）/" rel="next" title="实现自己的数据库驱动——WireShark分析MySQL网络协议中的数据包（二）">
-                <i class="fa fa-chevron-left"></i> 实现自己的数据库驱动——WireShark分析MySQL网络协议中的数据包（二）
+              <a href="/2018/10/27/实现自己的数据库驱动——MySQL协议Auth-Packet解析（四）/" rel="next" title="实现自己的数据库驱动——MySQL协议Auth Packet解析（四）">
+                <i class="fa fa-chevron-left"></i> 实现自己的数据库驱动——MySQL协议Auth Packet解析（四）
               </a>
             
           </div>
@@ -518,10 +525,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/10/27/实现自己的数据库驱动——MySQL协议Auth-Packet解析（四）/" rel="prev" title="实现自己的数据库驱动——MySQL协议Auth Packet解析（四）">
-                实现自己的数据库驱动——MySQL协议Auth Packet解析（四） <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -653,7 +656,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Handshake-Packet格式"><span class="nav-number">2.</span> <span class="nav-text">Handshake Packet格式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WireShark分析HandShake-Packet"><span class="nav-number">3.</span> <span class="nav-text">WireShark分析HandShake Packet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#过程中遇到的问题"><span class="nav-number">4.</span> <span class="nav-text">过程中遇到的问题</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OK-Packet"><span class="nav-number">2.</span> <span class="nav-text">OK Packet</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#OK-Packet数据格式"><span class="nav-number">2.1.</span> <span class="nav-text">OK Packet数据格式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Error-Packet"><span class="nav-number">3.</span> <span class="nav-text">Error Packet</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Error-Packet数据格式"><span class="nav-number">3.1.</span> <span class="nav-text">Error Packet数据格式</span></a></li></ol></li></ol></div>
             
 
           </div>
