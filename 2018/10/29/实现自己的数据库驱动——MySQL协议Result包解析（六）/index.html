@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="随记," />
+  <meta name="keywords" content="MySQL网络协议,造轮子," />
 
 
 
@@ -105,18 +105,24 @@
 
 
 
-<meta name="description" content="状态：距离上一篇博客已经有一个月了，这说明最近的学习状态的确不够理想。在休息之前，一直告诉自己，乘着放松的时间把状态调整好，现在是休息好了，但是状态却找不回来。老师交代的论文也没怎么看，说实话我觉得论文这块不是我的菜，看多了反而觉得烦。 值得庆幸的是，学习的步伐始终没有停下来，每天早上会去看公总号推荐的技术性文章，这是一个好习惯，希望保持住。不论学习的效率问题，至少我对这个行业的初心还是保持不变，">
-<meta name="keywords" content="随记">
+<meta name="description" content="前言上一篇中当执行了INSERT、UPDATE or ALTER TABLE操作时，会生成对应的OK/Error包。而我们这篇要说明的是SELECT结果Result Set的解析。Result Set会涉及到了多个不同结构的包，有Column_Count、Column_Def、EOF、Row。">
+<meta name="keywords" content="MySQL网络协议,造轮子">
 <meta property="og:type" content="article">
-<meta property="og:title" content="月记">
-<meta property="og:url" content="http://yoursite.com/2018/08/21/月记180821/index.html">
+<meta property="og:title" content="实现自己的数据库驱动——MySQL协议Result Set包解析（六）">
+<meta property="og:url" content="http://yoursite.com/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="状态：距离上一篇博客已经有一个月了，这说明最近的学习状态的确不够理想。在休息之前，一直告诉自己，乘着放松的时间把状态调整好，现在是休息好了，但是状态却找不回来。老师交代的论文也没怎么看，说实话我觉得论文这块不是我的菜，看多了反而觉得烦。 值得庆幸的是，学习的步伐始终没有停下来，每天早上会去看公总号推荐的技术性文章，这是一个好习惯，希望保持住。不论学习的效率问题，至少我对这个行业的初心还是保持不变，">
+<meta property="og:description" content="前言上一篇中当执行了INSERT、UPDATE or ALTER TABLE操作时，会生成对应的OK/Error包。而我们这篇要说明的是SELECT结果Result Set的解析。Result Set会涉及到了多个不同结构的包，有Column_Count、Column_Def、EOF、Row。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-08-21T11:18:52.958Z">
+<meta property="og:image" content="http://yoursite.com/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/3.png">
+<meta property="og:image" content="http://yoursite.com/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/4.png">
+<meta property="og:image" content="http://yoursite.com/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/5.png">
+<meta property="og:image" content="http://yoursite.com/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/6.png">
+<meta property="og:image" content="http://yoursite.com/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/7.png">
+<meta property="og:updated_time" content="2018-10-29T08:14:08.108Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="月记">
-<meta name="twitter:description" content="状态：距离上一篇博客已经有一个月了，这说明最近的学习状态的确不够理想。在休息之前，一直告诉自己，乘着放松的时间把状态调整好，现在是休息好了，但是状态却找不回来。老师交代的论文也没怎么看，说实话我觉得论文这块不是我的菜，看多了反而觉得烦。 值得庆幸的是，学习的步伐始终没有停下来，每天早上会去看公总号推荐的技术性文章，这是一个好习惯，希望保持住。不论学习的效率问题，至少我对这个行业的初心还是保持不变，">
+<meta name="twitter:title" content="实现自己的数据库驱动——MySQL协议Result Set包解析（六）">
+<meta name="twitter:description" content="前言上一篇中当执行了INSERT、UPDATE or ALTER TABLE操作时，会生成对应的OK/Error包。而我们这篇要说明的是SELECT结果Result Set的解析。Result Set会涉及到了多个不同结构的包，有Column_Count、Column_Def、EOF、Row。">
+<meta name="twitter:image" content="http://yoursite.com/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/3.png">
 
 
 
@@ -146,13 +152,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/08/21/月记180821/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/"/>
 
 
 
 
 
-  <title>月记 | Don't Stop</title>
+  <title>实现自己的数据库驱动——MySQL协议Result Set包解析（六） | Don't Stop</title>
   
 
 
@@ -279,7 +285,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/21/月记180821/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -296,7 +302,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">月记</h1>
+          <h1 class="post-title" itemprop="name headline">实现自己的数据库驱动——MySQL协议Result Set包解析（六）</h1>
         
 
         <div class="post-meta">
@@ -308,8 +314,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-21T18:49:57+08:00">
-                2018-08-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-29T13:49:24+08:00">
+                2018-10-29
               </time>
             
 
@@ -331,8 +337,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/随记/" itemprop="url" rel="index">
-                    <span itemprop="name">随记</span>
+                  <a href="/categories/实现自己的数据库驱动/" itemprop="url" rel="index">
+                    <span itemprop="name">实现自己的数据库驱动</span>
                   </a>
                 </span>
 
@@ -368,11 +374,174 @@
       
 
       
-        <p>状态：<br>距离上一篇博客已经有一个月了，这说明最近的学习状态的确不够理想。在休息之前，一直告诉自己，乘着放松的时间把状态调整好，现在是休息好了，但是状态却找不回来。老师交代的论文也没怎么看，说实话我觉得论文这块不是我的菜，看多了反而觉得烦。</p>
-<p>值得庆幸的是，学习的步伐始终没有停下来，每天早上会去看公总号推荐的技术性文章，这是一个好习惯，希望保持住。不论学习的效率问题，至少我对这个行业的初心还是保持不变，我也相信这会是我学习路上最好的老师。</p>
-<p>新get的知识：<br>在前面一个月，由一篇关于分布式锁的博客，学到了如何利用redis来实现分布式锁，认识到zookeeper在实现分布式锁上更加具有优势，这些在后面的博客会记录下来。</p>
-<p>架构方面：<br>这两天在看service mesh，有点楞，还体会不到这个微服务网格的好处在哪，记得上次师兄们在群里聊到蚂蚁有自己的一套SOFA MESh，当时是完全不知道他们在讲什么，至少现在我知道了，说明我也在进步。<br>在这一个月里，微服务的RPC的框架有了一定的了解，也写了一个demo，后面会针对Dubbo实现的demo来解释加深对RPC的认识。</p>
-<p>展望：<br>把前面的提到知识点梳理好，相应的博客也要接着写掉。然后抓紧把实验做了，其实要自己实现word2vec是没什么难度的，但是总觉得和自己前进的方向没有什么重合点，以至于我不想动。架构学习上多参加开源社区，增加知识面的广度，当然还是要有自己的一个擅长的领域。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>上一篇中当执行了INSERT、UPDATE or ALTER TABLE操作时，会生成对应的OK/Error包。而我们这篇要说明的是SELECT结果Result Set的解析。Result Set会涉及到了多个不同结构的包，有<code>Column_Coun</code>t、<code>Column_Def</code>、<code>EOF</code>、<code>Row</code>。</p>
+<a id="more"></a>
+<h3 id="Result-Set包简析"><a href="#Result-Set包简析" class="headerlink" title="Result Set包简析"></a>Result Set包简析</h3><p>用一张图片来简单解析一下每个包的具体作用。</p>
+<p><img src="/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/3.png" alt="你想输入的替代文字"></p>
+<p>从上图来看，客户端发送一个select的com_query包之后，DB会按照下列步骤返回：</p>
+<blockquote>
+<p>1.返回一个 Protocol::LengthEncodedInteger ，其中数据为column_count.（该表的显示返回中字段的个数）</p>
+<p>2.接下来会跟column_count个Protocol::ColumnDefinition 包(对每一个字段的说明). </p>
+<p>3.再读取一个eof包表示ColumnDefinition包流结束. </p>
+<p>4.读取n个Row包，Row含有请求的数据值。</p>
+<p>6.如果读到任何一个error包之后，从此读取结束，抛出错误.</p>
+<p>7.或者你读取到了第二个eof包，按照正常顺序这里就会结束了. 但是：</p>
+<p>如果eof包中的status &amp; SERVER_MORE_RESULT_EXISTS不为0，表明还有ResultSet,则返回到步骤1，开始读取下一个ResultSet.</p>
+</blockquote>
+<h3 id="Column-count-Packet"><a href="#Column-count-Packet" class="headerlink" title="Column_count Packet"></a>Column_count Packet</h3><p>该包前四个字节表示的包的字节长度以及包的序列号。后面存放的是一个类型为LengthEncodeInteger表示结果中含有几个列。<code>Number of fields</code>显示该返回字段有2列。</p>
+<p><img src="/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/4.png" alt="你想输入的替代文字"></p>
+<h3 id="Column-def-Packet"><a href="#Column-def-Packet" class="headerlink" title="Column_def Packet"></a>Column_def Packet</h3><p>该包前四个字节表示的包的字节长度以及包的序列号。后四字节为以下内容。</p>
+<table>
+<thead>
+<tr>
+<th>相对包内容的位置</th>
+<th>长度（字节）</th>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>不定长</td>
+<td>catalog</td>
+<td>目录，通常为def</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>不定长</td>
+<td>schema</td>
+<td>操作的数据库</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>不定长</td>
+<td>table</td>
+<td>操作的虚拟表名</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>不定长</td>
+<td>org_table</td>
+<td>操作的物理表名</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>不定长</td>
+<td>name</td>
+<td>虚拟列字段名</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>不定长</td>
+<td>org_name</td>
+<td>物理列字段名</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>0x0c</td>
+<td>length of fixed-length fields</td>
+<td>以下字段长度</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>2</td>
+<td>character</td>
+<td>列字符集</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>4</td>
+<td>length</td>
+<td>字段最大长度</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>1</td>
+<td>type</td>
+<td>字段类型</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>2</td>
+<td>flags</td>
+<td>标志</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>1</td>
+<td>decimals</td>
+<td>??</td>
+</tr>
+<tr>
+<td>不定长</td>
+<td>2</td>
+<td>预留字节数</td>
+<td>预留字节数</td>
+</tr>
+</tbody>
+</table>
+<p>以下是Wireshark对column_def的解析截图。</p>
+<p><img src="/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/5.png" alt="你想输入的替代文字"></p>
+<h3 id="EOF-Packet"><a href="#EOF-Packet" class="headerlink" title="EOF Packet"></a>EOF Packet</h3><table>
+<thead>
+<tr>
+<th>相对包内容的位置</th>
+<th>长度（字节）</th>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>包头标识</td>
+<td>0xFE 代表这是一个EOF 包</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>警告数</td>
+<td>上次命令引起的警告数</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2</td>
+<td>服务器状态</td>
+<td>服务器状态</td>
+</tr>
+</tbody>
+</table>
+<p>以下是Wireshark的数据截图。</p>
+<p><img src="/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/6.png" alt="你想输入的替代文字"></p>
+<h3 id="Row-Packet"><a href="#Row-Packet" class="headerlink" title="Row Packet"></a>Row Packet</h3><p>Row Data含着的是我们需要获取的数据，一个Result Set包里面包含着多个Row Data结构。每一个值前面有长度字节值，可以帮助我们区分开不同的列。</p>
+<table>
+<thead>
+<tr>
+<th>相对包内容的位置</th>
+<th>长度（字节）</th>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>不定</td>
+<td>length</td>
+<td>这个字段的数据长度</td>
+</tr>
+<tr>
+<td>不定</td>
+<td>不定</td>
+<td>value</td>
+<td>这个字段的值</td>
+</tr>
+</tbody>
+</table>
+<p>Wireshark显示Row的数据，虽然只显示了text，但是点击十六进制的数据，还是能看到length的数据。</p>
+<p><img src="/2018/10/29/实现自己的数据库驱动——MySQL协议Result包解析（六）/7.png" alt="你想输入的替代文字"></p>
 
       
     </div>
@@ -390,7 +559,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/随记/" rel="tag"># 随记</a>
+            <a href="/tags/MySQL网络协议/" rel="tag"># MySQL网络协议</a>
+          
+            <a href="/tags/造轮子/" rel="tag"># 造轮子</a>
           
         </div>
       
@@ -403,8 +574,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/07/21/如何做一个推荐系统/" rel="next" title="如何做一个推荐系统">
-                <i class="fa fa-chevron-left"></i> 如何做一个推荐系统
+              <a href="/2018/10/27/实现自己的数据库驱动——MySQL协议OK-Error-Packet解析（五）/" rel="next" title="实现自己的数据库驱动——MySQL协议OK/Error包解析（五）">
+                <i class="fa fa-chevron-left"></i> 实现自己的数据库驱动——MySQL协议OK/Error包解析（五）
               </a>
             
           </div>
@@ -412,10 +583,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/08/21/分布式锁的实现/" rel="prev" title="分布式锁的实现">
-                分布式锁的实现 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -467,8 +634,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -528,6 +704,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Result-Set包简析"><span class="nav-number">2.</span> <span class="nav-text">Result Set包简析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Column-count-Packet"><span class="nav-number">3.</span> <span class="nav-text">Column_count Packet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Column-def-Packet"><span class="nav-number">4.</span> <span class="nav-text">Column_def Packet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EOF-Packet"><span class="nav-number">5.</span> <span class="nav-text">EOF Packet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Row-Packet"><span class="nav-number">6.</span> <span class="nav-text">Row Packet</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
