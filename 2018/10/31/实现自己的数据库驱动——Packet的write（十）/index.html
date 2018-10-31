@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="造轮子," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言上一篇讲解如何将服务端中代码解析到具体的类中，这篇主要来讲解如何将一个包的数据，按照协议的要求发出。 如服务端需要接受Client的一个Auth，格式要求如下：">
+<meta name="keywords" content="造轮子">
+<meta property="og:type" content="article">
+<meta property="og:title" content="实现自己的数据库驱动——Packet的write（十）">
+<meta property="og:url" content="http://yoursite.com/2018/10/31/实现自己的数据库驱动——Packet的write（十）/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言上一篇讲解如何将服务端中代码解析到具体的类中，这篇主要来讲解如何将一个包的数据，按照协议的要求发出。 如服务端需要接受Client的一个Auth，格式要求如下：">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/10/31/实现自己的数据库驱动——Packet的write（十）/1.png">
+<meta property="og:updated_time" content="2018-10-31T13:48:45.962Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="实现自己的数据库驱动——Packet的write（十）">
+<meta name="twitter:description" content="前言上一篇讲解如何将服务端中代码解析到具体的类中，这篇主要来讲解如何将一个包的数据，按照协议的要求发出。 如服务端需要接受Client的一个Auth，格式要求如下：">
+<meta name="twitter:image" content="http://yoursite.com/2018/10/31/实现自己的数据库驱动——Packet的write（十）/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/10/31/实现自己的数据库驱动——Packet的write（十）/"/>
+
+
+
+
+
+  <title>实现自己的数据库驱动——Packet的write（十） | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/31/实现自己的数据库驱动——Packet的write（十）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">实现自己的数据库驱动——Packet的write（十）</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-31T21:16:29+08:00">
+                2018-10-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/实现自己的数据库驱动/" itemprop="url" rel="index">
+                    <span itemprop="name">实现自己的数据库驱动</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>上一篇讲解如何将服务端中代码解析到具体的类中，这篇主要来讲解如何将一个包的数据，按照协议的要求发出。</p>
+<p>如服务端需要接受Client的一个Auth，格式要求如下：</p>
+<p><img src="/2018/10/31/实现自己的数据库驱动——Packet的write（十）/1.png" alt="你想输入的替代文字"></p>
+<a id="more"></a>
+<h3 id="Produce-Auth-Packet"><a href="#Produce-Auth-Packet" class="headerlink" title="Produce Auth Packet"></a>Produce Auth Packet</h3><p>具体步骤是先生存AuthPacket，然后将对应的数据附上。然后调用<code>auth.write(buffer)</code>，将数据写入到buffer中。</p>
+<p>再调用<code>buffer.get(bytes, 0, bytes.length)</code>把buffer转为二进制数据返回bytes，然后利用socket编程将bytes传给Server端。这里主要针对<code>auth.write(buffer)</code>进行说明，具体的完整代码可以在我的<code>github</code>上找到。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 根据handshake包中的salt1和salt2生成加密的密码，将用户名、密码、数据库名一起打包成authPacket发送给服务端</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> rand1 salt1长度为8</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> rand2 salt2长度为12</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> user 用户名</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> password 未加密的密码</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> database 要操作的数据库名</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@return</span> 返回auth packet的二进制</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">byte</span>[] produceAuthPacket(<span class="keyword">byte</span>[] rand1,<span class="keyword">byte</span>[] rand2, String user , String password,String database) &#123;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">byte</span>[] seed = <span class="keyword">new</span> <span class="keyword">byte</span>[rand1.length + rand2.length];</span><br><span class="line">       System.arraycopy(rand1, <span class="number">0</span>, seed, <span class="number">0</span>, rand1.length);</span><br><span class="line">       System.arraycopy(rand2, <span class="number">0</span>, seed, rand1.length, rand2.length);</span><br><span class="line"></span><br><span class="line">       AuthPacket auth = <span class="keyword">new</span> AuthPacket();</span><br><span class="line">       auth.packetId = <span class="number">1</span>;<span class="comment">//包的序列号</span></span><br><span class="line">       auth.clientFlags = getClientCapabilities();<span class="comment">//客户端协议</span></span><br><span class="line">       auth.maxPacketSize = <span class="number">1024</span> * <span class="number">1024</span> * <span class="number">1024</span>;<span class="comment">//包的最大值</span></span><br><span class="line">       auth.user = user;<span class="comment">//用户名</span></span><br><span class="line">       <span class="keyword">try</span> &#123;<span class="comment">//利用salt1,salt2对password进行加密</span></span><br><span class="line">           auth.password = SecurityUtil</span><br><span class="line">                   .scramble411(password.getBytes(), seed);</span><br><span class="line">       &#125; <span class="keyword">catch</span> (NoSuchAlgorithmException e) &#123;</span><br><span class="line">           e.printStackTrace();</span><br><span class="line">       &#125;</span><br><span class="line">       auth.database = database;<span class="comment">//操作的数据库名</span></span><br><span class="line"></span><br><span class="line">       ByteBuffer buffer = ByteBuffer.allocate(<span class="number">256</span>);</span><br><span class="line">       auth.write(buffer);<span class="comment">//将数据的二进制写入buffer中</span></span><br><span class="line">       buffer.flip();</span><br><span class="line">       <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[buffer.remaining()];</span><br><span class="line">       buffer.get(bytes, <span class="number">0</span>, bytes.length);</span><br><span class="line">       <span class="keyword">return</span> bytes;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>这里讲一些特殊字段的write，如长度为4字节的<code>clientFlags</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//如果是存入四个字节，其实是不能使用int的，因为24-32位是有符号位的，所以这里需要使用Long，这样可以保证前32表示的都是值</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">writeUB4</span><span class="params">(ByteBuffer buffer, <span class="keyword">long</span> l)</span> </span>&#123;</span><br><span class="line">   buffer.put((<span class="keyword">byte</span>) (l &amp; <span class="number">0xff</span>));</span><br><span class="line">   buffer.put((<span class="keyword">byte</span>) (l &gt;&gt;&gt; <span class="number">8</span>));</span><br><span class="line">   buffer.put((<span class="keyword">byte</span>) (l &gt;&gt;&gt; <span class="number">16</span>));</span><br><span class="line">   buffer.put((<span class="keyword">byte</span>) (l &gt;&gt;&gt; <span class="number">24</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>还有数据后跟着null的字段，如<code>username</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">writeWithNull</span><span class="params">(ByteBuffer buffer, <span class="keyword">byte</span>[] src)</span> </span>&#123;</span><br><span class="line">   buffer.put(src);</span><br><span class="line">   buffer.put((<span class="keyword">byte</span>) <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>还有在插入数据前，写入长度的数据，如<code>password</code>。因为表示长度的数据是一个<code>LengthEncodedInteger</code>，所以根据长度的大小，先要插入一个标志符，具体如下：</p>
+<table>
+<thead>
+<tr>
+<th>最小值（包含）</th>
+<th>最大值（不包含）</th>
+<th>存储方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>251</td>
+<td>1个字节</td>
+</tr>
+<tr>
+<td>251</td>
+<td>2^16</td>
+<td>3个字节(0xFC + 2个字节具体数据)</td>
+</tr>
+<tr>
+<td>2^16</td>
+<td>2^24</td>
+<td>4个字节(0xFD + 3个字节具体数据)</td>
+</tr>
+<tr>
+<td>2^24</td>
+<td>2^64</td>
+<td>9个字节(0xFE + 8个字节具体数据)</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">writeWithLength</span><span class="params">(ByteBuffer buffer, <span class="keyword">byte</span>[] src)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">int</span> length = src.length;</span><br><span class="line">   <span class="keyword">if</span> (length &lt; <span class="number">251</span>) &#123;</span><br><span class="line">      buffer.put((<span class="keyword">byte</span>) length);</span><br><span class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (length &lt; <span class="number">0x10000L</span>) &#123;</span><br><span class="line">      buffer.put((<span class="keyword">byte</span>) <span class="number">252</span>);</span><br><span class="line">      writeUB2(buffer, length);</span><br><span class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (length &lt; <span class="number">0x1000000L</span>) &#123;</span><br><span class="line">      buffer.put((<span class="keyword">byte</span>) <span class="number">253</span>);</span><br><span class="line">      writeUB3(buffer, length);</span><br><span class="line">   &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      buffer.put((<span class="keyword">byte</span>) <span class="number">254</span>);</span><br><span class="line">      writeLong(buffer, length);</span><br><span class="line">   &#125;</span><br><span class="line">   buffer.put(src);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/造轮子/" rel="tag"># 造轮子</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/10/31/实现自己的数据库驱动——Packet的read（九）/" rel="next" title="实现自己的数据库驱动——Packet的read（九）">
+                <i class="fa fa-chevron-left"></i> 实现自己的数据库驱动——Packet的read（九）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Produce-Auth-Packet"><span class="nav-number">2.</span> <span class="nav-text">Produce Auth Packet</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
