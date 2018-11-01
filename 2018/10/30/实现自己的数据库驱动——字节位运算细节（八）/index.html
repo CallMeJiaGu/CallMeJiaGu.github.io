@@ -113,7 +113,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言前面几篇主要是讲解各个MySQL协议通信过程中涉及到的Packet。后面主要是讲解如何根据Packet的结构，将需要的字节按照一定的顺序写入Packet中。这部分涉及到Java 的字节运算。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-10-31T11:52:02.512Z">
+<meta property="og:updated_time" content="2018-11-01T02:36:14.802Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="实现自己的数据库驱动——字节位运算细节（八）">
 <meta name="twitter:description" content="前言前面几篇主要是讲解各个MySQL协议通信过程中涉及到的Packet。后面主要是讲解如何根据Packet的结构，将需要的字节按照一定的顺序写入Packet中。这部分涉及到Java 的字节运算。">
@@ -391,7 +391,17 @@
 <h3 id="i-amp-0xff的意义"><a href="#i-amp-0xff的意义" class="headerlink" title="i &amp; 0xff的意义"></a>i &amp; 0xff的意义</h3><p>上面的输出虽然得到了解释，但是对<code>i &amp; 0xff</code>的意义还未认识到位。首先byte x =-126,在填充成int类型后变成了<code>1111 1111 .... 1000 0010</code>，虽然个二进制表示的十进制还是-126的，但是x在内存中存储的进制已经发生了变化。<strong>我希望就算它是被int类型填充，它的二进制还是保持为原来的。即使它的十进制不一样。</strong></p>
 <p>很多时候，我们要求的就是二进制唯一性。举个列子，从服务端发送的来了一个Handshake，第四位表示的一个包的序列号，用一个字节来表示。假设服务端的<code>packed number</code>为-5，我们解析这个包的同时，也需要用一个字节来保存，如果这个时候我不用字节来存，而是用一个int来存，是不是就存在上面低字节转高字节的问题。</p>
 <p>会导致原本是-5的byte二进制<code>1111 1011</code>，变成了<code>1111 1111.... 1111 1011</code>。所以为了解决二进制不唯一的问题就要利用<code>&amp; 0xff</code> 来避免。</p>
-
+<h3 id="什么时候需要-amp-0xff"><a href="#什么时候需要-amp-0xff" class="headerlink" title="什么时候需要 &amp; 0xff"></a>什么时候需要 &amp; 0xff</h3><p>如上面提到的当存在低位向高位的转化时，就需要考虑补码的问题，比如下列代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span></span>&#123;</span><br><span class="line">    <span class="keyword">byte</span> x = -<span class="number">34</span>;</span><br><span class="line">    System.out.println(Integer.toHexString(x));</span><br><span class="line">    System.out.println(Integer.toHexString(x&amp;<span class="number">0xff</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果：</p>
+<blockquote>
+<p>ffffffde<br>de</p>
+</blockquote>
+<p>首先我们知道x作为字节是以补码的形式存在的，即它在内存是以八位的形式存储<code>1101 1110</code>。那么我调用<code>toHexString(x)</code> 是希望得到<code>de</code>的，但是因为toHexString需要一个int类型，所以在进行转化的时候byte 类型的x就先转成了int类型。转化过程会以1来填充。那么就得到了<code>1111 1111... 1101 1110</code>。</p>
+<p>那么上述<code>x&amp;0xff</code>就可以保证补码带来的影响了，直接把前面24位的1&amp;0。所以可以得到<code>de</code>。</p>
+<p><code>x&amp;0xff</code>虽然已经表示为int类型的222,和原来的值发生了变化，但是在这个场景中，我们需要的是二进制相同，所以当我们在做低位向高位转化，并且涉及到的是进制上的运算，就需要用到<code>&amp;0xff</code>。</p>
+<p>再举个列子，byte往long的转化，涉及到上述的两个条件，那么就要考虑到是否要使用0xff来保证补码带来的问题</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">readUB4</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   <span class="keyword">final</span> <span class="keyword">byte</span>[] b = <span class="keyword">this</span>.data;</span><br><span class="line">   <span class="keyword">long</span> l = (<span class="keyword">long</span>) (b[position++] &amp; <span class="number">0xff</span>);</span><br><span class="line">   l |= (<span class="keyword">long</span>) (b[position++] &amp; <span class="number">0xff</span>) &lt;&lt; <span class="number">8</span>;</span><br><span class="line">   l |= (<span class="keyword">long</span>) (b[position++] &amp; <span class="number">0xff</span>) &lt;&lt; <span class="number">16</span>;</span><br><span class="line">   l |= (<span class="keyword">long</span>) (b[position++] &amp; <span class="number">0xff</span>) &lt;&lt; <span class="number">24</span>;</span><br><span class="line">   <span class="keyword">return</span> l;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -567,7 +577,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#低字节转高字节存在的问题"><span class="nav-number">2.</span> <span class="nav-text">低字节转高字节存在的问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#i-amp-0xff的意义"><span class="nav-number">3.</span> <span class="nav-text">i &amp; 0xff的意义</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#低字节转高字节存在的问题"><span class="nav-number">2.</span> <span class="nav-text">低字节转高字节存在的问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#i-amp-0xff的意义"><span class="nav-number">3.</span> <span class="nav-text">i &amp; 0xff的意义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#什么时候需要-amp-0xff"><span class="nav-number">4.</span> <span class="nav-text">什么时候需要 &amp; 0xff</span></a></li></ol></div>
             
 
           </div>
