@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="造轮子,位运算," />
+  <meta name="keywords" content="Solr," />
 
 
 
@@ -105,18 +105,21 @@
 
 
 
-<meta name="description" content="前言前面几篇主要是讲解各个MySQL协议通信过程中涉及到的Packet。后面主要是讲解如何根据Packet的结构，将需要的字节按照一定的顺序写入Packet中。这部分涉及到Java 的字节运算。">
-<meta name="keywords" content="造轮子,位运算">
+<meta name="description" content="前言常用的搜索引擎的联想功能就如下图所示，虽然实现的方式有很多，但是这里还是要说明一下solr是如何实现这块功能的。">
+<meta name="keywords" content="Solr">
 <meta property="og:type" content="article">
-<meta property="og:title" content="实现自己的数据库驱动——字节位运算细节（八）">
-<meta property="og:url" content="http://yoursite.com/2018/10/30/实现自己的数据库驱动——字节位运算细节（八）/index.html">
+<meta property="og:title" content="Solr联想词袋配置">
+<meta property="og:url" content="http://yoursite.com/2018/04/12/Solr联想词袋配置/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言前面几篇主要是讲解各个MySQL协议通信过程中涉及到的Packet。后面主要是讲解如何根据Packet的结构，将需要的字节按照一定的顺序写入Packet中。这部分涉及到Java 的字节运算。">
+<meta property="og:description" content="前言常用的搜索引擎的联想功能就如下图所示，虽然实现的方式有很多，但是这里还是要说明一下solr是如何实现这块功能的。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-01T02:36:14.802Z">
+<meta property="og:image" content="http://yoursite.com/2018/04/12/Solr联想词袋配置/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/12/Solr联想词袋配置/2.png">
+<meta property="og:updated_time" content="2018-11-06T02:18:15.740Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="实现自己的数据库驱动——字节位运算细节（八）">
-<meta name="twitter:description" content="前言前面几篇主要是讲解各个MySQL协议通信过程中涉及到的Packet。后面主要是讲解如何根据Packet的结构，将需要的字节按照一定的顺序写入Packet中。这部分涉及到Java 的字节运算。">
+<meta name="twitter:title" content="Solr联想词袋配置">
+<meta name="twitter:description" content="前言常用的搜索引擎的联想功能就如下图所示，虽然实现的方式有很多，但是这里还是要说明一下solr是如何实现这块功能的。">
+<meta name="twitter:image" content="http://yoursite.com/2018/04/12/Solr联想词袋配置/1.png">
 
 
 
@@ -146,13 +149,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/10/30/实现自己的数据库驱动——字节位运算细节（八）/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/04/12/Solr联想词袋配置/"/>
 
 
 
 
 
-  <title>实现自己的数据库驱动——字节位运算细节（八） | Don't Stop</title>
+  <title>Solr联想词袋配置 | Don't Stop</title>
   
 
 
@@ -279,7 +282,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/30/实现自己的数据库驱动——字节位运算细节（八）/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/12/Solr联想词袋配置/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -296,7 +299,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">实现自己的数据库驱动——字节位运算细节（八）</h1>
+          <h1 class="post-title" itemprop="name headline">Solr联想词袋配置</h1>
         
 
         <div class="post-meta">
@@ -308,8 +311,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-30T21:13:36+08:00">
-                2018-10-30
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-12T09:49:51+08:00">
+                2018-04-12
               </time>
             
 
@@ -331,8 +334,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/实现自己的数据库驱动/" itemprop="url" rel="index">
-                    <span itemprop="name">实现自己的数据库驱动</span>
+                  <a href="/categories/Solr/" itemprop="url" rel="index">
+                    <span itemprop="name">Solr</span>
                   </a>
                 </span>
 
@@ -368,40 +371,17 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面几篇主要是讲解各个MySQL协议通信过程中涉及到的Packet。后面主要是讲解如何根据Packet的结构，将需要的字节按照一定的顺序写入Packet中。这部分涉及到Java 的字节运算。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>常用的搜索引擎的联想功能就如下图所示，虽然实现的方式有很多，但是这里还是要说明一下solr是如何实现这块功能的。</p>
+<p><img src="/2018/04/12/Solr联想词袋配置/1.png" alt="你想输入的替代文字"></p>
 <a id="more"></a>
-<h3 id="低字节转高字节存在的问题"><a href="#低字节转高字节存在的问题" class="headerlink" title="低字节转高字节存在的问题"></a>低字节转高字节存在的问题</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span></span>&#123;</span><br><span class="line">        <span class="keyword">byte</span> x = -<span class="number">126</span>;</span><br><span class="line">        System.out.println(Integer.toBinaryString(x &amp; <span class="number">0xff</span>));</span><br><span class="line">        System.out.println(Integer.toBinaryString(x));</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>结果：</p>
-<blockquote>
-<p>10000010<br>11111111111111111111111110000010</p>
-</blockquote>
-<p>先来看上面的程序。<code>Integer.toBinaryString</code>接受一个int类型的值，并将这个值的二进制码输出。可以看到<code>x</code>在与<code>0xff</code>进行<code>与操作</code>之后的值发生了改变。</p>
-<p>先不说为什么，回到<code>byte x = -126</code>来，先想想x存储的二进制应该是什么？Java中存储的是补码（关于什么是补码这里不细讲）。</p>
-<p>这个简单，byte总共有八位其中最高位表示符号位，剩下的七位表示值。范围是-128~127。很容易算出来x存储的二进制为下：</p>
-<blockquote>
-<p>10000010 </p>
-</blockquote>
-<p><strong>既然byte是八位的二进制，那 和<code>0xff</code>做<code>&amp;</code>运算的意义是什么呢？<code>x&amp;0xff</code>难道不还是x吗！</strong></p>
-<p>的确是的，但是在做&amp;运算的时候<code>0xff</code>表示的是一个int类型，而x在与int做运算的时候，就需要做byte到int的一个转化。转化的过程为：</p>
-<ol>
-<li>当byte为一个负值，会将8位的byte填充至32位，用1来填充。也就是说<code>byte x = -126</code> 原本是<code>1000 0010</code>，变成<code>1111 1111 .... 1000 0010</code>。</li>
-<li>当byte为一个正值，用0来填充，这时候是没有影响的。原本是<code>1000 0010</code> 变成<code>0000 0000... 1000 0010</code> </li>
-</ol>
-<p>x = -126.考虑第一种情况，x填充成<code>1111 1111.... 1000 0010</code>再与<code>0xff</code>做<code>&amp;</code>运算，最后变成了<code>1000 0010</code>。所以第一个输出就得到了解释。第二个输出因为被填充的<code>1111 1111... 1000 0010</code>没有其他运算，所以按照这个二进制输出。</p>
-<h3 id="i-amp-0xff的意义"><a href="#i-amp-0xff的意义" class="headerlink" title="i &amp; 0xff的意义"></a>i &amp; 0xff的意义</h3><p>上面的输出虽然得到了解释，但是对<code>i &amp; 0xff</code>的意义还未认识到位。首先byte x =-126,在填充成int类型后变成了<code>1111 1111 .... 1000 0010</code>，虽然个二进制表示的十进制还是-126的，但是x在内存中存储的进制已经发生了变化。<strong>我希望就算它是被int类型填充，它的二进制还是保持为原来的。即使它的十进制不一样。</strong></p>
-<p>很多时候，我们要求的就是二进制唯一性。举个列子，从服务端发送的来了一个Handshake，第四位表示的一个包的序列号，用一个字节来表示。假设服务端的<code>packed number</code>为-5，我们解析这个包的同时，也需要用一个字节来保存，如果这个时候我不用字节来存，而是用一个int来存，是不是就存在上面低字节转高字节的问题。</p>
-<p>会导致原本是-5的byte二进制<code>1111 1011</code>，变成了<code>1111 1111.... 1111 1011</code>。所以为了解决二进制不唯一的问题就要利用<code>&amp; 0xff</code> 来避免。</p>
-<h3 id="什么时候需要-amp-0xff"><a href="#什么时候需要-amp-0xff" class="headerlink" title="什么时候需要 &amp; 0xff"></a>什么时候需要 &amp; 0xff</h3><p>如上面提到的当存在低位向高位的转化时，就需要考虑补码的问题，比如下列代码</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span></span>&#123;</span><br><span class="line">    <span class="keyword">byte</span> x = -<span class="number">34</span>;</span><br><span class="line">    System.out.println(Integer.toHexString(x));</span><br><span class="line">    System.out.println(Integer.toHexString(x&amp;<span class="number">0xff</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>结果：</p>
-<blockquote>
-<p>ffffffde<br>de</p>
-</blockquote>
-<p>首先我们知道x作为字节是以补码的形式存在的，即它在内存是以八位的形式存储<code>1101 1110</code>。那么我调用<code>toHexString(x)</code> 是希望得到<code>de</code>的，但是因为toHexString需要一个int类型，所以在进行转化的时候byte 类型的x就先转成了int类型。转化过程会以1来填充。那么就得到了<code>1111 1111... 1101 1110</code>。</p>
-<p>那么上述<code>x&amp;0xff</code>就可以保证补码带来的影响了，直接把前面24位的1&amp;0。所以可以得到<code>de</code>。</p>
-<p><code>x&amp;0xff</code>虽然已经表示为int类型的222,和原来的值发生了变化，但是在这个场景中，我们需要的是二进制相同，所以当我们在做低位向高位转化，并且涉及到的是进制上的运算，就需要用到<code>&amp;0xff</code>。</p>
-<p>再举个列子，byte往long的转化，涉及到上述的两个条件，那么就要考虑到是否要使用0xff来保证补码带来的问题</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">readUB4</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   <span class="keyword">final</span> <span class="keyword">byte</span>[] b = <span class="keyword">this</span>.data;</span><br><span class="line">   <span class="keyword">long</span> l = (<span class="keyword">long</span>) (b[position++] &amp; <span class="number">0xff</span>);</span><br><span class="line">   l |= (<span class="keyword">long</span>) (b[position++] &amp; <span class="number">0xff</span>) &lt;&lt; <span class="number">8</span>;</span><br><span class="line">   l |= (<span class="keyword">long</span>) (b[position++] &amp; <span class="number">0xff</span>) &lt;&lt; <span class="number">16</span>;</span><br><span class="line">   l |= (<span class="keyword">long</span>) (b[position++] &amp; <span class="number">0xff</span>) &lt;&lt; <span class="number">24</span>;</span><br><span class="line">   <span class="keyword">return</span> l;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="具体配置"><a href="#具体配置" class="headerlink" title="具体配置"></a>具体配置</h3><p>其实和上一篇配置相同，首先创建一个提供联想功能的核心。然后为这个核心配置好数据源，即在<code>solrconfig.xml</code>中配置好相应的<code>dataImport</code>模块，以及<code>data-config.xml</code>的生成配置。</p>
+<p>上述的步骤在上篇博客中有详细的描述。完成上述的步骤之后，需要在<code>solrconfig.xml</code>中再配置好<code>suggest</code>模块。只需要改变配置中的word为你的字段即可。<str name="field">word</str> 。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- 搜索建议 --&gt;</span><br><span class="line">  &lt;searchComponent name=<span class="string">"suggest"</span> class=<span class="string">"solr.SuggestComponent"</span>&gt;</span><br><span class="line">    &lt;lst name=<span class="string">"suggester"</span>&gt;</span><br><span class="line">      &lt;str name=<span class="string">"name"</span>&gt;mySuggester&lt;/str&gt;</span><br><span class="line">      &lt;str name=<span class="string">"field"</span>&gt;word&lt;/str&gt;</span><br><span class="line">      &lt;str name=<span class="string">"suggestAnalyzerFieldType"</span>&gt;string&lt;/str&gt;</span><br><span class="line">      &lt;str name=<span class="string">"buildOnCommit"</span>&gt;<span class="literal">true</span>&lt;/str&gt;</span><br><span class="line">      &lt;str name=<span class="string">"buildOnOptimize"</span>&gt;<span class="literal">true</span>&lt;/str&gt;</span><br><span class="line">      </span><br><span class="line">    &lt;/lst&gt;</span><br><span class="line">  &lt;/searchComponent&gt;</span><br><span class="line"></span><br><span class="line">  &lt;requestHandler name=<span class="string">"/suggest"</span> class=<span class="string">"solr.SearchHandler"</span> startup=<span class="string">"lazy"</span>&gt;</span><br><span class="line">    &lt;lst name=<span class="string">"defaults"</span>&gt;</span><br><span class="line">      &lt;str name=<span class="string">"suggest"</span>&gt;<span class="literal">true</span>&lt;/str&gt;</span><br><span class="line">      &lt;str name=<span class="string">"suggest.count"</span>&gt;10&lt;/str&gt;</span><br><span class="line">      &lt;str name=<span class="string">"suggest.dictionary"</span>&gt;mySuggester&lt;/str&gt;</span><br><span class="line">    &lt;/lst&gt;</span><br><span class="line">    &lt;arr name=<span class="string">"components"</span>&gt;</span><br><span class="line">      &lt;str&gt;suggest&lt;/str&gt;</span><br><span class="line">    &lt;/arr&gt;</span><br><span class="line">  &lt;/requestHandler&gt;</span><br></pre></td></tr></table></figure>
+<p><code>managed-schema</code>中字段的配置如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;field name=<span class="string">"id"</span> <span class="built_in">type</span>=<span class="string">"string"</span> indexed=<span class="string">"true"</span> stored=<span class="string">"true"</span> required=<span class="string">"true"</span>  multiValued=<span class="string">"false"</span> /&gt;</span><br><span class="line">&lt;field name=<span class="string">"word"</span> <span class="built_in">type</span>=<span class="string">"string"</span> indexed=<span class="string">"true"</span> stored=<span class="string">"true"</span> required=<span class="string">"false"</span> multiValued=<span class="string">"false"</span> /&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="具体使用"><a href="#具体使用" class="headerlink" title="具体使用"></a>具体使用</h3><p>选择对应的核心，然后把使用<code>/suggest</code>的功能，输入查询的字段，就可以查出联想词。</p>
+<p><img src="/2018/04/12/Solr联想词袋配置/2.png" alt="你想输入的替代文字"></p>
+
       
     </div>
     
@@ -418,9 +398,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/造轮子/" rel="tag"># 造轮子</a>
-          
-            <a href="/tags/位运算/" rel="tag"># 位运算</a>
+            <a href="/tags/Solr/" rel="tag"># Solr</a>
           
         </div>
       
@@ -433,8 +411,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/10/29/实现自己的数据库驱动——MySQL协议Quit包解析（七）/" rel="next" title="实现自己的数据库驱动——MySQL协议Quit包解析（七）">
-                <i class="fa fa-chevron-left"></i> 实现自己的数据库驱动——MySQL协议Quit包解析（七）
+              <a href="/2018/04/11/solr的搭建/" rel="next" title="Solr的搭建">
+                <i class="fa fa-chevron-left"></i> Solr的搭建
               </a>
             
           </div>
@@ -443,8 +421,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/10/31/实现自己的数据库驱动——Packet的read（九）/" rel="prev" title="实现自己的数据库驱动——Packet的read（九）">
-                实现自己的数据库驱动——Packet的read（九） <i class="fa fa-chevron-right"></i>
+              <a href="/2018/04/13/Solr-HanLp中文分词/" rel="prev" title="Solr-HanLp中文分词">
+                Solr-HanLp中文分词 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -577,7 +555,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#低字节转高字节存在的问题"><span class="nav-number">2.</span> <span class="nav-text">低字节转高字节存在的问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#i-amp-0xff的意义"><span class="nav-number">3.</span> <span class="nav-text">i &amp; 0xff的意义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#什么时候需要-amp-0xff"><span class="nav-number">4.</span> <span class="nav-text">什么时候需要 &amp; 0xff</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#具体配置"><span class="nav-number">2.</span> <span class="nav-text">具体配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#具体使用"><span class="nav-number">3.</span> <span class="nav-text">具体使用</span></a></li></ol></div>
             
 
           </div>
