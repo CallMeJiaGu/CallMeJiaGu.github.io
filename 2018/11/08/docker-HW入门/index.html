@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="docker," />
+  <meta name="keywords" content="Docker," />
 
 
 
@@ -106,9 +106,9 @@
 
 
 <meta name="description" content="前言容器技术在当前非常流行，而且在学习Istio的过程中，需要有k8s和docker的基础。它们的关系如下：k8s是用来管理编排docker的，可以更方便的部署出容器集群。而Istio是基于k8s环境下，是一种服务网格的实现。 所以docker无论是技术栈上的要求，还是响应技术潮流，都是必须要掌握的。这篇就以docker的hello world来开篇，简单来记录一下我对docker使用上的认识。d">
-<meta name="keywords" content="docker">
+<meta name="keywords" content="Docker">
 <meta property="og:type" content="article">
-<meta property="og:title" content="docker 初体验">
+<meta property="og:title" content="Docker初体验">
 <meta property="og:url" content="http://yoursite.com/2018/11/08/docker-HW入门/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言容器技术在当前非常流行，而且在学习Istio的过程中，需要有k8s和docker的基础。它们的关系如下：k8s是用来管理编排docker的，可以更方便的部署出容器集群。而Istio是基于k8s环境下，是一种服务网格的实现。 所以docker无论是技术栈上的要求，还是响应技术潮流，都是必须要掌握的。这篇就以docker的hello world来开篇，简单来记录一下我对docker使用上的认识。d">
@@ -119,9 +119,9 @@
 <meta property="og:image" content="http://yoursite.com/2018/11/08/docker-HW入门/4.png">
 <meta property="og:image" content="http://yoursite.com/2018/11/08/docker-HW入门/5.png">
 <meta property="og:image" content="http://yoursite.com/2018/11/08/docker-HW入门/6.png">
-<meta property="og:updated_time" content="2018-11-08T06:31:45.344Z">
+<meta property="og:updated_time" content="2018-11-08T08:23:08.421Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="docker 初体验">
+<meta name="twitter:title" content="Docker初体验">
 <meta name="twitter:description" content="前言容器技术在当前非常流行，而且在学习Istio的过程中，需要有k8s和docker的基础。它们的关系如下：k8s是用来管理编排docker的，可以更方便的部署出容器集群。而Istio是基于k8s环境下，是一种服务网格的实现。 所以docker无论是技术栈上的要求，还是响应技术潮流，都是必须要掌握的。这篇就以docker的hello world来开篇，简单来记录一下我对docker使用上的认识。d">
 <meta name="twitter:image" content="http://yoursite.com/2018/11/08/docker-HW入门/1.png">
 
@@ -159,7 +159,7 @@
 
 
 
-  <title>docker 初体验 | Don't Stop</title>
+  <title>Docker初体验 | Don't Stop</title>
   
 
 
@@ -303,7 +303,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">docker 初体验</h1>
+          <h1 class="post-title" itemprop="name headline">Docker初体验</h1>
         
 
         <div class="post-meta">
@@ -338,8 +338,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/docker/" itemprop="url" rel="index">
-                    <span itemprop="name">docker</span>
+                  <a href="/categories/Docker/" itemprop="url" rel="index">
+                    <span itemprop="name">Docker</span>
                   </a>
                 </span>
 
@@ -403,7 +403,7 @@
 <p><img src="/2018/11/08/docker-HW入门/5.png" alt="你想输入的替代文字"></p>
 <p>然后使用<code>docker ps</code>可以查看当前正在运行的容器，但是上面hello-world在执行完就会将容器关闭。所以run一个ubuntu的镜像，然后让它在后台运行。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -itd ubuntu /bin/bash</span><br></pre></td></tr></table></figure>
-<p>如果没有ubuntu这个镜像，docker会先将其pull下来。再使用docker ps 查看当前运行的容器，可以看到ubuntu容器再运行中。</p>
+<p>如果没有ubuntu这个镜像，docker会先将其pull下来。关于run 后面的参数会在后续博客给出解释。再使用docker ps 查看当前运行的容器，可以看到ubuntu。</p>
 <p><img src="/2018/11/08/docker-HW入门/6.png" alt="你想输入的替代文字"></p>
 <p>查看所有的容器包括不在运行的容器。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker ps -a</span><br></pre></td></tr></table></figure>
@@ -431,7 +431,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/docker/" rel="tag"># docker</a>
+            <a href="/tags/Docker/" rel="tag"># Docker</a>
           
         </div>
       
@@ -453,6 +453,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/11/08/Docker-部署web项目/" rel="prev" title="Docker 部署web项目">
+                Docker 部署web项目 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -529,7 +533,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">38</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
