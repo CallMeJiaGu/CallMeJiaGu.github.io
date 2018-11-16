@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="git," />
+  <meta name="keywords" content="Docker," />
 
 
 
@@ -105,20 +105,21 @@
 
 
 
-<meta name="description" content="前言前一阵在使用IDEA往github上传代码，老是出现仓库上传的错误，打开.git文件夹修改config文件也没能成功。所以打算直接用命令行进行操作，这里简单的记录一下往github上传基本命令以及过程可能会遇到的问题。">
-<meta name="keywords" content="git">
+<meta name="description" content="前言在Docker容器中，如果启动的容器需要将数据持久化到本机上，这个时候通常使用docker run -v的命令将本地路径挂载到docker容器中。 1docker run -v 宿主目录:容器挂载的目录 镜像 本章就来说明一下Docker如何部署MySQL服务，同时持久化数据。">
+<meta name="keywords" content="Docker">
 <meta property="og:type" content="article">
-<meta property="og:title" content="git 命令行记录">
-<meta property="og:url" content="http://yoursite.com/2018/04/10/git-命令行记录/index.html">
+<meta property="og:title" content="Docker MySQL容器">
+<meta property="og:url" content="http://yoursite.com/2018/11/16/Docker-MySQL容器/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言前一阵在使用IDEA往github上传代码，老是出现仓库上传的错误，打开.git文件夹修改config文件也没能成功。所以打算直接用命令行进行操作，这里简单的记录一下往github上传基本命令以及过程可能会遇到的问题。">
+<meta property="og:description" content="前言在Docker容器中，如果启动的容器需要将数据持久化到本机上，这个时候通常使用docker run -v的命令将本地路径挂载到docker容器中。 1docker run -v 宿主目录:容器挂载的目录 镜像 本章就来说明一下Docker如何部署MySQL服务，同时持久化数据。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2018/04/10/git-命令行记录/1.png">
-<meta property="og:updated_time" content="2018-11-04T07:52:23.038Z">
+<meta property="og:image" content="http://yoursite.com/2018/11/16/Docker-MySQL容器/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/16/Docker-MySQL容器/2.png">
+<meta property="og:updated_time" content="2018-11-16T12:20:45.621Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="git 命令行记录">
-<meta name="twitter:description" content="前言前一阵在使用IDEA往github上传代码，老是出现仓库上传的错误，打开.git文件夹修改config文件也没能成功。所以打算直接用命令行进行操作，这里简单的记录一下往github上传基本命令以及过程可能会遇到的问题。">
-<meta name="twitter:image" content="http://yoursite.com/2018/04/10/git-命令行记录/1.png">
+<meta name="twitter:title" content="Docker MySQL容器">
+<meta name="twitter:description" content="前言在Docker容器中，如果启动的容器需要将数据持久化到本机上，这个时候通常使用docker run -v的命令将本地路径挂载到docker容器中。 1docker run -v 宿主目录:容器挂载的目录 镜像 本章就来说明一下Docker如何部署MySQL服务，同时持久化数据。">
+<meta name="twitter:image" content="http://yoursite.com/2018/11/16/Docker-MySQL容器/1.png">
 
 
 
@@ -148,13 +149,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/04/10/git-命令行记录/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/11/16/Docker-MySQL容器/"/>
 
 
 
 
 
-  <title>git 命令行记录 | Don't Stop</title>
+  <title>Docker MySQL容器 | Don't Stop</title>
   
 
 
@@ -281,7 +282,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/10/git-命令行记录/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/16/Docker-MySQL容器/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -298,7 +299,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">git 命令行记录</h1>
+          <h1 class="post-title" itemprop="name headline">Docker MySQL容器</h1>
         
 
         <div class="post-meta">
@@ -310,8 +311,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-10T12:43:57+08:00">
-                2018-04-10
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-16T18:38:36+08:00">
+                2018-11-16
               </time>
             
 
@@ -333,8 +334,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/git/" itemprop="url" rel="index">
-                    <span itemprop="name">git</span>
+                  <a href="/categories/Docker/" itemprop="url" rel="index">
+                    <span itemprop="name">Docker</span>
                   </a>
                 </span>
 
@@ -370,28 +371,39 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前一阵在使用IDEA往github上传代码，老是出现仓库上传的错误，打开.git文件夹修改<code>config</code>文件也没能成功。所以打算直接用命令行进行操作，这里简单的记录一下往github上传基本命令以及过程可能会遇到的问题。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在Docker容器中，如果启动的容器需要将数据持久化到本机上，这个时候通常使用<code>docker run -v</code>的命令将本地路径挂载到docker容器中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -v 宿主目录:容器挂载的目录 镜像</span><br></pre></td></tr></table></figure>
+<p>本章就来说明一下Docker如何部署MySQL服务，同时持久化数据。</p>
 <a id="more"></a>
-<h3 id="上传过程"><a href="#上传过程" class="headerlink" title="上传过程"></a>上传过程</h3><p>首先需要确保你的电脑已经安装了git，并且已经配置好<code>SSH Keys</code>。</p>
-<p>初始化你要上传的文件夹，使用以下命令。可以看到.git文件生成。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git init</span><br></pre></td></tr></table></figure>
-<p><img src="/2018/04/10/git-命令行记录/1.png" alt="你想输入的替代文字"></p>
-<p>要想学会使用git，还要明白一个概念。一个是本地仓库、一个是远程仓库。</p>
-<p><code>git commit</code>是将本地修改过的文件提交到本地库中。<code>git push</code>是将本地库中的最新信息发送给远程库。所以要想把本地的代码上传到远程仓库（GitHub），就需要先提交代码到本地仓库。</p>
-<p>使用<code>git add</code>，这个命令是在提交之前告诉git有哪些东西需要提交。把<code>README.md</code>这个文件先添加上去。当然你也可以把<code>src文件夹</code>存放源码的文件上传上去。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git add README.md</span><br></pre></td></tr></table></figure>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git add ./src</span><br></pre></td></tr></table></figure>
-<p>使用git commit提交到本地仓库。这个时候<code>README.md</code>和<code>src文件夹</code>都上传至本地仓库了。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git commit</span><br></pre></td></tr></table></figure>
-<p>这个时候可以使用<code>git push</code>把本地仓库上传至远程仓库了，所以这个时候你要指定你远程仓库的地址。将本地的分支与远程仓库的分支进行关联</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git remote add abc https://github.com/CallMeJiaGu/testgit.git</span><br></pre></td></tr></table></figure>
-<p>其中的<code>abc</code>是remote的名称，多数情况下是使用<code>origin</code>命名的，不过当要配置多个remote的时候，就以name来区别。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git remote add &lt;name&gt; &lt;url&gt;</span><br></pre></td></tr></table></figure>
-<p>然后使用git push把代码上传至远程仓库。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git push abc</span><br></pre></td></tr></table></figure>
-<h3 id="配置ignore文件"><a href="#配置ignore文件" class="headerlink" title="配置ignore文件"></a>配置ignore文件</h3><p>有时候我们希望使用<code>git add ./</code>将当前文件夹下的所有东西都提交上去，但是过滤掉一些配置文件或者class文件，就可以在该文件夹新建一个<code>.gitignore</code>文件，然后写入你要过滤的文件格式。比如我过滤了.idea文件夹和以class结尾的文件。</p>
-<figure class="highlight tex"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">.idea</span><br><span class="line">*.class</span><br></pre></td></tr></table></figure>
-<p>这样上传的时候，就会自动过滤我们配置好的文件。</p>
+<h3 id="Docker-目录挂载"><a href="#Docker-目录挂载" class="headerlink" title="Docker 目录挂载"></a>Docker 目录挂载</h3><p>Docker容器启动的时候，如果要挂载宿主机的一个目录，可以用-v参数指定。譬如我要启动一个centos容器，宿主机的/test目录挂载到容器的/soft目录，可通过以下方式指定：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -it -v /<span class="built_in">test</span>:/soft centos /bin/bash</span><br></pre></td></tr></table></figure>
+<p>容器挂载有两点需要说明：</p>
+<ol>
+<li><strong>如果在容器内修改了目录，那么对应的挂载点目录也会改变。</strong></li>
+<li><strong>容器销毁了，在宿主机上新建的挂载目录不会消失。</strong></li>
+</ol>
+<h3 id="部署MySQL容器步骤"><a href="#部署MySQL容器步骤" class="headerlink" title="部署MySQL容器步骤"></a>部署MySQL容器步骤</h3><p>拉取MySQL镜像，如果速度较慢的，可以采用网易的镜像加速。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker pull mysql:5.7 <span class="comment">#使用5.7v的MySQL</span></span><br></pre></td></tr></table></figure>
+<p>创建用于挂载的目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo mkdir /my/mysql/datadir <span class="comment">#用于挂载mysql数据文件</span></span><br><span class="line">$ sudo mkdir /my/mysql/conf.d <span class="comment">#用于挂载mysql配置文件</span></span><br></pre></td></tr></table></figure>
+<p>使用镜像创建容器</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql5.7.1 -p 3306:3306 -v /my/mysql/datadir:/var/lib/mysql -v /my/mysql/conf.d:/etc/mysql/conf.d -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.7</span><br></pre></td></tr></table></figure>
+<p>参数解析：</p>
+<blockquote>
+<p>–name：容器名<br>–p：映射宿主主机端口<br>-v：挂载宿主目录到容器目录<br>-e：设置环境变量，此处指定root密码<br>-d：后台运行容器</p>
+</blockquote>
+<p>进入到正在执行的容器中</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">exec</span> -it mysql5.7.1 /bin/bash</span><br></pre></td></tr></table></figure>
+<p>登录MySQL</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mysql -u root -p</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/11/16/Docker-MySQL容器/1.png" alt="你想输入的替代文字"></p>
+<h3 id="容器目录到宿主机"><a href="#容器目录到宿主机" class="headerlink" title="容器目录到宿主机"></a>容器目录到宿主机</h3><p>上面已经成功启动了MySQL服务，下面继续在该容器中添加上记录，观察一下宿主机有没有保存该记录。</p>
+<p>在MySQL容器中创建数据库和表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">CREATE DATABASE test;</span><br><span class="line"></span><br><span class="line">CREATE TABLE `t_user` (</span><br><span class="line">  `id` int(11) NOT NULL AUTO_INCREMENT,</span><br><span class="line">  `username` varchar(255) NOT NULL,</span><br><span class="line">  `nickname` varchar(255) NOT NULL,</span><br><span class="line">  `password` varchar(255) NOT NULL,</span><br><span class="line">  PRIMARY KEY (`id`),</span><br><span class="line">  UNIQUE KEY `UK_jhib4legehrm4yscx9t3lirqi` (`username`)</span><br><span class="line">) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;</span><br></pre></td></tr></table></figure>
+<p>插入数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">INSERT INTO  t_user (id, username,nickname, password)  VALUES (1, &quot;jintx&quot;, &quot;jiagu&quot;, &quot;22&quot;);</span><br></pre></td></tr></table></figure>
+<p>退出容器到宿主机上查看，刚刚新建的表以及数据的确存放在了<code>/my/mysql/datadir</code>，这样可以保证就算该容器重启后，但是数据已经做到了持久化，所以容器重启后数据还是在的。</p>
+<p><img src="/2018/11/16/Docker-MySQL容器/2.png" alt="你想输入的替代文字"></p>
 
       
     </div>
@@ -409,7 +421,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/git/" rel="tag"># git</a>
+            <a href="/tags/Docker/" rel="tag"># Docker</a>
           
         </div>
       
@@ -422,15 +434,15 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2018/11/13/Dockerfile-命令书写exec和shell/" rel="next" title="Dockerfile 命令书写exec和shell">
+                <i class="fa fa-chevron-left"></i> Dockerfile 命令书写exec和shell
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/04/11/solr的搭建/" rel="prev" title="Solr的搭建">
-                Solr的搭建 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -562,7 +574,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#上传过程"><span class="nav-number">2.</span> <span class="nav-text">上传过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置ignore文件"><span class="nav-number">3.</span> <span class="nav-text">配置ignore文件</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker-目录挂载"><span class="nav-number">2.</span> <span class="nav-text">Docker 目录挂载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#部署MySQL容器步骤"><span class="nav-number">3.</span> <span class="nav-text">部署MySQL容器步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#容器目录到宿主机"><span class="nav-number">4.</span> <span class="nav-text">容器目录到宿主机</span></a></li></ol></div>
             
 
           </div>
