@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Docker通信," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言在docker低版本中，容器间的通信通常有以下三种方式：   通过使用容器的IP地址来通信。 通过宿主机的IP加上容器暴露出的端口号来通信。 通过docker的link机制可以通过一个name来和另一个容器通信   本章主要来讲解一下这三种连接方式。实验容器为 python2.7 以及 mysql5.7，可以直接从dockerHub上pull。">
+<meta name="keywords" content="Docker通信">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker 容器通信">
+<meta property="og:url" content="http://yoursite.com/2018/11/17/Docker-容器通信/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言在docker低版本中，容器间的通信通常有以下三种方式：   通过使用容器的IP地址来通信。 通过宿主机的IP加上容器暴露出的端口号来通信。 通过docker的link机制可以通过一个name来和另一个容器通信   本章主要来讲解一下这三种连接方式。实验容器为 python2.7 以及 mysql5.7，可以直接从dockerHub上pull。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/5.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/3.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/4.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/4.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/6.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/7.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/4.png">
+<meta property="og:updated_time" content="2018-11-17T03:26:39.073Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker 容器通信">
+<meta name="twitter:description" content="前言在docker低版本中，容器间的通信通常有以下三种方式：   通过使用容器的IP地址来通信。 通过宿主机的IP加上容器暴露出的端口号来通信。 通过docker的link机制可以通过一个name来和另一个容器通信   本章主要来讲解一下这三种连接方式。实验容器为 python2.7 以及 mysql5.7，可以直接从dockerHub上pull。">
+<meta name="twitter:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/17/Docker-容器通信/"/>
+
+
+
+
+
+  <title>Docker 容器通信 | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/17/Docker-容器通信/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Docker 容器通信</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-17T10:11:04+08:00">
+                2018-11-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Docker/" itemprop="url" rel="index">
+                    <span itemprop="name">Docker</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在docker低版本中，容器间的通信通常有以下三种方式：</p>
+<blockquote>
+<ol>
+<li>通过使用容器的IP地址来通信。</li>
+<li>通过宿主机的IP加上容器暴露出的端口号来通信。</li>
+<li>通过docker的link机制可以通过一个name来和另一个容器通信</li>
+</ol>
+</blockquote>
+<p>本章主要来讲解一下这三种连接方式。实验容器为 <code>python2.7</code> 以及 <code>mysql5.7</code>，可以直接从dockerHub上pull。</p>
+<a id="more"></a>
+<h3 id="使用容器IP通信"><a href="#使用容器IP通信" class="headerlink" title="使用容器IP通信"></a>使用容器IP通信</h3><p>首先启动MySQL容器和python容器。关于MySQL容器的配置前一篇有详细的解释。</p>
+<h4 id="启动MySQL容器："><a href="#启动MySQL容器：" class="headerlink" title="启动MySQL容器："></a>启动MySQL容器：</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run --name mysql5.7.1 -p 3306:3306 -v /my/mysql/datadir:/var/lib/mysql -v /my/mysql/conf.d:/etc/mysql/conf.d -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.7</span><br></pre></td></tr></table></figure>
+<p>进入到该容器，查看容器的IP地址：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker <span class="built_in">exec</span> -it mysql5.7.1 /bin/bash</span><br></pre></td></tr></table></figure>
+<p>为容器安装ifconfig以及ping，不然会报command not find</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get update</span><br><span class="line">$ apt-get install net-tools <span class="comment">#ifconfig</span></span><br><span class="line">$ apt-get iputils ping</span><br></pre></td></tr></table></figure>
+<p>使用ifconfig查看IP地址</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ifconfig</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/11/17/Docker-容器通信/1.png" alt="你想输入的替代文字"></p>
+<p>可以看到MySQL容器的IP地址是<code>172.17.0.2</code>。</p>
+<h4 id="启动python容器"><a href="#启动python容器" class="headerlink" title="启动python容器"></a>启动python容器</h4><p>启动<code>python2.7</code>容器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -it python:2.7 /bin/bash</span><br></pre></td></tr></table></figure>
+<p>安装好ifconfig以及ping，测试是否能ping到数据库容器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ping 127.17.0.2</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/11/17/Docker-容器通信/5.png" alt="你想输入的替代文字"></p>
+<p>安装好MySQL-python模块：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">apt-get install python-dev <span class="comment">#安装python-dev，否则后面安装mysql模块报错</span></span><br><span class="line">pip install MySQL-python <span class="comment">#安装mysqldb模块</span></span><br></pre></td></tr></table></figure>
+<p>创建测试连接的test_connection.py文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim test_connection.py  <span class="comment"># (没有vim，使用apt-get install vim )</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2018/11/17/Docker-容器通信/3.png" alt="你想输入的替代文字"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding=utf-8</span></span><br><span class="line"><span class="keyword">import</span> MySQLdb <span class="keyword">as</span> mdb</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">reload(sys)</span><br><span class="line">sys.setdefaultencoding(<span class="string">'utf-8'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">connectionDB</span><span class="params">()</span>:</span></span><br><span class="line">    con_code = mdb.connect(host=<span class="string">'172.17.0.2'</span>, user=<span class="string">'root'</span>, passwd=<span class="string">'123456'</span>, db=<span class="string">'test'</span>,</span><br><span class="line">                           charset=<span class="string">'utf8'</span>)</span><br><span class="line">    cur_code = con_code.cursor()</span><br><span class="line">    selectSQL = <span class="string">"select name from t_user"</span></span><br><span class="line">    cur_code.execute(selectSQL)</span><br><span class="line">    con_code.commit()</span><br><span class="line">    rows = cur_code.fetchall()</span><br><span class="line">    <span class="keyword">for</span> row <span class="keyword">in</span> rows:</span><br><span class="line">        <span class="keyword">print</span> row[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="comment">#connectionDB()</span></span><br><span class="line">    print(<span class="string">'start'</span>)</span><br></pre></td></tr></table></figure>
+<p>在该容器下运行 test_connection.py ：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ python test_connection.py</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/11/17/Docker-容器通信/4.png" alt="你想输入的替代文字"></p>
+<h3 id="通过宿主机的IP通信"><a href="#通过宿主机的IP通信" class="headerlink" title="通过宿主机的IP通信"></a>通过宿主机的IP通信</h3><p>在宿主机上查看IP地址，可以看到：</p>
+<blockquote>
+<p>宿主机IP：172.17.0.1</p>
+<p>MySQL容器IP：172.17.0.2</p>
+<p>python容器IP：172.17.0.3</p>
+</blockquote>
+<p>修改test_connection.py，将地址改成宿主机的IP，发现也能运行成功！</p>
+<p><img src="/2018/11/17/Docker-容器通信/4.png" alt="你想输入的替代文字"></p>
+<h3 id="Link机制"><a href="#Link机制" class="headerlink" title="Link机制"></a>Link机制</h3><p>通过docker的link机制可以通过一个name来和另一个容器通信，link机制方便了容器去发现其它的容器并且可以安全的传递一些连接信息给其它的容器。就算不知道要通信间的容器IP，也可以使用<code>--link name:alias</code>来保证通信。</p>
+<p>启动python容器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -it --link mysql5.7.1:dblink python2.7 /bin/bash</span><br></pre></td></tr></table></figure>
+<p>可以使用<code>mysql5.7.1</code> 或者<code>dblink</code>来代替 <code>172.17.0.2</code>。<code>ping mysql5.7.1/dblink</code> 测试：</p>
+<p><img src="/2018/11/17/Docker-容器通信/6.png" alt="你想输入的替代文字"></p>
+<p>修改test_connection.py：</p>
+<p><img src="/2018/11/17/Docker-容器通信/7.png" alt="你想输入的替代文字"></p>
+<p>运行py文件测试：</p>
+<p><img src="/2018/11/17/Docker-容器通信/4.png" alt="你想输入的替代文字"></p>
+<p>通信成功！！</p>
+<h3 id="三种通信的比较"><a href="#三种通信的比较" class="headerlink" title="三种通信的比较"></a>三种通信的比较</h3><blockquote>
+<p>使用容器的IP：会导致IP地址的硬编码，不方便迁移，并且容器重启后IP地址会改变，除非使用固定的IP。</p>
+<p>使用宿主机的IP：通信方式比较单一，只能依靠监听在暴露出的端口的进程来进行有限的通信。</p>
+<p>link机制：link机制方便了容器去发现其它的容器并且可以安全的传递一些连接信息给其它的容器。</p>
+</blockquote>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Docker通信/" rel="tag"># Docker通信</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/16/Docker-MySQL容器/" rel="next" title="Docker MySQL容器">
+                <i class="fa fa-chevron-left"></i> Docker MySQL容器
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">43</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">27</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用容器IP通信"><span class="nav-number">2.</span> <span class="nav-text">使用容器IP通信</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#启动MySQL容器："><span class="nav-number">2.1.</span> <span class="nav-text">启动MySQL容器：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#启动python容器"><span class="nav-number">2.2.</span> <span class="nav-text">启动python容器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过宿主机的IP通信"><span class="nav-number">3.</span> <span class="nav-text">通过宿主机的IP通信</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Link机制"><span class="nav-number">4.</span> <span class="nav-text">Link机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三种通信的比较"><span class="nav-number">5.</span> <span class="nav-text">三种通信的比较</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
