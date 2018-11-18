@@ -121,7 +121,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/6.png">
 <meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/7.png">
 <meta property="og:image" content="http://yoursite.com/2018/11/17/Docker-容器通信/4.png">
-<meta property="og:updated_time" content="2018-11-17T03:26:39.073Z">
+<meta property="og:updated_time" content="2018-11-18T02:31:09.237Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Docker 容器通信">
 <meta name="twitter:description" content="前言在docker低版本中，容器间的通信通常有以下三种方式：   通过使用容器的IP地址来通信。 通过宿主机的IP加上容器暴露出的端口号来通信。 通过docker的link机制可以通过一个name来和另一个容器通信   本章主要来讲解一下这三种连接方式。实验容器为 python2.7 以及 mysql5.7，可以直接从dockerHub上pull。">
@@ -413,9 +413,7 @@
 <p><img src="/2018/11/17/Docker-容器通信/4.png" alt="你想输入的替代文字"></p>
 <h3 id="通过宿主机的IP通信"><a href="#通过宿主机的IP通信" class="headerlink" title="通过宿主机的IP通信"></a>通过宿主机的IP通信</h3><p>在宿主机上查看IP地址，可以看到：</p>
 <blockquote>
-<p>宿主机IP：172.17.0.1</p>
-<p>MySQL容器IP：172.17.0.2</p>
-<p>python容器IP：172.17.0.3</p>
+<p>宿主机IP：172.17.0.1<br>MySQL容器IP：172.17.0.2<br>python容器IP：172.17.0.3</p>
 </blockquote>
 <p>修改test_connection.py，将地址改成宿主机的IP，发现也能运行成功！</p>
 <p><img src="/2018/11/17/Docker-容器通信/4.png" alt="你想输入的替代文字"></p>
