@@ -119,7 +119,8 @@
 <meta property="og:image" content="http://yoursite.com/2018/11/19/Kubernetes-Pod操作/5.png">
 <meta property="og:image" content="http://yoursite.com/2018/11/19/Kubernetes-Pod操作/6.png">
 <meta property="og:image" content="http://yoursite.com/2018/11/19/Kubernetes-Pod操作/7.png">
-<meta property="og:updated_time" content="2018-11-19T13:41:02.476Z">
+<meta property="og:image" content="http://yoursite.com/2018/11/19/Kubernetes-Pod操作/8.png">
+<meta property="og:updated_time" content="2018-11-19T13:46:26.995Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Kubernetes Pod操作">
 <meta name="twitter:description" content="前言上一篇简单介绍了K8S中的组件，以及组件之间的联系。这篇就来详细的说说K8S是如何对Pod进行管理编排的。 Ubuntu上安装K8S有比较多的问题，centos7.0可以直接yum install。我直接在katacoda测试运行。">
@@ -405,6 +406,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl logs tomcatandmysql mysql <span class="comment">#kubectl logs &lt;podname&gt; &lt;imagename&gt;</span></span><br></pre></td></tr></table></figure>
 <h4 id="kubectl-exec"><a href="#kubectl-exec" class="headerlink" title="kubectl exec"></a>kubectl exec</h4><p>进入到某个Pod，默认进入到第一个容器中：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl <span class="built_in">exec</span> -it tomcatandmysql /bin/bash</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/11/19/Kubernetes-Pod操作/8.png" alt="你想输入的替代文字"></p>
 
       
     </div>
