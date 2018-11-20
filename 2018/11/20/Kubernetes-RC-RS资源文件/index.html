@@ -401,19 +401,19 @@
 <p>注意<code>spec.selector</code>和<code>spec.template.metadata.labels</code>这两个字段必须相同，否则会创建失败的，当然我们也可以不写<code>spec.selector</code>，这样就默认与<code>Pod</code>模板中的<code>metadata.labels</code>相同了。所以为了避免不必要的错误的话，不写为好。</p>
 </blockquote>
 <p>然后我们来创建上面的<code>RC</code>对象(保存为 rc-demo.yaml):</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl create -f rc-demo.yaml</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kubectl create -f rc-demo.yaml</span></span><br></pre></td></tr></table></figure>
 <p>查看<code>RC</code>：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl get rc</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kubectl get rc</span></span><br></pre></td></tr></table></figure>
 <p>查看具体信息：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl describe rc rc-demo</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kubectl describe rc rc-demo</span></span><br></pre></td></tr></table></figure>
 <p>然后我们通过<code>RC</code>来修改下<code>Pod</code>的副本数量为2：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl apply -f rc-demo.yaml</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kubectl apply -f rc-demo.yaml</span></span><br></pre></td></tr></table></figure>
 <p>或者</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl edit rc rc-demo</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kubectl edit rc rc-demo</span></span><br></pre></td></tr></table></figure>
 <p>而且我们还可以用<code>RC</code>来进行滚动升级，比如我们将镜像地址更改为<code>nginx:1.7.9</code>:</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl rolling-update rc-demo --image=nginx:1.7.9</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kubectl rolling-update rc-demo --image=nginx:1.7.9</span></span><br></pre></td></tr></table></figure>
 <p>但是如果我们的<code>Pod</code>中多个容器的话，就需要通过修改<code>YAML</code>文件来进行修改了:</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> kubectl rolling-update rc-demo -f rc-demo.yaml</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> kubectl rolling-update rc-demo -f rc-demo.yaml</span></span><br></pre></td></tr></table></figure>
 <p>如果升级完成后出现了新的问题，想要一键回滚到上一个版本的话，使用<code>RC</code>只能用同样的方法把镜像地址替换成之前的，然后重新滚动升级。</p>
 <h4 id="Replication-Set（RS）"><a href="#Replication-Set（RS）" class="headerlink" title="Replication Set（RS）"></a>Replication Set（RS）</h4><p><code>Replication Set</code>简称<code>RS</code>，随着<code>Kubernetes</code>的高速发展，官方已经推荐我们使用<code>RS</code>和<code>Deployment</code>来代替<code>RC</code>了，实际上<code>RS</code>和<code>RC</code>的功能基本一致，目前唯一的一个区别就是<code>RC</code>只支持基于等式的<code>selector</code>（env=dev或environment!=qa），但<code>RS</code>还支持基于集合的<code>selector</code>（version in (v1.0, v2.0)），这对复杂的运维管理就非常方便了。</p>
 <p><code>kubectl</code>命令行工具中关于<code>RC</code>的大部分命令同样适用于我们的<code>RS</code>资源对象。不过我们也很少会去单独使用<code>RS</code>，它主要被<code>Deployment</code>这个更加高层的资源对象使用，除非用户需要自定义升级功能或根本不需要升级<code>Pod</code>，在一般情况下，我们推荐使用<code>Deployment</code>而不直接使用<code>Replica Set</code>。</p>
