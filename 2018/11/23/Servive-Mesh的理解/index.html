@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="微服务,service Mesh," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言昨天看到一篇讲述Sidecar的文章，发现对这个组件的理解还不够透彻，所以在这里整理一下我对“三轮边车”的认识。了解过Service mesh的对Sidecar应该不会陌生。下面我会简单讲述一下传统服务到微服务的一个转变，以及微服务的几种服务发现模式。">
+<meta name="keywords" content="微服务,service Mesh">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Service Mesh - Sidecar的理解">
+<meta property="og:url" content="http://yoursite.com/2018/11/23/Servive-Mesh的理解/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言昨天看到一篇讲述Sidecar的文章，发现对这个组件的理解还不够透彻，所以在这里整理一下我对“三轮边车”的认识。了解过Service mesh的对Sidecar应该不会陌生。下面我会简单讲述一下传统服务到微服务的一个转变，以及微服务的几种服务发现模式。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/11/23/Servive-Mesh的理解/8.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/23/Servive-Mesh的理解/2.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/23/Servive-Mesh的理解/3.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/23/Servive-Mesh的理解/4.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/23/Servive-Mesh的理解/5.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/23/Servive-Mesh的理解/6.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/23/Servive-Mesh的理解/7.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/23/Servive-Mesh的理解/1.png">
+<meta property="og:updated_time" content="2018-11-24T05:07:33.819Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Service Mesh - Sidecar的理解">
+<meta name="twitter:description" content="前言昨天看到一篇讲述Sidecar的文章，发现对这个组件的理解还不够透彻，所以在这里整理一下我对“三轮边车”的认识。了解过Service mesh的对Sidecar应该不会陌生。下面我会简单讲述一下传统服务到微服务的一个转变，以及微服务的几种服务发现模式。">
+<meta name="twitter:image" content="http://yoursite.com/2018/11/23/Servive-Mesh的理解/8.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/23/Servive-Mesh的理解/"/>
+
+
+
+
+
+  <title>Service Mesh - Sidecar的理解 | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/23/Servive-Mesh的理解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/2.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Service Mesh - Sidecar的理解</h1>
+        
+
+        <div class="post-meta">
+		
+				<i class="fa fa-thumb-tack"></i>
+				<font color=7D26CD>置顶</font>
+				<span class="post-meta-divider">|</span>
+			
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-23T19:53:32+08:00">
+                2018-11-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/微服务/" itemprop="url" rel="index">
+                    <span itemprop="name">微服务</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>昨天看到一篇讲述Sidecar的文章，发现对这个组件的理解还不够透彻，所以在这里整理一下我对“三轮边车”的认识。了解过Service mesh的对Sidecar应该不会陌生。下面我会简单讲述一下传统服务到微服务的一个转变，以及微服务的几种服务发现模式。</p>
+<p><img src="/2018/11/23/Servive-Mesh的理解/8.png" alt="你想输入的替代文字"></p>
+<a id="more"></a>
+<h3 id="服务的转变"><a href="#服务的转变" class="headerlink" title="服务的转变"></a>服务的转变</h3><p>早期的时候，所有的服务都部署在一台机子上。当网站流量很小时，只需一个应用，将所有功能都部署在一起，以减少部署节点和成本。 </p>
+<p><img src="/2018/11/23/Servive-Mesh的理解/2.png" alt="你想输入的替代文字"></p>
+<p>当随着访问量增大，为了有效解决高并发问题，可以将单一的应用部署成多台机器，构成一个简单的集群 。 </p>
+<p><img src="/2018/11/23/Servive-Mesh的理解/3.png" alt="你想输入的替代文字"></p>
+<p>但随着垂直应用越来越多，应用之间交互不可避免，如果还只是简单将所有应用部署成多台机子，就会造成一些功能块的重复部署，如支付模块在多个应用有涉及，不应该每一个应用都部署一份支付模块的代码，而是将一些核心服务抽取出来做成一个微服务，提供给这些应用使用。</p>
+<p><img src="/2018/11/23/Servive-Mesh的理解/4.png" alt="你想输入的替代文字"></p>
+<p>这个时候为了保证微服务的可靠，单个微服务需要部署成集群。在分布式的应用中，避免不了的一个问题就是服务发现了。即如果某块微服务部署成集群后，消费者该如何发现这些服务对应的IP地址呢？！</p>
+<p>这个就是下面要讲的服务发现模式了。</p>
+<h3 id="传统集中式代理"><a href="#传统集中式代理" class="headerlink" title="传统集中式代理"></a>传统集中式代理</h3><p>最简单和传统做法，在服务消费者和生产者之间，代理作为独立一层集中部署。</p>
+<p><img src="/2018/11/23/Servive-Mesh的理解/5.png" alt="你想输入的替代文字"></p>
+<p>常用的集中式代理有硬件负载均衡器(如F5)，或者软件负载均衡器(如Nginx)，软硬结合两层代理也是业内常见做法。</p>
+<p>如通过Nginx实现负载均衡， 所有的服务地址由运维人员手动配置，消费端直接将请求发给代理，代理解析目标地址然后做负载均衡。</p>
+<p>但是！！如果某个服务挂了没有办法发现。Nginx也不知道哪台挂了，照常的向宕机的发送请求。总不能每次都一挂都手动去修改Nginx的配置吧！！而且Nginx这么重要如果也挂了怎么办？！！ 虽然可以使用keepalived来保证可靠性。</p>
+<h3 id="客户端嵌入式代理"><a href="#客户端嵌入式代理" class="headerlink" title="客户端嵌入式代理"></a>客户端嵌入式代理</h3><p>客户端嵌入式代理，这种模式一般需要独立的服务注册中心组件配合。引入一个服务中心，如<a href="http://www.callmejiagu.com/2018/08/24/Zookeeper%E7%9A%84%E5%BA%94%E7%94%A8/" target="_blank" rel="noopener">Zookeeper</a>、Eureka可以实现注册和发现。通常服务中心有心跳监测，所以不用担心服务宕机之后的问题。</p>
+<p><img src="/2018/11/23/Servive-Mesh的理解/6.png" alt="你想输入的替代文字"></p>
+<p>但是！！它对于消费端和生产端都有侵入。在生产端需要在服务启动的时候往服务中心进行注册。同时消费端需要有服务的发现。针对编程人员，通常只需要关注的是CURD，这服务发现部分对新同事不够友好，有学习成本！！！</p>
+<h3 id="主机独立进程代理"><a href="#主机独立进程代理" class="headerlink" title="主机独立进程代理"></a>主机独立进程代理</h3><p>上面两种的方法都有不足点，主机独立进程代理是上面两个方法的折中。</p>
+<p>该方法会在一个消费端机子上启动一个 代理进程。 注意！！ 这里不是单独起了一个集中式的代理，而是在每一个消费端中启动一个代理进程。即一个主机的所有消费端使用一个这个代理！！</p>
+<p><img src="/2018/11/23/Servive-Mesh的理解/7.png" alt="你想输入的替代文字"></p>
+<p>这里需要说明的是，<strong>这个和传统集中式代理有什么区别呢？先是请求一个代理，然后这个代理再去请求服务中心，为什么要这么做，有这个必要吗？</strong></p>
+<p>首先这种模式它的确解决了传统代理中的一些弊端，如手动配置服务端代理，且服务宕机无法解决的问题。第二，因为这个代理和消费端是处于同一个机子，它们完全可以使用localhost进行通信，原本的服务发现是嵌入在消费端，现在直接有这个代理来做了，这也解决了客户端嵌入式的弊端。</p>
+<h3 id="Sidecar"><a href="#Sidecar" class="headerlink" title="Sidecar"></a>Sidecar</h3><p>在上面讲的三种服务发现的模式，那么Sidecar和这些模式有什么联系嘛？！其实Sidecar就是上面的第三种模式了。Sidecar译为“边车三轮车”。</p>
+<p><img src="/2018/11/23/Servive-Mesh的理解/1.png" alt="你想输入的替代文字"></p>
+<p>吃鸡游戏中，开车的一个人负责认真开车，而坐在边车的人可以看地图或者开枪！！！ 这就是无嵌入式的添加功能。和主机独立进程代理一样，添加了一个代理来做服务的发现，原本由消费端来做的，现在添加了一个边车，让坐在边车的容器来做服务发现。</p>
+<p>再举个例子，比如我们可以在一个web-server的容器中配置一个sidecar ，这个sidecar可以去读取web-server产生的日志，做成了日志监控的“边车”。这个就是我理解的Sidecar了，有说错的地方可以给个issue。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/微服务/" rel="tag"># 微服务</a>
+          
+            <a href="/tags/service-Mesh/" rel="tag"># service Mesh</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/20/Kubernetes-RC-RS资源文件/" rel="next" title="Kubernetes RC/RS资源文件（转载）">
+                <i class="fa fa-chevron-left"></i> Kubernetes RC/RS资源文件（转载）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/img/2.png"
+                alt="JinTx" />
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">48</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/CallMeJiaGu/CallMeJiaGu.github.io" target="_blank" title="github">
+                      
+                        <i class="fa fa-fw fa-github-square"></i>github</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="646696382@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://blog.csdn.net/MakeContral/" target="_blank" title="CSND">
+                      
+                        <i class="fa fa-fw fa-google"></i>CSND</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务的转变"><span class="nav-number">2.</span> <span class="nav-text">服务的转变</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#传统集中式代理"><span class="nav-number">3.</span> <span class="nav-text">传统集中式代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端嵌入式代理"><span class="nav-number">4.</span> <span class="nav-text">客户端嵌入式代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#主机独立进程代理"><span class="nav-number">5.</span> <span class="nav-text">主机独立进程代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sidecar"><span class="nav-number">6.</span> <span class="nav-text">Sidecar</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
