@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Linux," />
 
 
 
@@ -105,17 +105,18 @@
 
 
 
-<meta name="description" content="姓名:        金通学  出生年月:    1995/03/07  联系方式:    18806719773  学历:        本科-浙江农林大学 计算机专业(2013-2017)，硕士-杭州电子科技大学 计算机专业(2018-)  csdn:        https://blog.csdn.net/MakeContral  github:      https://github.c">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Don&#39;t Stop">
-<meta property="og:url" content="http://yoursite.com/about/index.html">
+<meta name="description" content="前言">
+<meta name="keywords" content="Linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 分区、初始化、挂载">
+<meta property="og:url" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="姓名:        金通学  出生年月:    1995/03/07  联系方式:    18806719773  学历:        本科-浙江农林大学 计算机专业(2013-2017)，硕士-杭州电子科技大学 计算机专业(2018-)  csdn:        https://blog.csdn.net/MakeContral  github:      https://github.c">
+<meta property="og:description" content="前言">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-20T08:34:34.678Z">
+<meta property="og:updated_time" content="2018-11-29T12:06:35.175Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Don&#39;t Stop">
-<meta name="twitter:description" content="姓名:        金通学  出生年月:    1995/03/07  联系方式:    18806719773  学历:        本科-浙江农林大学 计算机专业(2013-2017)，硕士-杭州电子科技大学 计算机专业(2018-)  csdn:        https://blog.csdn.net/MakeContral  github:      https://github.c">
+<meta name="twitter:title" content="Linux 分区、初始化、挂载">
+<meta name="twitter:description" content="前言">
 
 
 
@@ -145,13 +146,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/about/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/"/>
 
 
 
 
 
-  <title> | Don't Stop</title>
+  <title>Linux 分区、初始化、挂载 | Don't Stop</title>
   
 
 
@@ -266,44 +267,166 @@
 
   <div id="posts" class="posts-expand">
     
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/2.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
     
-    
-    <div class="post-block page">
       <header class="post-header">
 
-	<h1 class="post-title" itemprop="name headline"></h1>
-
-
-
-</header>
-
-      
-      
-      
-      <div class="post-body">
         
         
-          <pre><code>姓名:        金通学
-
-出生年月:    1995/03/07
-
-联系方式:    18806719773
-
-学历:        本科-浙江农林大学 计算机专业(2013-2017)，硕士-杭州电子科技大学 计算机专业(2018-)
-
-csdn:        https://blog.csdn.net/MakeContral
-
-github:      https://github.com/CallMeJiaGu
-</code></pre>
+          <h1 class="post-title" itemprop="name headline">Linux 分区、初始化、挂载</h1>
         
-      </div>
+
+        <div class="post-meta">
+		
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-29T19:59:41+08:00">
+                2018-11-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
       
       
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><a id="more"></a>
       
     </div>
     
     
     
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/23/Servive-Mesh的理解/" rel="next" title="Service Mesh - Sidecar的理解">
+                <i class="fa fa-chevron-left"></i> Service Mesh - Sidecar的理解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
   </div>
 
 
@@ -336,8 +459,17 @@ github:      https://github.com/CallMeJiaGu
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -423,6 +555,22 @@ github:      https://github.com/CallMeJiaGu
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
