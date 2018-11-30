@@ -105,18 +105,31 @@
 
 
 
-<meta name="description" content="前言">
+<meta name="description" content="前言记得上次部署在生成环境中的Solr目录突然不见了，吓得以为被我误删了，后来才知道原来部署目录所在的分区是在重启之后没有挂载上来。所以这篇主要来记录一下Linux中磁盘分区和挂载的步骤，以及过程中遇到一些的问题和想法。">
 <meta name="keywords" content="Linux">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux 分区、初始化、挂载">
 <meta property="og:url" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言">
+<meta property="og:description" content="前言记得上次部署在生成环境中的Solr目录突然不见了，吓得以为被我误删了，后来才知道原来部署目录所在的分区是在重启之后没有挂载上来。所以这篇主要来记录一下Linux中磁盘分区和挂载的步骤，以及过程中遇到一些的问题和想法。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-29T12:06:35.175Z">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/2.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/3.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/4.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/5.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/6.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/7.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/8.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/9.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/10.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/11.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/12.png">
+<meta property="og:updated_time" content="2018-11-30T03:16:05.215Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux 分区、初始化、挂载">
-<meta name="twitter:description" content="前言">
+<meta name="twitter:description" content="前言记得上次部署在生成环境中的Solr目录突然不见了，吓得以为被我误删了，后来才知道原来部署目录所在的分区是在重启之后没有挂载上来。所以这篇主要来记录一下Linux中磁盘分区和挂载的步骤，以及过程中遇到一些的问题和想法。">
+<meta name="twitter:image" content="http://yoursite.com/2018/11/29/Linux-分区、初始化、挂载/1.png">
 
 
 
@@ -369,7 +382,68 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><a id="more"></a>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>记得上次部署在生成环境中的Solr目录突然不见了，吓得以为被我误删了，后来才知道原来部署目录所在的分区是在重启之后没有挂载上来。所以这篇主要来记录一下Linux中磁盘分区和挂载的步骤，以及过程中遇到一些的问题和想法。</p>
+<a id="more"></a>
+<h3 id="磁盘分区"><a href="#磁盘分区" class="headerlink" title="磁盘分区"></a>磁盘分区</h3><p>磁盘的分区，可以简单的想象成一个磁盘没分成了若干个大小的磁盘，类似Windows中的C/D/E盘。那么第一个问题为什么要对磁盘进行分区呢？主要有两个原因：</p>
+<blockquote>
+<ol>
+<li><strong>为了安全性</strong>。拿window下的C盘来说，C盘存放系统运行所需的文件，如果要重装，C盘的数据是会被清空的。这个时候如果C盘存放着重要的文件，而又没有其他地方可以存放这个文件，那就比较苦逼了。所以可以划分出D/E/F盘来放一下，这样再重装的时候，其他分区的数据就有一定的安全性了。</li>
+<li><strong>是为了效率</strong>。数据分区之后，数据的读取可以只针对磁柱进行遍历。如E盘对应的柱面范围是200-400，这样读E盘的时候，可以直接定位到200号的柱面加快读取的效率。而不是从一整块盘中的慢慢来读取到相应的位置。</li>
+</ol>
+</blockquote>
+<p>使用<code>sudo fdisk -l</code>查看Linux分区的情况</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo fdisk -l</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/1.png" alt="你想输入的替代文字"></p>
+<p>可以看到我的机器上只有一个磁盘<code>/dev/sda</code> ，上面显示该磁盘共有42.9G的磁盘空间，有255个磁头，每个磁道有63个扇区，共有5221个柱面。</p>
+<p>在看下面部分，可以知道该磁盘总共被分成了三个分区。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> 设备     启动         起点          终点        块数   Id   系统</span><br><span class="line">/dev/sda1   *        2048    75497471    37747712   83  Linux</span><br><span class="line">/dev/sda2        75499518    83884031     4192257    5  扩展</span><br><span class="line">/dev/sda5        75499520    83884031     4192256   82  Linux 交换 / Solaris</span><br></pre></td></tr></table></figure>
+<p>其中<code>/sda1</code>是一个主分区，<code>/sda2</code>是一个扩展分区，<code>/sda5</code>是在扩展分区中分出的一个逻辑分区。它们以扇区的编号进行划分，如<code>/sda1</code>从75497471到2048之间的扇区作为它的存储空间。</p>
+<p><strong>这里就有个问题为什么第一个分区不是从第一个扇区开始算起呢？前面空出来的2048个扇区，刚好是1M，有什么具体用途吗？</strong></p>
+<blockquote>
+<p>有些人可能会说这一部分是用来保留MBR的，但是MBR只有512个字节，其中第一部分有446个字节，用于存放引导代码，第二部分有64个字节，用于存放磁盘分区表。</p>
+<p>这只是一部分原因，主要的原因是UEFI的兴起。</p>
+<p>BIOS中有UEFI和Legacy启动模式。在Legacy启动模式中，硬盘分区格式应该为MBR格式；在UEFI启动模式中，硬盘分区格式应该为GPT格式。需要给UEFI 代码留磁盘最开始的1M空间。</p>
+</blockquote>
+<p>从下面的分区来看，我们还可以在<code>75497471 - 75499518</code> 之间或者<code>83884031 - 83886080</code>再分出分区。</p>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/2.png" alt="你想输入的替代文字"></p>
+<p>使用<code>fdisk</code> 命令对<code>/dev/sda</code>进行分区</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ fdisk  /dev/sda</span><br></pre></td></tr></table></figure>
+<p>输入m查看命令帮助：</p>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/3.png" alt="你想输入的替代文字"></p>
+<p>输入p查看当前磁盘的分区情况，和使用<code>fdisk -l /dev/sda</code>效果一样</p>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/4.png" alt="你想输入的替代文字"></p>
+<p>输入n创建分区：</p>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/5.png" alt="你想输入的替代文字"></p>
+<blockquote>
+<ol>
+<li>一开始会提示你要创建的主分区还是扩展分区或者逻辑分区。输入p，创建主分区。</li>
+<li>接着提示提示输入分区的号，输入3</li>
+<li>起始扇区号，根据上图我们选择75497471+1作为起始点，结束点扇区号选择75499517。</li>
+</ol>
+</blockquote>
+<p>再输入p查看当前磁盘分区情况，可以看到创建的<code>/sda3</code>出来了。</p>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/6.png" alt="你想输入的替代文字"></p>
+<p>退出并保持输入w，退出不保持q，这里输入w保持：</p>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/7.png" alt="你想输入的替代文字"></p>
+<p>使用<code>fdisk -l</code>再次确认一下分区是否创建成果：</p>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/8.png" alt="你想输入的替代文字"></p>
+<h3 id="分区格式化"><a href="#分区格式化" class="headerlink" title="分区格式化"></a>分区格式化</h3><p>经过上面分区，我们得到了一块新的分区，为了要使用这块分区，需要对其进行分区格式化。格式化的目的是什么呢？</p>
+<p>了解过Linux文件系统的，都知道每一个文件夹有一份元数据，保存在了inode中，这个inode放了文件创建时间、权限等数据，这部分数据并不是我们去写入的，而是通过文件系统帮我们创建的，而上面的格式化就是让这块分区有这块功能。</p>
+<p>使用<code>mkfs /dev/sda3</code>对其格式化：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mkfs /dev/sda3</span><br></pre></td></tr></table></figure>
+<p>你会发现报了下面这个错误：</p>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/9.png" alt="你想输入的替代文字"></p>
+<p>这个是因为创建的分区<code>/sda3</code>没有被系统读取到，可以选择重启系统，或者使用<code>partprobe</code>命令。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install parted <span class="comment">#ubuntu安装pated模块</span></span><br><span class="line">$ partprobe</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/10.png" alt="你想输入的替代文字"></p>
+<p>再次使用<code>mkfs /dev/sda3</code>对其格式化：</p>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/11.png" alt="你想输入的替代文字"></p>
+<p>分区格式化成功！！</p>
+<h3 id="分区挂载"><a href="#分区挂载" class="headerlink" title="分区挂载"></a>分区挂载</h3><p>现在磁盘上的分区经过格式化已经可以来放东西，那么现在就给这个分区配置一个入口就好了，其实就是讲一个系统目录和这个分区关联起来，那么放在这个系统目录下的东西就会到该分区上了。</p>
+<p>创建放置分区的一个<strong>空目录</strong>，如果直接挂载其他已经存在的目录会导致该目录下的文件<strong>暂时消失</strong>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir /mnt/<span class="built_in">test</span></span><br><span class="line">$ mount /dev/sda3 /mnt/<span class="built_in">test</span></span><br><span class="line"></span><br><span class="line">$ df-lh <span class="comment">#查看分区挂载情况，可以看到sda3已经挂载到/mnt/test上了</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2018/11/29/Linux-分区、初始化、挂载/12.png" alt="你想输入的替代文字"></p>
+
       
     </div>
     
@@ -408,6 +482,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/11/29/Linux-磁盘的组成/" rel="prev" title="Linux 磁盘的组成">
+                Linux 磁盘的组成 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -488,7 +566,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">50</span>
+                  <span class="site-state-item-count">51</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -565,7 +643,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘分区"><span class="nav-number">2.</span> <span class="nav-text">磁盘分区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分区格式化"><span class="nav-number">3.</span> <span class="nav-text">分区格式化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分区挂载"><span class="nav-number">4.</span> <span class="nav-text">分区挂载</span></a></li></ol></div>
             
 
           </div>
