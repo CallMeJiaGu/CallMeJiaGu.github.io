@@ -115,7 +115,8 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/04/01/Linux-磁盘的组成/1.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/01/Linux-磁盘的组成/2.png">
-<meta property="og:updated_time" content="2018-12-03T03:08:51.992Z">
+<meta property="og:image" content="http://yoursite.com/2018/04/01/Linux-磁盘的组成/3.png">
+<meta property="og:updated_time" content="2018-12-03T06:31:11.763Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux 磁盘的组成">
 <meta name="twitter:description" content="前言读了鸟哥的Linux基础篇，对Linux有了更全面的认识，的确学习Linux不应该简单的命令行会使用，最好是能够从底层入手，这样在学习Linux上可以做到知其所以然。 那么这篇以磁盘的组成来记录一下Linux的学习心得。">
@@ -386,9 +387,23 @@
 <p>有多少个磁道，就有多少个柱面 ，有很多个圆圈就是代表每一个磁道，每个磁道有多个扇区 ，相当于一个圆圈被平均划分多少个扇区。</p>
 <h3 id="Linux分区"><a href="#Linux分区" class="headerlink" title="Linux分区"></a>Linux分区</h3><p>可以使用<code>fdisk -l</code>查看一块磁盘的分区情况。 每一个磁盘只能分成四个分区。其中只能有一个扩展分区。</p>
 <p>那么组合就只有 3P+E 即三个主分区 + 一个扩展分区 或者 4P 四个主分区。</p>
-<p>扩展分区是格式化不了的，所以扩展分区是放不了数据的。要想扩展分区能放东西，需要在这个扩展分区进行划分成逻辑分区。</p>
+<p>扩展分区是格式化不了的，所以扩展分区是放不了数据的。要想扩展分区能放东西，需要在这个扩展分区进行划分成逻辑分区。<strong>考虑到磁盘的连续性，一般建议将扩展分区放在最后面的柱面内。</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo fdisk -l</span><br></pre></td></tr></table></figure>
 <p><img src="/2018/04/01/Linux-磁盘的组成/2.png" alt="你想输入的替代文字"></p>
+<p>磁盘的分区是有的是根据柱面来进行划分的，有的是根据扇区进行划分的。使用扇区划分可以分的更细。从上图看出它们的气垫盒终点是根据扇区的，</p>
+<p>根据上图可知，<code>sda1</code>和<code>sda3</code>为主分区，<code>sda2</code>是一个扩展分区。<code>sda5</code>是从扩展分区分出的逻辑分区。<strong>而且<code>sda5</code>用来存放swap的，一部分是考虑到物理内存不够将磁盘划分出一部分来当成虚拟内存。</strong></p>
+<blockquote>
+<ol>
+<li><p>其中编号1,2,3,4表示的主分区或者扩展分区。如果有5,6,7..那么就表示是从扩展分区分出的逻辑分区。</p>
+</li>
+<li><p>fdisk -l 查看磁盘的时候，设备的名称有的是hd 还有些是 sd。主要区别是hd用于IDE硬盘，sd用于SCSI硬盘。IDE硬盘 在转数和传输速度等方面都远不及服务器专用的SCSI硬盘，且IDE硬盘最大的缺点是在读写操作时都大量消耗CPU资源，</p>
+<p>最简单的例子，大家自己的机器都是IDE的，在复制数据时，CPU占用一般60-70%以上还多。</p>
+</li>
+</ol>
+</blockquote>
+<h3 id="Linux-磁盘使用"><a href="#Linux-磁盘使用" class="headerlink" title="Linux 磁盘使用"></a>Linux 磁盘使用</h3><p>使用<code>df -lh</code>可以查看当前磁盘的使用情况，这里需要注意的是<code>tmpfs</code>这块数据。</p>
+<p><img src="/2018/04/01/Linux-磁盘的组成/3.png" alt="你想输入的替代文字"></p>
+<p><code>tmpfs</code>是临时文件系统的意思，但是他又不是普通的文件系统，因为他不是物理磁盘上的空间，而是内存中的一块空间。有些操作涉及到多次的读写，把文件放入临时的文件系统，因为是内存的一块空间，所以使用的效率会高很多。</p>
 
       
     </div>
@@ -585,7 +600,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘的组成"><span class="nav-number">2.</span> <span class="nav-text">磁盘的组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux分区"><span class="nav-number">3.</span> <span class="nav-text">Linux分区</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘的组成"><span class="nav-number">2.</span> <span class="nav-text">磁盘的组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux分区"><span class="nav-number">3.</span> <span class="nav-text">Linux分区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux-磁盘使用"><span class="nav-number">4.</span> <span class="nav-text">Linux 磁盘使用</span></a></li></ol></div>
             
 
           </div>
