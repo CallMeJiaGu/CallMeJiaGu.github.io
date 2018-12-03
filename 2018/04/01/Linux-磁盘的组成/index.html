@@ -105,19 +105,20 @@
 
 
 
-<meta name="description" content="在讲磁盘分区之前，我先给大家介绍一下磁盘的是长啥样的。">
+<meta name="description" content="前言读了鸟哥的Linux基础篇，对Linux有了更全面的认识，的确学习Linux不应该简单的命令行会使用，最好是能够从底层入手，这样在学习Linux上可以做到知其所以然。 那么这篇以磁盘的组成来记录一下Linux的学习心得。">
 <meta name="keywords" content="Linux">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux 磁盘的组成">
 <meta property="og:url" content="http://yoursite.com/2018/04/01/Linux-磁盘的组成/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="在讲磁盘分区之前，我先给大家介绍一下磁盘的是长啥样的。">
+<meta property="og:description" content="前言读了鸟哥的Linux基础篇，对Linux有了更全面的认识，的确学习Linux不应该简单的命令行会使用，最好是能够从底层入手，这样在学习Linux上可以做到知其所以然。 那么这篇以磁盘的组成来记录一下Linux的学习心得。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/04/01/Linux-磁盘的组成/1.png">
-<meta property="og:updated_time" content="2018-12-03T01:07:38.352Z">
+<meta property="og:image" content="http://yoursite.com/2018/04/01/Linux-磁盘的组成/2.png">
+<meta property="og:updated_time" content="2018-12-03T03:08:51.992Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux 磁盘的组成">
-<meta name="twitter:description" content="在讲磁盘分区之前，我先给大家介绍一下磁盘的是长啥样的。">
+<meta name="twitter:description" content="前言读了鸟哥的Linux基础篇，对Linux有了更全面的认识，的确学习Linux不应该简单的命令行会使用，最好是能够从底层入手，这样在学习Linux上可以做到知其所以然。 那么这篇以磁盘的组成来记录一下Linux的学习心得。">
 <meta name="twitter:image" content="http://yoursite.com/2018/04/01/Linux-磁盘的组成/1.png">
 
 
@@ -371,14 +372,23 @@
       
 
       
-        <p>在讲磁盘分区之前，我先给大家介绍一下磁盘的是长啥样的。</p>
-<p><img src="/2018/04/01/Linux-磁盘的组成/1.png" alt="你想输入的替代文字"></p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>读了鸟哥的Linux基础篇，对Linux有了更全面的认识，的确学习Linux不应该简单的命令行会使用，最好是能够从底层入手，这样在学习Linux上可以做到知其所以然。 那么这篇以磁盘的组成来记录一下Linux的学习心得。</p>
 <a id="more"></a>
-<p>盘片（Platter）：一块硬盘有若干盘片，每个盘片有可以存储数据的上、下两盘面（Side）。这些盘面堆叠在主轴上高速旋转，它们从上至下从“0”开始依次编号。</p>
+<h3 id="磁盘的组成"><a href="#磁盘的组成" class="headerlink" title="磁盘的组成"></a>磁盘的组成</h3><p>我先给大家看一下磁盘的是长啥样的。</p>
+<p><img src="/2018/04/01/Linux-磁盘的组成/1.png" alt="你想输入的替代文字"></p>
+<blockquote>
+<p>盘面（Platter）：一块硬盘有若干盘片，每个盘片有可以存储数据的上、下两盘面（Side）。这些盘面堆叠在主轴上高速旋转，它们从上至下从“0”开始依次编号。</p>
 <p>磁道（Track）：每个盘面被划分成许多同心圆，这些同心圆轨迹叫做磁道；磁道从外向内从0开始顺序编号。</p>
-<p>扇区（Sector）：将一个盘面划分为若干内角相同的扇形，这样盘面上的每个磁道就被分为若干段圆弧，每段圆弧叫做一个扇区。每个扇区中的数据作为一个单元同时读出或写入。<br>读写磁头（Head）：每个盘面上一个读写磁头，盘面号即磁头号。所有磁头在磁头臂作用下同时内外移动，即任意时刻，所有磁头所处的磁道号是相同的。</p>
+<p>扇区（Sector）：将一个盘面划分为若干内角相同的扇形，这样盘面上的每个磁道就被分为若干段圆弧，每段圆弧叫做一个扇区。每个扇区中的数据作为一个单元同时读出或写入。</p>
+<p>读写磁头（Head）：每个盘面上一个读写磁头，盘面号即磁头号。所有磁头在磁头臂作用下同时内外移动，即任意时刻，所有磁头所处的磁道号是相同的。</p>
 <p>柱面（Cylinder）：所有盘面上的同一磁道构成一个圆柱，称作柱面。数据的读/写按柱面从外向内进行，而不是按盘面进行。定位时，首先确定柱面，再确定盘面，然后确定扇区。之后所有磁头一起定位到指定柱面，再旋转盘面使指定扇区位于磁头之下。写数据时，当前柱面的当前磁道写满后，开始在当前柱面的下一个磁道写入，只有当前柱面全部写满后，才将磁头移动到下一个柱面。在对硬盘分区时，各个分区也是以柱面为单位划分的，即从什么柱面到什么柱面；不存在一个柱面同属于多个分区。</p>
+</blockquote>
 <p>有多少个磁道，就有多少个柱面 ，有很多个圆圈就是代表每一个磁道，每个磁道有多个扇区 ，相当于一个圆圈被平均划分多少个扇区。</p>
+<h3 id="Linux分区"><a href="#Linux分区" class="headerlink" title="Linux分区"></a>Linux分区</h3><p>可以使用<code>fdisk -l</code>查看一块磁盘的分区情况。 每一个磁盘只能分成四个分区。其中只能有一个扩展分区。</p>
+<p>那么组合就只有 3P+E 即三个主分区 + 一个扩展分区 或者 4P 四个主分区。</p>
+<p>扩展分区是格式化不了的，所以扩展分区是放不了数据的。要想扩展分区能放东西，需要在这个扩展分区进行划分成逻辑分区。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo fdisk -l</span><br></pre></td></tr></table></figure>
+<p><img src="/2018/04/01/Linux-磁盘的组成/2.png" alt="你想输入的替代文字"></p>
 
       
     </div>
@@ -469,8 +479,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -489,7 +508,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">51</span>
+                  <span class="site-state-item-count">52</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -556,6 +575,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘的组成"><span class="nav-number">2.</span> <span class="nav-text">磁盘的组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux分区"><span class="nav-number">3.</span> <span class="nav-text">Linux分区</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
