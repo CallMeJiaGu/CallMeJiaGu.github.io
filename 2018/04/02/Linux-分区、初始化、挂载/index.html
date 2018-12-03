@@ -125,7 +125,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/04/02/Linux-分区、初始化、挂载/10.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/02/Linux-分区、初始化、挂载/11.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/02/Linux-分区、初始化、挂载/12.png">
-<meta property="og:updated_time" content="2018-12-03T01:07:30.221Z">
+<meta property="og:updated_time" content="2018-12-03T01:11:44.676Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux 分区、初始化、挂载">
 <meta name="twitter:description" content="前言记得上次部署在生成环境中的Solr目录突然不见了，吓得以为被我误删了，后来才知道原来部署目录所在的分区是在重启之后没有挂载上来。所以这篇主要来记录一下Linux中磁盘分区和挂载的步骤，以及过程中遇到一些的问题和想法。">
@@ -429,14 +429,14 @@
 <p><img src="/2018/04/02/Linux-分区、初始化、挂载/8.png" alt="你想输入的替代文字"></p>
 <h3 id="分区格式化"><a href="#分区格式化" class="headerlink" title="分区格式化"></a>分区格式化</h3><p>经过上面分区，我们得到了一块新的分区，为了要使用这块分区，需要对其进行分区格式化。格式化的目的是什么呢？</p>
 <p>了解过Linux文件系统的，都知道每一个文件夹有一份元数据，保存在了inode中，这个inode放了文件创建时间、权限等数据，这部分数据并不是我们去写入的，而是通过文件系统帮我们创建的，而上面的格式化就是让这块分区有这块功能。</p>
-<p>使用<code>mkfs /dev/sda3</code>对其格式化：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mkfs /dev/sda3</span><br></pre></td></tr></table></figure>
+<p>使用<code>mkfs.ext4 /dev/sda3</code>对其格式化：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mkfs.ext4 /dev/sda3</span><br></pre></td></tr></table></figure>
 <p>你会发现报了下面这个错误：</p>
 <p><img src="/2018/04/02/Linux-分区、初始化、挂载/9.png" alt="你想输入的替代文字"></p>
 <p>这个是因为创建的分区<code>/sda3</code>没有被系统读取到，可以选择重启系统，或者使用<code>partprobe</code>命令。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ apt-get install parted <span class="comment">#ubuntu安装pated模块</span></span><br><span class="line">$ partprobe</span><br></pre></td></tr></table></figure>
 <p><img src="/2018/04/02/Linux-分区、初始化、挂载/10.png" alt="你想输入的替代文字"></p>
-<p>再次使用<code>mkfs /dev/sda3</code>对其格式化：</p>
+<p>再次使用<code>mkfs.ext4 /dev/sda3</code>对其格式化：</p>
 <p><img src="/2018/04/02/Linux-分区、初始化、挂载/11.png" alt="你想输入的替代文字"></p>
 <p>分区格式化成功！！</p>
 <h3 id="分区挂载"><a href="#分区挂载" class="headerlink" title="分区挂载"></a>分区挂载</h3><p>现在磁盘上的分区经过格式化已经可以来放东西，那么现在就给这个分区配置一个入口就好了，其实就是讲一个系统目录和这个分区关联起来，那么放在这个系统目录下的东西就会到该分区上了。</p>
