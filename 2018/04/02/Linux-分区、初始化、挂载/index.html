@@ -125,7 +125,8 @@
 <meta property="og:image" content="http://yoursite.com/2018/04/02/Linux-分区、初始化、挂载/10.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/02/Linux-分区、初始化、挂载/11.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/02/Linux-分区、初始化、挂载/12.png">
-<meta property="og:updated_time" content="2018-12-03T01:11:44.676Z">
+<meta property="og:image" content="http://yoursite.com/2018/04/02/Linux-分区、初始化、挂载/13.png">
+<meta property="og:updated_time" content="2018-12-03T02:19:52.473Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux 分区、初始化、挂载">
 <meta name="twitter:description" content="前言记得上次部署在生成环境中的Solr目录突然不见了，吓得以为被我误删了，后来才知道原来部署目录所在的分区是在重启之后没有挂载上来。所以这篇主要来记录一下Linux中磁盘分区和挂载的步骤，以及过程中遇到一些的问题和想法。">
@@ -443,6 +444,99 @@
 <p>创建放置分区的一个<strong>空目录</strong>，如果直接挂载其他已经存在的目录会导致该目录下的文件<strong>暂时消失</strong>。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir /mnt/<span class="built_in">test</span></span><br><span class="line">$ mount /dev/sda3 /mnt/<span class="built_in">test</span></span><br><span class="line"></span><br><span class="line">$ df-lh <span class="comment">#查看分区挂载情况，可以看到sda3已经挂载到/mnt/test上了</span></span><br></pre></td></tr></table></figure>
 <p><img src="/2018/04/02/Linux-分区、初始化、挂载/12.png" alt="你想输入的替代文字"></p>
+<h4 id="自动挂载"><a href="#自动挂载" class="headerlink" title="自动挂载"></a>自动挂载</h4><p>因为系统开机时会主动读取<code>/etc/fstab</code>这个文件中的内容，根据文件里面的配置挂载磁盘，所以下面修改<code>/etc/fstab</code>中的内容来保证下次启动之后该分区还挂载在设备上。</p>
+<p>先来查看一下<code>/etc/fstab</code>下的内容：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># /etc/fstab: static file system information.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Use 'blkid' to print the universally unique identifier for a</span></span><br><span class="line"><span class="comment"># device; this may be used with UUID= as a more robust way to name devices</span></span><br><span class="line"><span class="comment"># that works even if disks are added and removed. See fstab(5).</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># &lt;file system&gt; &lt;mount point&gt;   &lt;type&gt;  &lt;options&gt;       &lt;dump&gt;  &lt;pass&gt;</span></span><br><span class="line"><span class="comment"># / was on /dev/sda1 during installation</span></span><br><span class="line">UUID=2304cbd9-adde-422f-b34d-f23e24846468 /               ext4    errors=remount-ro 0       1</span><br><span class="line"><span class="comment"># swap was on /dev/sda5 during installation</span></span><br><span class="line">UUID=c2e43c14-978d-4d9d-bd8b-423342f2c4ae none            swap    sw              0       0</span><br><span class="line">/dev/fd0        /media/floppy0  auto    rw,user,noauto,<span class="built_in">exec</span>,utf8 0</span><br></pre></td></tr></table></figure>
+<p>每一行都有六列</p>
+<p><strong>第一列</strong>：磁盘设备文件或者该设备的Label或者UUID。（建议使用UUID作为标识）使用<code>blkid</code>来查看分区的UUID</p>
+<p><img src="/2018/04/02/Linux-分区、初始化、挂载/13.png" alt="你想输入的替代文字"></p>
+<p><strong>第二列</strong>：设备的挂载点，就是你要挂载到哪个目录下。</p>
+<p><strong>第三列</strong>：磁盘文件系统的格式，包括ext2、ext3、reiserfs、nfs、vfat等。</p>
+<p><strong>第四列</strong>：parameters：文件系统的参数。</p>
+<table>
+<thead>
+<tr>
+<th>Async/sync</th>
+<th>设置是否为同步方式运行，默认为async</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>auto/noauto</td>
+<td>当下载mount -a 的命令时，此文件系统是否被主动挂载。默认为auto</td>
+</tr>
+<tr>
+<td>rw/ro</td>
+<td>是否以以只读或者读写模式挂载</td>
+</tr>
+<tr>
+<td>exec/noexec</td>
+<td>限制此文件系统内是否能够进行”执行”的操作</td>
+</tr>
+<tr>
+<td>user/nouser</td>
+<td>是否允许用户使用mount命令挂载</td>
+</tr>
+<tr>
+<td>suid/nosuid</td>
+<td>是否允许SUID的存在</td>
+</tr>
+<tr>
+<td>usrquota</td>
+<td>启动文件系统支持磁盘配额模式</td>
+</tr>
+<tr>
+<td>grpquota</td>
+<td>启动文件系统对群组磁盘配额模式的支持</td>
+</tr>
+<tr>
+<td>defaults</td>
+<td>同事具有rw,suid,dev,exec,auto,nouser,async等默认参数的设置</td>
+</tr>
+</tbody>
+</table>
+<p><strong>第五列</strong>：能否被dump备份命令作用：dump是一个用来作为备份的命令。通常这个参数的值为0或者1。</p>
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>代表不要做dump备份</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>代表要每天进行dump的操作</td>
+</tr>
+<tr>
+<td>2</td>
+<td>代表不定日期的进行dump操作</td>
+</tr>
+</tbody>
+</table>
+<p><strong>第六列</strong>：是否检验扇区：开机的过程中，系统默认会以fsck检验我们系统是否为完整（clean）。</p>
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>不要检验</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>最早检验（一般根目录会选择）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>1级别检验完成之后进行检验</td>
+</tr>
+</tbody>
+</table>
+<p>将dev/sda3配置进去<code>/etc/ fstab</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/fstab</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># /etc/fstab: static file system information.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Use 'blkid' to print the universally unique identifier for a</span></span><br><span class="line"><span class="comment"># device; this may be used with UUID= as a more robust way to name devices</span></span><br><span class="line"><span class="comment"># that works even if disks are added and removed. See fstab(5).</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># &lt;file system&gt; &lt;mount point&gt;   &lt;type&gt;  &lt;options&gt;       &lt;dump&gt;  &lt;pass&gt;</span></span><br><span class="line"><span class="comment"># / was on /dev/sda1 during installation</span></span><br><span class="line">UUID=2304cbd9-adde-422f-b34d-f23e24846468 /               ext4    errors=remount-ro 0      1</span><br><span class="line"><span class="comment"># swap was on /dev/sda5 during installation</span></span><br><span class="line">UUID=c2e43c14-978d-4d9d-bd8b-423342f2c4ae none            swap    sw              0      0</span><br><span class="line"><span class="comment"># 配置了sda3，注意defaults不要写成大写的Defaults</span></span><br><span class="line">UUID=9b4c350b-180f-4a33-9df3-d12b69c40b51 /mnt/<span class="built_in">test</span> ext4  defaults 0 2</span><br><span class="line">/dev/fd0        /media/floppy0  auto    rw,user,noauto,<span class="built_in">exec</span>,utf8 0       0</span><br></pre></td></tr></table></figure>
+<p>重启之后，分区还是挂载到设备上，配置成功！！！</p>
 
       
     </div>
@@ -643,7 +737,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘分区"><span class="nav-number">2.</span> <span class="nav-text">磁盘分区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分区格式化"><span class="nav-number">3.</span> <span class="nav-text">分区格式化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分区挂载"><span class="nav-number">4.</span> <span class="nav-text">分区挂载</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘分区"><span class="nav-number">2.</span> <span class="nav-text">磁盘分区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分区格式化"><span class="nav-number">3.</span> <span class="nav-text">分区格式化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分区挂载"><span class="nav-number">4.</span> <span class="nav-text">分区挂载</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#自动挂载"><span class="nav-number">4.1.</span> <span class="nav-text">自动挂载</span></a></li></ol></li></ol></div>
             
 
           </div>
