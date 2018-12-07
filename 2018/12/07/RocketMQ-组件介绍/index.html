@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="MySQL网络协议,造轮子," />
+  <meta name="keywords" content="消息中间件,RocketMQ," />
 
 
 
@@ -105,18 +105,21 @@
 
 
 
-<meta name="description" content="前言很多时候我们并不清楚程序是如何和数据库进行交互的，比如简单的查询命令，程序是如何从MySQL中获取的呢？ 在这个博客的系列里，我基于了MySQL网络协议，利用Wireshark解析MySQL的packe，实现了自己的数据库驱动。在实现功能，借鉴了 sea-boat的packet实现，在其基础上进行功能块的编写，如查询功能可以看下面列子： 1234567891011121314151617181">
-<meta name="keywords" content="MySQL网络协议,造轮子">
+<meta name="description" content="前言上一篇简单的介绍了消息中间件的一些应用，后面的中间件主要围绕着RocketMQ进行学习，所以这篇来记录一下RocketMQ的基本组件，以及他们的关联。">
+<meta name="keywords" content="消息中间件,RocketMQ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="基于MySQL Protocol实现自己的数据库驱动">
-<meta property="og:url" content="http://yoursite.com/2018/11/01/基于MySQL-Protocol实现自己的数据库驱动/index.html">
+<meta property="og:title" content="RocketMQ 组件介绍">
+<meta property="og:url" content="http://yoursite.com/2018/12/07/RocketMQ-组件介绍/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言很多时候我们并不清楚程序是如何和数据库进行交互的，比如简单的查询命令，程序是如何从MySQL中获取的呢？ 在这个博客的系列里，我基于了MySQL网络协议，利用Wireshark解析MySQL的packe，实现了自己的数据库驱动。在实现功能，借鉴了 sea-boat的packet实现，在其基础上进行功能块的编写，如查询功能可以看下面列子： 1234567891011121314151617181">
+<meta property="og:description" content="前言上一篇简单的介绍了消息中间件的一些应用，后面的中间件主要围绕着RocketMQ进行学习，所以这篇来记录一下RocketMQ的基本组件，以及他们的关联。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-26T01:15:48.563Z">
+<meta property="og:image" content="http://yoursite.com/2018/12/07/RocketMQ-组件介绍/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/12/07/RocketMQ-组件介绍/3.png">
+<meta property="og:updated_time" content="2018-12-07T13:53:08.424Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="基于MySQL Protocol实现自己的数据库驱动">
-<meta name="twitter:description" content="前言很多时候我们并不清楚程序是如何和数据库进行交互的，比如简单的查询命令，程序是如何从MySQL中获取的呢？ 在这个博客的系列里，我基于了MySQL网络协议，利用Wireshark解析MySQL的packe，实现了自己的数据库驱动。在实现功能，借鉴了 sea-boat的packet实现，在其基础上进行功能块的编写，如查询功能可以看下面列子： 1234567891011121314151617181">
+<meta name="twitter:title" content="RocketMQ 组件介绍">
+<meta name="twitter:description" content="前言上一篇简单的介绍了消息中间件的一些应用，后面的中间件主要围绕着RocketMQ进行学习，所以这篇来记录一下RocketMQ的基本组件，以及他们的关联。">
+<meta name="twitter:image" content="http://yoursite.com/2018/12/07/RocketMQ-组件介绍/1.png">
 
 
 
@@ -146,13 +149,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/11/01/基于MySQL-Protocol实现自己的数据库驱动/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/12/07/RocketMQ-组件介绍/"/>
 
 
 
 
 
-  <title>基于MySQL Protocol实现自己的数据库驱动 | Don't Stop</title>
+  <title>RocketMQ 组件介绍 | Don't Stop</title>
   
 
 
@@ -279,7 +282,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/01/基于MySQL-Protocol实现自己的数据库驱动/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/07/RocketMQ-组件介绍/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -296,7 +299,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">基于MySQL Protocol实现自己的数据库驱动</h1>
+          <h1 class="post-title" itemprop="name headline">RocketMQ 组件介绍</h1>
         
 
         <div class="post-meta">
@@ -309,8 +312,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-01T13:12:00+08:00">
-                2018-11-01
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-07T19:37:36+08:00">
+                2018-12-07
               </time>
             
 
@@ -332,8 +335,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/实现自己的数据库驱动/" itemprop="url" rel="index">
-                    <span itemprop="name">实现自己的数据库驱动</span>
+                  <a href="/categories/MQ/" itemprop="url" rel="index">
+                    <span itemprop="name">MQ</span>
                   </a>
                 </span>
 
@@ -369,25 +372,43 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>很多时候我们并不清楚程序是如何和数据库进行交互的，比如简单的查询命令，程序是如何从MySQL中获取的呢？</p>
-<p>在这个博客的系列里，我基于了MySQL网络协议，利用Wireshark解析MySQL的packe，实现了自己的数据库驱动。在实现功能，借鉴了 <a href="https://github.com/sea-boat/mysql-protocol" target="_blank" rel="noopener">sea-boat</a>的packet实现，在其基础上进行功能块的编写，如查询功能可以看下面列子：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.jiagu.mysql.CURD;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by jintx on 2018/11/1.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">QueryTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        Query query = <span class="keyword">new</span> Query();</span><br><span class="line">        String host = <span class="string">"192.168.43.97"</span>;<span class="comment">//数据库ip地址</span></span><br><span class="line">        <span class="keyword">int</span> port = <span class="number">3306</span>;<span class="comment">//端口号</span></span><br><span class="line">        String user = <span class="string">"root"</span>;<span class="comment">//用户名</span></span><br><span class="line">        String password = <span class="string">"tdlab401"</span>;<span class="comment">//密码</span></span><br><span class="line">        String dataBase = <span class="string">"data"</span>;<span class="comment">//操作的数据库名</span></span><br><span class="line">        String sqlStr = <span class="string">"SELECT name,author FROM `paper` limit 0,2;"</span>;<span class="comment">//查询语句</span></span><br><span class="line">        query.query(host,port,user,password,dataBase,sqlStr);<span class="comment">//输出结果</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>结果：</p>
-<blockquote>
-<p>一种基于混沌的敏感数据加密算法,司德成,</p>
-<p>水下无线电能传输和信号接口系统设计和分析,周世鹏,</p>
-</blockquote>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>上一篇简单的介绍了消息中间件的一些应用，后面的中间件主要围绕着<code>RocketMQ</code>进行学习，所以这篇来记录一下<code>RocketMQ</code>的基本组件，以及他们的关联。</p>
 <a id="more"></a>
-<p><a href="https://callmejiagu.github.io/2018/10/26/%E5%9F%BA%E4%BA%8EMySQL%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BC%96%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E9%A9%B1%E5%8A%A8/" target="_blank" rel="noopener">实现自己的数据库驱动——MySQL网络协议（一）</a></p>
-<p><a href="https://callmejiagu.github.io/2018/10/26/WireShark-%E5%88%86%E6%9E%90MySQL%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E5%8C%85%EF%BC%88%E4%BA%8C%EF%BC%89/" target="_blank" rel="noopener">实现自己的数据库驱动——WireShark分析MySQL网络协议中的数据包（二）</a></p>
-<p><a href="https://callmejiagu.github.io/2018/10/26/MySQL%E5%8D%8F%E8%AE%AEHandshake%E8%A7%A3%E6%9E%90%EF%BC%88%E4%B8%89%EF%BC%89/" target="_blank" rel="noopener">实现自己的数据库驱动——MySQL协议Handshake解析（三）</a></p>
-<p><a href="https://callmejiagu.github.io/2018/10/27/%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E9%A9%B1%E5%8A%A8%E2%80%94%E2%80%94MySQL%E5%8D%8F%E8%AE%AEAuth-Packet%E8%A7%A3%E6%9E%90%EF%BC%88%E5%9B%9B%EF%BC%89/" target="_blank" rel="noopener">实现自己的数据库驱动——MySQL协议Auth Packet解析（四）</a></p>
-<p><a href="https://callmejiagu.github.io/2018/10/27/%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E9%A9%B1%E5%8A%A8%E2%80%94%E2%80%94MySQL%E5%8D%8F%E8%AE%AEOK-Error-Packet%E8%A7%A3%E6%9E%90%EF%BC%88%E4%BA%94%EF%BC%89/" target="_blank" rel="noopener">实现自己的数据库驱动——MySQL协议OK/Error包解析（五）</a></p>
-<p><a href="https://callmejiagu.github.io/2018/10/29/%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E9%A9%B1%E5%8A%A8%E2%80%94%E2%80%94MySQL%E5%8D%8F%E8%AE%AEResult%E5%8C%85%E8%A7%A3%E6%9E%90%EF%BC%88%E5%85%AD%EF%BC%89/" target="_blank" rel="noopener">实现自己的数据库驱动——MySQL协议Result Set包解析（六）</a></p>
-<p><a href="https://callmejiagu.github.io/2018/10/29/%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E9%A9%B1%E5%8A%A8%E2%80%94%E2%80%94MySQL%E5%8D%8F%E8%AE%AEQuit%E5%8C%85%E8%A7%A3%E6%9E%90%EF%BC%88%E4%B8%83%EF%BC%89/" target="_blank" rel="noopener">实现自己的数据库驱动——MySQL协议Quit包解析（七）</a></p>
-<p><a href="https://callmejiagu.github.io/2018/10/30/%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E9%A9%B1%E5%8A%A8%E2%80%94%E2%80%94%E5%AD%97%E8%8A%82%E4%BD%8D%E8%BF%90%E7%AE%97%E7%BB%86%E8%8A%82%EF%BC%88%E5%85%AB%EF%BC%89/" target="_blank" rel="noopener">实现自己的数据库驱动——字节位运算细节（八）</a></p>
-<p><a href="https://callmejiagu.github.io/2018/10/31/%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E9%A9%B1%E5%8A%A8%E2%80%94%E2%80%94Packet%E7%9A%84read%EF%BC%88%E4%B9%9D%EF%BC%89/" target="_blank" rel="noopener">实现自己的数据库驱动——Packet的read（九）</a></p>
-<p><a href="https://callmejiagu.github.io/2018/10/31/%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%B7%B1%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E9%A9%B1%E5%8A%A8%E2%80%94%E2%80%94Packet%E7%9A%84write%EF%BC%88%E5%8D%81%EF%BC%89/" target="_blank" rel="noopener">实现自己的数据库驱动——Packet的write（十）</a></p>
+<h3 id="MQ和List有什么区别？"><a href="#MQ和List有什么区别？" class="headerlink" title="MQ和List有什么区别？"></a>MQ和List有什么区别？</h3><p>在刚接触MQ的时候，我就有一个疑惑，为什么不直接部署一台专门来放消息的List呢？先不讨论RocketMQ中的topic，简单的认为消息推送的时候，就是list.add，消费的时候就list.get + list.remove。的确这个是消息队列的基础，但不是全部。</p>
+<p>首先抽象出来的这个中间件必须保证<strong>高效、可靠、方便。</strong>简单的一个队列肯定是不能满足以上的要求的。常用的MQ至少需要保证的功能：</p>
+<blockquote>
+<p><strong>1.容错机制</strong>。即要保证处理消息失败后将消息重推回List内，避免消息丢失，这就要求你在消费List中的消息后全程try，并在意外错误后把消息PUSH到队列尾部。</p>
+<p><strong>2.消息的延迟性。</strong> 有一些消息要作必要的延迟后才能处理的，比如上面容错机制中出错的消息，一般需要都会要求延迟一段时间后再重试操作，避免在一个时间段内出现大量的重复操作。</p>
+</blockquote>
+<p>比如还有<strong>消费者组</strong>的概念：为了保证单个服务的高可用，会部署多台服务。而这多台服务只需要消费一条记录。所以在消费的时候还涉及到负载均衡的问题。</p>
+<p>所以List只是MQ的一个基础而已，完整的一个MQ涉及到的东西要多得多。</p>
+<h3 id="MQ的组件"><a href="#MQ的组件" class="headerlink" title="MQ的组件"></a>MQ的组件</h3><p>从网上盗的一张图，对于MQ的组件理解会比较清晰。主要有Produce、NameServer、Broker、Consumer。</p>
+<p><img src="/2018/12/07/RocketMQ-组件介绍/1.png" alt="你想输入的替代文字"></p>
+<h4 id="Produce"><a href="#Produce" class="headerlink" title="Produce"></a>Produce</h4><p>先来看消息的生产者。从上图中<code>1</code>位置可以看到Produce每一条消息，都指定了对应的topic、broker name以及broker的IP。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Queue:0 broker-a , 127.0.1.23</span><br></pre></td></tr></table></figure>
+<p>如第一条，先是指定了<strong>service</strong>这个topic，然后再指定了存放该消息的broker的名称<strong>broker-a</strong>，以及该broker的IP地址<strong>127.0.1.23</strong> ，Queue:0是该条消息的编号。</p>
+<h4 id="Broker"><a href="#Broker" class="headerlink" title="Broker"></a>Broker</h4><p>Broker在上图的<code>3</code>标志位。是用来<strong>存放</strong>消息的组件。先来看一下Broker的配置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">clusterName: default </span><br><span class="line">brokerName: broker-a</span><br><span class="line">brokerId: 0 </span><br><span class="line">brokerAddr: 127.0.1.23</span><br><span class="line">perm: 6 ( 可读，可写 )</span><br></pre></td></tr></table></figure>
+<p>clusterName所属集群名字；brokerName是broker名字；brokerId 0 表示 Master，&gt;0 表示 Slave；brokerAddr IP地址；perm 权限的位与运算。</p>
+<h4 id="NameServer"><a href="#NameServer" class="headerlink" title="NameServer"></a>NameServer</h4><p>nameServer顾名思义，在系统中肯定是做命名服务，服务治理方面的工作，功能应该是和ZooKeeper差不多，据网上资料显示，<font color="#FF0000">RocketMQ的早期版本确实是使用的ZooKeeper,后来改为了自己实现的nameServer。</font><strong>功能上和Zookeeper是比较相似的。</strong></p>
+<font color="#FF0000">留一个问题TODO：为什么需要nameServer而不是直接用zookeeper？后面再来解释</font>
+
+<p>现在来看一下nameServer在RocketMQ中的两个主要作用：</p>
+<blockquote>
+<p><strong>1</strong>.NameServer维护了一份Broker的地址列表和，broker在启动的时候会去NameServer进行注册，会维护Broker的存活状态.</p>
+<p><strong>2</strong>.NameServer维护了一份Topic和Topic对应队列的地址列表,broker每次发送心跳过来的时候都会把Topic信息带上.</p>
+</blockquote>
+<p>上图中的BrokerData就是nameServer维护者Broker的地址列表。QueueData就是维护了一份Topic和Topic对应队列的地址列表。</p>
+<h4 id="Consumer"><a href="#Consumer" class="headerlink" title="Consumer"></a>Consumer</h4><p>Consumer跟Producer类似。跟其中一台nameServer建立长连接，获取当前订阅Topic存在哪些Broker，然后直接跟Broker建立连接通道，开始消费消息。因为有多个Broker可能含有相同的Topic，所以获得一个BrokerData的List，以及该Topic下所有的消息MessageQueue。</p>
+<h3 id="MQ工作流程"><a href="#MQ工作流程" class="headerlink" title="MQ工作流程"></a>MQ工作流程</h3><p><img src="/2018/12/07/RocketMQ-组件介绍/3.png" alt="你想输入的替代文字"></p>
+<p>结合部署的结构图，描述集群工作流程：</p>
+<blockquote>
+<p><strong>1</strong>.启动nameServer，nameServer起来后监听端口，等待Broker、Producer、Consumer连上来，相当于一个路由控制中心。</p>
+<p><strong>2</strong>.Broker启动，跟所有的nameServer保持长连接，定时发送心跳包。心跳包中包含当前Broker信息(IP+端口等)以及存储所有topic信息。注册成功后，nameServer集群中就有Topic跟Broker的映射关系。</p>
+<p><strong>3</strong>.收发消息前，先创建topic，<strong>创建topic时需要指定该topic要存储在哪些Broker上。也可以在发送消息时自动创建Topic。</strong></p>
+<p><strong>4</strong>.Producer发送消息，启动时先跟nameServer集群中的<strong>其中一台建立长连接，并从nameServer中获取当前发送的Topic存在哪些Broker上，然后跟对应的Broker建长连接，直接向Broker发消息</strong>。</p>
+<p><strong>5.</strong>Consumer跟Producer类似。跟其中一台nameServer建立长连接，获取当前订阅Topic存在哪些Broker，然后直接跟Broker建立连接通道，开始消费消息。</p>
+</blockquote>
 
       
     </div>
@@ -405,9 +426,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/MySQL网络协议/" rel="tag"># MySQL网络协议</a>
+            <a href="/tags/消息中间件/" rel="tag"># 消息中间件</a>
           
-            <a href="/tags/造轮子/" rel="tag"># 造轮子</a>
+            <a href="/tags/RocketMQ/" rel="tag"># RocketMQ</a>
           
         </div>
       
@@ -420,8 +441,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/10/31/实现自己的数据库驱动——Packet的write（十）/" rel="next" title="实现自己的数据库驱动——Packet的write（十）">
-                <i class="fa fa-chevron-left"></i> 实现自己的数据库驱动——Packet的write（十）
+              <a href="/2018/12/03/为什么需要消息中间件/" rel="next" title="消息中间件的应用场景">
+                <i class="fa fa-chevron-left"></i> 消息中间件的应用场景
               </a>
             
           </div>
@@ -429,10 +450,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/11/08/docker-HW入门/" rel="prev" title="Docker初体验">
-                Docker初体验 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -590,7 +607,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ和List有什么区别？"><span class="nav-number">2.</span> <span class="nav-text">MQ和List有什么区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ的组件"><span class="nav-number">3.</span> <span class="nav-text">MQ的组件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Produce"><span class="nav-number">3.1.</span> <span class="nav-text">Produce</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Broker"><span class="nav-number">3.2.</span> <span class="nav-text">Broker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NameServer"><span class="nav-number">3.3.</span> <span class="nav-text">NameServer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Consumer"><span class="nav-number">3.4.</span> <span class="nav-text">Consumer</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ工作流程"><span class="nav-number">4.</span> <span class="nav-text">MQ工作流程</span></a></li></ol></div>
             
 
           </div>
