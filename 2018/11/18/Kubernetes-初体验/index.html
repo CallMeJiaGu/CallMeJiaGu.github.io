@@ -116,7 +116,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/11/18/Kubernetes-初体验/1.png">
 <meta property="og:image" content="http://yoursite.com/2018/11/18/Kubernetes-初体验/2.png">
 <meta property="og:image" content="http://yoursite.com/2018/11/18/Kubernetes-初体验/3.png">
-<meta property="og:updated_time" content="2018-11-18T13:02:39.318Z">
+<meta property="og:updated_time" content="2018-12-07T05:35:43.209Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Kubernetes 初体验">
 <meta name="twitter:description" content="前言前面几篇博客大体上了解了Docker的一些使用。Docker针对于个人开发者开发单机版容器化应用来说，已经足够好用了。 但是在企业应用场景中，很快会因为容器规模增大导致手动操作Docker的方式弊端越来越大。在生产环境中会涉及到健康检查，可用性，负载均衡，服务发现等很多问题。因此，如何批量创建调度和管理成为了亟待解决的首要问题。 Google开源的一个容器编排引擎 Kubernetes，就是为">
@@ -376,8 +376,8 @@
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面几篇博客大体上了解了Docker的一些使用。Docker针对于个人开发者开发单机版容器化应用来说，已经足够好用了。</p>
 <p>但是在企业应用场景中，很快会因为容器规模增大导致手动操作Docker的方式弊端越来越大。在生产环境中会涉及到健康检查，可用性，负载均衡，服务发现等很多问题。因此，如何批量创建调度和管理成为了亟待解决的首要问题。</p>
 <p>Google开源的一个容器编排引擎 <code>Kubernetes</code>，就是为了解决上述问题。这篇我主要来讲一些Kubernetes中常用的组件。方便阐述Kubernetes用k8s代替。</p>
-<p><img src="/2018/11/18/Kubernetes-初体验/1.png" alt="你想输入的替代文字"></p>
 <a id="more"></a>
+<p><img src="/2018/11/18/Kubernetes-初体验/1.png" alt="你想输入的替代文字"></p>
 <h3 id="组件概述"><a href="#组件概述" class="headerlink" title="组件概述"></a>组件概述</h3><p>每个集群中有一个Master节点对整个集群进行管理；同时系统中存在多个Nodes节点，提供物理资源，这是系统进行资源分配和调度的基础。</p>
 <p>在此基础上是Pods和Container，这两个都是虚拟的概念，它是系统分配和部署的最小单元，在一个Node上可以部署多个Pods。一个Pods表示了一个功能或服务，通过对一个或多个Contrainer的整合来实现功能。</p>
 <p>最后是Service，它负责对外提供可访问接口，系统中一个Service对应于多个Pod，通过自动化的路由策略对Pod的整合，提供服务拓展，系统容错等功能。下面对上述的组件进行解释。</p>

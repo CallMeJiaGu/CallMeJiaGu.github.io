@@ -119,7 +119,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/11/08/docker-HW入门/4.png">
 <meta property="og:image" content="http://yoursite.com/2018/11/08/docker-HW入门/5.png">
 <meta property="og:image" content="http://yoursite.com/2018/11/08/docker-HW入门/6.png">
-<meta property="og:updated_time" content="2018-11-08T08:23:08.421Z">
+<meta property="og:updated_time" content="2018-12-07T05:36:36.601Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Docker初体验">
 <meta name="twitter:description" content="前言容器技术在当前非常流行，而且在学习Istio的过程中，需要有k8s和docker的基础。它们的关系如下：k8s是用来管理编排docker的，可以更方便的部署出容器集群。而Istio是基于k8s环境下，是一种服务网格的实现。 所以docker无论是技术栈上的要求，还是响应技术潮流，都是必须要掌握的。这篇就以docker的hello world来开篇，简单来记录一下我对docker使用上的认识。d">
@@ -379,8 +379,8 @@
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>容器技术在当前非常流行，而且在学习<code>Istio</code>的过程中，需要有<code>k8s</code>和<code>docker</code>的基础。它们的关系如下：k8s是用来管理编排docker的，可以更方便的部署出容器集群。而Istio是基于k8s环境下，是一种服务网格的实现。</p>
 <p>所以docker无论是技术栈上的要求，还是响应技术潮流，都是必须要掌握的。这篇就以docker的<code>hello world</code>来开篇，简单来记录一下我对docker使用上的认识。docker的优点与应用场景这里就不多阐述。实验环境（<code>Ubuntu16.04.1</code>+ <code>docker 18.06.1-ce</code>）</p>
 <p>没有实验环境的，可以使用<a href="https://www.katacoda.com/courses/docker/" target="_blank" rel="noopener">docker在线网站</a>。</p>
-<p><img src="/2018/11/08/docker-HW入门/1.png" alt="你想输入的替代文字"></p>
 <a id="more"></a>
+<p><img src="/2018/11/08/docker-HW入门/1.png" alt="你想输入的替代文字"></p>
 <h3 id="docker使用"><a href="#docker使用" class="headerlink" title="docker使用"></a>docker使用</h3><h4 id="Ubuntu-docker-安装"><a href="#Ubuntu-docker-安装" class="headerlink" title="Ubuntu docker 安装"></a>Ubuntu docker 安装</h4><p>Docker 要求 Ubuntu 系统的内核版本高于 3.10，使用下面命令完成安装。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -qO- https://get.docker.com/ | sh</span><br></pre></td></tr></table></figure>
 <p>使用<code>docker -v</code>查看是否安装成功。</p>
