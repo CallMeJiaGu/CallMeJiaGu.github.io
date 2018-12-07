@@ -113,13 +113,13 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言简单的记录一下消息中间件的一些应用场景。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2018/12/03/为什么需要消息中间件/消息中间件的应用场景/1.png">
-<meta property="og:image" content="http://yoursite.com/2018/12/03/为什么需要消息中间件/消息中间件的应用场景/2.png">
-<meta property="og:updated_time" content="2018-12-07T07:09:51.841Z">
+<meta property="og:image" content="http://yoursite.com/2018/12/03/为什么需要消息中间件/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/12/03/为什么需要消息中间件/2.png">
+<meta property="og:updated_time" content="2018-12-07T11:05:33.415Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="消息中间件的应用场景">
 <meta name="twitter:description" content="前言简单的记录一下消息中间件的一些应用场景。">
-<meta name="twitter:image" content="http://yoursite.com/2018/12/03/为什么需要消息中间件/消息中间件的应用场景/1.png">
+<meta name="twitter:image" content="http://yoursite.com/2018/12/03/为什么需要消息中间件/1.png">
 
 
 
@@ -374,7 +374,7 @@
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>简单的记录一下消息中间件的一些应用场景。</p>
 <a id="more"></a>
-<h3 id="通过异步处理提高系统性能"><a href="#通过异步处理提高系统性能" class="headerlink" title="通过异步处理提高系统性能"></a>通过异步处理提高系统性能</h3><p><img src="/2018/12/03/为什么需要消息中间件/消息中间件的应用场景/1.png" alt="你想输入的替代文字"></p>
+<h3 id="通过异步处理提高系统性能"><a href="#通过异步处理提高系统性能" class="headerlink" title="通过异步处理提高系统性能"></a>通过异步处理提高系统性能</h3><p><img src="/2018/12/03/为什么需要消息中间件/1.png" alt="你想输入的替代文字"></p>
 <p>如上图，在不使用消息队列服务器的时候，用户的请求数据直接写入数据库，在高并发的情况下数据库压力剧增，使得响应速度变慢。</p>
 <p>但是在使用消息队列之后，用户的请求数据发送给消息队列之后立即 返回，再由消息队列的消费者进程从消息队列中获取数据，异步写入数据库。由于消息队列服务器处理速度快于数据库（消息队列也比数据库有更好的伸缩性），因此响应速度得到大幅改善。</p>
 <font color="#FF0000"><strong>但是如果后面写入出现错误怎么办？？！前面已经回应了用户，这个时候如何保证消息与业务操作一致，不丢失？！？</strong> </font>
@@ -387,7 +387,7 @@
 <p>每单有新的业务都要改变代码，对代码侵入太大。而且每个服务的耦合度太高，如果上面<strong>商家发货</strong>出现错误，会导致程序终止，<strong>积分操作</strong>执行失败。</p>
 <p>引入消息中间件之后，对新增业务，只要对该类消息感兴趣，即可订阅该消息，对原有系统和业务没有任何影响，从而实现网站业务的可扩展性设计。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Order</span><span class="params">()</span></span>&#123;</span><br><span class="line">	insertOrderDB(); <span class="comment">//订单入库</span></span><br><span class="line">    insertMQ(); <span class="comment">//写入消息队列中，对该订单有涉及的业务直接去获取消息队列</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="流量削峰"><a href="#流量削峰" class="headerlink" title="流量削峰"></a>流量削峰</h3><p><img src="/2018/12/03/为什么需要消息中间件/消息中间件的应用场景/2.png" alt="你想输入的替代文字"></p>
+<h3 id="流量削峰"><a href="#流量削峰" class="headerlink" title="流量削峰"></a>流量削峰</h3><p><img src="/2018/12/03/为什么需要消息中间件/2.png" alt="你想输入的替代文字"></p>
 <p>场景:秒杀活动，一般会因为流量过大，导致应用挂掉,为了解决这个问题，一般在应用前端加入消息队列。</p>
 <ol>
 <li><p>可以控制活动人数，超过此一定阀值的订单直接丢弃</p>
