@@ -275,6 +275,167 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/08/RocketMQ-源码分析-nameser启动（一）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/2.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/08/RocketMQ-源码分析-nameser启动（一）/" itemprop="url">RocketMQ 源码分析 nameser启动（一）</a></h1>
+        
+
+        <div class="post-meta">
+		
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-08T19:57:15+08:00">
+                2018-12-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MQ/" itemprop="url" rel="index">
+                    <span itemprop="name">MQ</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在RocketMQ中，NameServer的目的是为了解耦Broker和Producer、Consumer。官方文档对NameServer有一个概括：NameServer是一个几乎无状态节点,可集群部署,节点之间无任何信息同步。而且在启动MQ的时候，第一个启动必须是NameServer。<strong>所以这篇主要来记录一下NameServer启动的源码分析。</strong></p>
+<h3 id="脚本启动"><a href="#脚本启动" class="headerlink" title="脚本启动"></a>脚本启动</h3><p>无论在Windows或者是Linux，都需要通过命令行来启动NameServer，在Windows环境下，进入<code>MQ\bin</code>执行:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">start mqnamesrv.cmd</span><br></pre></td></tr></table></figure>
+<p>打开<code>mqnamesrv.cmd</code>可以看到：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> not exist <span class="string">"%ROCKETMQ_HOME%\bin\runserver.cmd"</span> <span class="built_in">echo</span> Please <span class="built_in">set</span> the ROCKETMQ_HOME variable <span class="keyword">in</span> your environment! &amp; EXIT /B 1</span><br><span class="line"></span><br><span class="line">call <span class="string">"%ROCKETMQ_HOME%\bin\runserver.cmd"</span> org.apache.rocketmq.namesrv.NamesrvStartup %*</span><br><span class="line"></span><br><span class="line">IF %ERRORLEVEL% EQU 0 (</span><br><span class="line">    ECHO <span class="string">"Namesrv starts OK"</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>1.先判断当前环境变量中，ROCKETMQ_HOME是否配置正确，如果找不到<code>runserver.cmd</code>就会输出提示先设定环境变量的设定，然后退出。<br>2.调用<code>runserver.cmd</code>脚本文件，传入两个参数，<code>org.apache.rocketmq.namesrv.NamesrvStartup</code>和<code>%*</code>。第一个参数是NameServer的启动类，第二个是执行当前脚本的参数，因为在执行<code>start mqnamesrv.cmd</code>没有传入参数，所以 <code>%*</code>就是空的。<br>3.IF %ERRORLEVEL% EQU 0 判断上一条命令执行的结果，如果等于0，表示NameServer启动成功。</p>
+</blockquote>
+<p>经过上面的分析，<code>mqnamesrv.cmd</code>会调用<code>runserver.cmd</code>，并且传入了NameServer的启动类<code>org.apache.rocketmq.namesrv.NamesrvStartup</code>作为参数。打开<code>runserver.cmd</code>查看：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> not exist <span class="string">"%JAVA_HOME%\bin\java.exe"</span> <span class="built_in">echo</span> Please <span class="built_in">set</span> the JAVA_HOME variable <span class="keyword">in</span> your environment, We need java(x64)! &amp; EXIT /B 1</span><br><span class="line"><span class="built_in">set</span> <span class="string">"JAVA=%JAVA_HOME%\bin\java.exe"</span></span><br><span class="line"></span><br><span class="line">setlocal</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> BASE_DIR=%~dp0</span><br><span class="line"><span class="built_in">set</span> BASE_DIR=%BASE_DIR:~0,-1%</span><br><span class="line"><span class="keyword">for</span> %%d <span class="keyword">in</span> (%BASE_DIR%) <span class="keyword">do</span> <span class="built_in">set</span> BASE_DIR=%%~dpd</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> CLASSPATH=.;%BASE_DIR%conf;%CLASSPATH%</span><br><span class="line"></span><br><span class="line"><span class="built_in">set</span> <span class="string">"JAVA_OPT=%JAVA_OPT% -server -Xms2g -Xmx2g -Xmn1g -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"</span></span><br><span class="line"><span class="built_in">set</span> <span class="string">"JAVA_OPT=%JAVA_OPT% -XX:+UseConcMarkSweepGC -XX:+UseCMSCompactAtFullCollection -XX:CMSInitiatingOccupancyFraction=70 -XX:+CMSParallelRemarkEnabled -XX:SoftRefLRUPolicyMSPerMB=0 -XX:+CMSClassUnloadingEnabled -XX:SurvivorRatio=8 -XX:-UseParNewGC"</span></span><br><span class="line"><span class="built_in">set</span> <span class="string">"JAVA_OPT=%JAVA_OPT% -verbose:gc -Xloggc:"</span>%USERPROFILE%\rmq_srv_gc.log<span class="string">" -XX:+PrintGCDetails"</span></span><br><span class="line"><span class="built_in">set</span> <span class="string">"JAVA_OPT=%JAVA_OPT% -XX:-OmitStackTraceInFastThrow"</span></span><br><span class="line"><span class="built_in">set</span> <span class="string">"JAVA_OPT=%JAVA_OPT% -XX:-UseLargePages"</span></span><br><span class="line"><span class="built_in">set</span> <span class="string">"JAVA_OPT=%JAVA_OPT% -Djava.ext.dirs=%BASE_DIR%lib"</span></span><br><span class="line"><span class="built_in">set</span> <span class="string">"JAVA_OPT=%JAVA_OPT% -cp "</span>%CLASSPATH%<span class="string">""</span></span><br><span class="line"></span><br><span class="line"><span class="string">"%JAVA%"</span> %JAVA_OPT% %*</span><br></pre></td></tr></table></figure>
+<p>其实上面主要是做了一件事，就是执行了一条java运行命令。看最后一条：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"%JAVA%"</span> %JAVA_OPT% %*</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>1.<code>%JAVA%</code>根据上面的代码可以知道其实就是<code>java.exe</code>。<br>2.<code>%JAVA_OPT%</code>就是一大串set的结果，根据字符串的拼接，将java执行的参数环境保存到了<code>%JAVA_OPT%</code>中，所以<code>%JAVA_OPT%</code>是执行参数。<br>3.<code>%*</code>就是传入进来的所有参数，根据前面分析得知，传入的是NameServer的启动类<code>org.apache.rocketmq.namesrv.NamesrvStartup</code>。</p>
+</blockquote>
+<p>所以执行脚本最后就是执行了java -[OPT] org.apache.rocketmq.namesrv.NamesrvStartup。下面就来分析一下NamesrvStartup这个类的具体情况。</p>
+<h3 id="NamesrvStartup"><a href="#NamesrvStartup" class="headerlink" title="NamesrvStartup"></a>NamesrvStartup</h3><p>从github下得<a href="https://github.com/apache/rocketmq" target="_blank" rel="noopener">RocketMQ的源码</a>，下载完可以看到一下的目录结构，点开可以看到NamesrvStartup类：</p>
+<p><img src="/2018/12/08/RocketMQ-源码分析-nameser启动（一）/1.png" alt="你想输入的替代文字"></p>
+<p>关于NamesrvStartup类中的具体情况，下一篇继续分析。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/08/Rocket-生产消费-demo/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1603,158 +1764,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/13/Dockerfile-命令书写exec和shell/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="JinTx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/img/2.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Don't Stop">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/11/13/Dockerfile-命令书写exec和shell/" itemprop="url">Dockerfile 命令书写exec和shell</a></h1>
-        
-
-        <div class="post-meta">
-		
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-13T09:31:30+08:00">
-                2018-11-13
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/" itemprop="url" rel="index">
-                    <span itemprop="name">Docker</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇中，对于<code>CMD</code>和<code>ENTRYPOINT</code>只是简单介绍了它们使用上的差别。即有两个方式书写。分别是exec模式和shell模式。具体格式如下：</p>
-<ol>
-<li>exec模式<code>CMD /ENTRYPOINT [&quot;executable&quot;, &quot;param1&quot;, &quot;param2&quot;]</code>，</li>
-<li>shell模式 <code>CMD /ENTRYPOINT command param1 param2</code></li>
-</ol>
-<p>想要了解清楚这两个命令的区别，需要先明白这两个模式有什么区别。<br></p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/11/13/Dockerfile-命令书写exec和shell/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1809,7 +1818,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">54</span>
+                  <span class="site-state-item-count">55</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1831,7 +1840,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-count">32</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
