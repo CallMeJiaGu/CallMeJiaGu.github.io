@@ -105,19 +105,19 @@
 
 
 
-<meta name="description" content="前言在RocketMQ中，NameServer的目的是为了解耦Broker和Producer、Consumer。官方文档对NameServer有一个概括：NameServer是一个几乎无状态节点,可集群部署,节点之间无任何信息同步。而且在启动MQ的时候，第一个启动必须是NameServer。所以这篇主要来记录一下NameServer启动的源码分析。 脚本启动无论在Windows或者是Linux，都">
+<meta name="description" content="前言在RocketMQ中，NameServer的目的是为了解耦Broker和Producer、Consumer。官方文档对NameServer有一个概括：NameServer是一个几乎无状态节点,可集群部署,节点之间无任何信息同步。而且在启动MQ的时候，第一个启动必须是NameServer。所以这篇主要来记录一下NameServer启动的源码分析。">
 <meta name="keywords" content="消息中间件,RocketMQ,源码分析">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RocketMQ 源码分析 nameser启动（一）">
 <meta property="og:url" content="http://yoursite.com/2018/12/08/RocketMQ-源码分析-nameser启动（一）/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言在RocketMQ中，NameServer的目的是为了解耦Broker和Producer、Consumer。官方文档对NameServer有一个概括：NameServer是一个几乎无状态节点,可集群部署,节点之间无任何信息同步。而且在启动MQ的时候，第一个启动必须是NameServer。所以这篇主要来记录一下NameServer启动的源码分析。 脚本启动无论在Windows或者是Linux，都">
+<meta property="og:description" content="前言在RocketMQ中，NameServer的目的是为了解耦Broker和Producer、Consumer。官方文档对NameServer有一个概括：NameServer是一个几乎无状态节点,可集群部署,节点之间无任何信息同步。而且在启动MQ的时候，第一个启动必须是NameServer。所以这篇主要来记录一下NameServer启动的源码分析。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/12/08/RocketMQ-源码分析-nameser启动（一）/1.png">
-<meta property="og:updated_time" content="2018-12-08T12:28:41.723Z">
+<meta property="og:updated_time" content="2018-12-08T12:32:14.038Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RocketMQ 源码分析 nameser启动（一）">
-<meta name="twitter:description" content="前言在RocketMQ中，NameServer的目的是为了解耦Broker和Producer、Consumer。官方文档对NameServer有一个概括：NameServer是一个几乎无状态节点,可集群部署,节点之间无任何信息同步。而且在启动MQ的时候，第一个启动必须是NameServer。所以这篇主要来记录一下NameServer启动的源码分析。 脚本启动无论在Windows或者是Linux，都">
+<meta name="twitter:description" content="前言在RocketMQ中，NameServer的目的是为了解耦Broker和Producer、Consumer。官方文档对NameServer有一个概括：NameServer是一个几乎无状态节点,可集群部署,节点之间无任何信息同步。而且在启动MQ的时候，第一个启动必须是NameServer。所以这篇主要来记录一下NameServer启动的源码分析。">
 <meta name="twitter:image" content="http://yoursite.com/2018/12/08/RocketMQ-源码分析-nameser启动（一）/1.png">
 
 
@@ -372,6 +372,7 @@
 
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在RocketMQ中，NameServer的目的是为了解耦Broker和Producer、Consumer。官方文档对NameServer有一个概括：NameServer是一个几乎无状态节点,可集群部署,节点之间无任何信息同步。而且在启动MQ的时候，第一个启动必须是NameServer。<strong>所以这篇主要来记录一下NameServer启动的源码分析。</strong></p>
+<a id="more"></a>
 <h3 id="脚本启动"><a href="#脚本启动" class="headerlink" title="脚本启动"></a>脚本启动</h3><p>无论在Windows或者是Linux，都需要通过命令行来启动NameServer，在Windows环境下，进入<code>MQ\bin</code>执行:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">start mqnamesrv.cmd</span><br></pre></td></tr></table></figure>
 <p>打开<code>mqnamesrv.cmd</code>可以看到：</p>
