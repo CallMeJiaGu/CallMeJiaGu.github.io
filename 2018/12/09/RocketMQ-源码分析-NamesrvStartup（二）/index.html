@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="Kubernetes," />
+  <meta name="keywords" content="Hexo, NexT" />
 
 
 
@@ -105,22 +105,14 @@
 
 
 
-<meta name="description" content="前言前面几篇博客大体上了解了Docker的一些使用。Docker针对于个人开发者开发单机版容器化应用来说，已经足够好用了。 但是在企业应用场景中，很快会因为容器规模增大导致手动操作Docker的方式弊端越来越大。在生产环境中会涉及到健康检查，可用性，负载均衡，服务发现等很多问题。因此，如何批量创建调度和管理成为了亟待解决的首要问题。 Google开源的一个容器编排引擎 Kubernetes，就是为">
-<meta name="keywords" content="Kubernetes">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Kubernetes 初体验">
-<meta property="og:url" content="http://yoursite.com/2018/11/18/Kubernetes-初体验/index.html">
+<meta property="og:title" content="RocketMQ 源码分析 NamesrvStartup（二）">
+<meta property="og:url" content="http://yoursite.com/2018/12/09/RocketMQ-源码分析-NamesrvStartup（二）/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言前面几篇博客大体上了解了Docker的一些使用。Docker针对于个人开发者开发单机版容器化应用来说，已经足够好用了。 但是在企业应用场景中，很快会因为容器规模增大导致手动操作Docker的方式弊端越来越大。在生产环境中会涉及到健康检查，可用性，负载均衡，服务发现等很多问题。因此，如何批量创建调度和管理成为了亟待解决的首要问题。 Google开源的一个容器编排引擎 Kubernetes，就是为">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2018/11/18/Kubernetes-初体验/1.png">
-<meta property="og:image" content="http://yoursite.com/2018/11/18/Kubernetes-初体验/2.png">
-<meta property="og:image" content="http://yoursite.com/2018/11/18/Kubernetes-初体验/3.png">
-<meta property="og:updated_time" content="2018-12-07T05:35:43.209Z">
+<meta property="og:updated_time" content="2018-12-09T07:02:25.640Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Kubernetes 初体验">
-<meta name="twitter:description" content="前言前面几篇博客大体上了解了Docker的一些使用。Docker针对于个人开发者开发单机版容器化应用来说，已经足够好用了。 但是在企业应用场景中，很快会因为容器规模增大导致手动操作Docker的方式弊端越来越大。在生产环境中会涉及到健康检查，可用性，负载均衡，服务发现等很多问题。因此，如何批量创建调度和管理成为了亟待解决的首要问题。 Google开源的一个容器编排引擎 Kubernetes，就是为">
-<meta name="twitter:image" content="http://yoursite.com/2018/11/18/Kubernetes-初体验/1.png">
+<meta name="twitter:title" content="RocketMQ 源码分析 NamesrvStartup（二）">
 
 
 
@@ -150,13 +142,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/11/18/Kubernetes-初体验/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/12/09/RocketMQ-源码分析-NamesrvStartup（二）/"/>
 
 
 
 
 
-  <title>Kubernetes 初体验 | Don't Stop</title>
+  <title>RocketMQ 源码分析 NamesrvStartup（二） | Don't Stop</title>
   
 
 
@@ -283,7 +275,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/18/Kubernetes-初体验/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/09/RocketMQ-源码分析-NamesrvStartup（二）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -300,7 +292,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Kubernetes 初体验</h1>
+          <h1 class="post-title" itemprop="name headline">RocketMQ 源码分析 NamesrvStartup（二）</h1>
         
 
         <div class="post-meta">
@@ -313,8 +305,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-18T19:02:51+08:00">
-                2018-11-18
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-09T15:02:25+08:00">
+                2018-12-09
               </time>
             
 
@@ -323,28 +315,6 @@
             
           </span>
 
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Kubernetes/" itemprop="url" rel="index">
-                    <span itemprop="name">Kubernetes</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
           
 
           
@@ -373,33 +343,7 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面几篇博客大体上了解了Docker的一些使用。Docker针对于个人开发者开发单机版容器化应用来说，已经足够好用了。</p>
-<p>但是在企业应用场景中，很快会因为容器规模增大导致手动操作Docker的方式弊端越来越大。在生产环境中会涉及到健康检查，可用性，负载均衡，服务发现等很多问题。因此，如何批量创建调度和管理成为了亟待解决的首要问题。</p>
-<p>Google开源的一个容器编排引擎 <code>Kubernetes</code>，就是为了解决上述问题。这篇我主要来讲一些Kubernetes中常用的组件。方便阐述Kubernetes用k8s代替。</p>
-<a id="more"></a>
-<p><img src="/2018/11/18/Kubernetes-初体验/1.png" alt="你想输入的替代文字"></p>
-<h3 id="组件概述"><a href="#组件概述" class="headerlink" title="组件概述"></a>组件概述</h3><p>每个集群中有一个Master节点对整个集群进行管理；同时系统中存在多个Nodes节点，提供物理资源，这是系统进行资源分配和调度的基础。</p>
-<p>在此基础上是Pods和Container，这两个都是虚拟的概念，它是系统分配和部署的最小单元，在一个Node上可以部署多个Pods。一个Pods表示了一个功能或服务，通过对一个或多个Contrainer的整合来实现功能。</p>
-<p>最后是Service，它负责对外提供可访问接口，系统中一个Service对应于多个Pod，通过自动化的路由策略对Pod的整合，提供服务拓展，系统容错等功能。下面对上述的组件进行解释。</p>
-<p><img src="/2018/11/18/Kubernetes-初体验/2.png" alt="你想输入的替代文字"></p>
-<h3 id="Containers"><a href="#Containers" class="headerlink" title="Containers"></a>Containers</h3><p>这里的Containers就是Docker镜像了，这个没什么好说。</p>
-<h3 id="Pod"><a href="#Pod" class="headerlink" title="Pod"></a>Pod</h3><p>Pod在英文中就是豆荚的意思，每一个在豆荚中的豆就是一个docker容器了，可以说是非常形象了。拿实验室的项目来说，有推荐、搜索、后端业务等功能块，这些功能块可以简单认为就是一个Pod。</p>
-<p>如搜索功能需要的docker镜像有Solr和MySQL，也就是说这个pod由两个镜像组成。而推荐需要python一个镜像环境。</p>
-<h3 id="Service"><a href="#Service" class="headerlink" title="Service"></a>Service</h3><p>也就是说一个Pod实际是提供了某一个功能块的，而多个Pod就形成了一个真正的服务了，这里的服务就是Service了。拿项目来的搜索功能来说，这个Service首先是通过后端业务Pod，后端业务在调用搜索Pod，最后前端显示完成的，这个Service就涉及到了多个Pod的参与。</p>
-<p><img src="/2018/11/18/Kubernetes-初体验/3.png" alt="你想输入的替代文字"></p>
-<h3 id="Master、Node"><a href="#Master、Node" class="headerlink" title="Master、Node"></a>Master、Node</h3><p>Master作为控制节点，调度管理整个系统，Node是集群中的工作主机，Node可以是物理主机，也可以是虚拟机。这个在分布式中比较常见，所以不多解释。值得一提的是，每一个Node上可以部署多个Pod。</p>
-<h3 id="Replication-Controller"><a href="#Replication-Controller" class="headerlink" title="Replication Controller"></a>Replication Controller</h3><p><strong>简单来说，RC是用来管理Pod的副本的。</strong>就拿推荐系统来说，用户使用高峰期时，就需要增到Pod的副本数，从而有效应对大规模的请求。手动去部署多个推荐Pod，存在时间成本，以及部署时集群的负载均衡问题。这些问题可以通过RC来解决。</p>
-<p>RC保证在同一时间能够运行指定数量的Pod副本，保证Pod总是可用。如果实际Pod数量比指定的多就结束掉多余的，如果实际数量比指定的少就启动缺少的。当Pod失败、被删除或被终结时，RC会自动创建新的Pod来保证副本数量，所以即使只有一个Pod，也应该使用RC来进行管理。</p>
-<h3 id="Deployment"><a href="#Deployment" class="headerlink" title="Deployment"></a>Deployment</h3><p>Deployment同样为Kubernetes的一个核心内容，主要职责同样是为了保证pod的数量和健康，90%的功能与Replication Controller完全一样，可以看做新一代的Replication Controller。但是，它又具备了Replication Controller之外的新特性：</p>
-<ul>
-<li>Replication Controller全部功能：Deployment继承了上面描述的Replication Controller全部功能。</li>
-<li>事件和状态查看：可以查看Deployment的升级详细进度和状态。</li>
-<li>回滚：当升级pod镜像或者相关参数的时候发现问题，可以使用回滚操作回滚到上一个稳定的版本或者指定的版本。</li>
-<li>版本记录: 每一次对Deployment的操作，都能保存下来，给予后续可能的回滚使用。</li>
-<li>暂停和启动：对于每一次升级，都能够随时暂停和启动。</li>
-<li>多种升级方案：Recreate：删除所有已存在的pod,重新创建新的; RollingUpdate：滚动升级，逐步替换的策略，同时滚动升级时，支持更多的附加参数，例如设置最大不可用pod数量，最小升级间隔时间等等。</li>
-</ul>
-
+        
       
     </div>
     
@@ -414,12 +358,6 @@
 
     <footer class="post-footer">
       
-        <div class="post-tags">
-          
-            <a href="/tags/Kubernetes/" rel="tag"># Kubernetes</a>
-          
-        </div>
-      
 
       
       
@@ -429,8 +367,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/11/17/Docker-容器通信/" rel="next" title="Docker 容器通信">
-                <i class="fa fa-chevron-left"></i> Docker 容器通信
+              <a href="/2018/12/08/RocketMQ-源码分析-nameser启动（一）/" rel="next" title="RocketMQ 源码分析 nameser启动（一）">
+                <i class="fa fa-chevron-left"></i> RocketMQ 源码分析 nameser启动（一）
               </a>
             
           </div>
@@ -438,10 +376,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/11/19/Kubernetes-Pod操作/" rel="prev" title="Kubernetes Pod操作">
-                Kubernetes Pod操作 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -493,17 +427,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            文章目录
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            站点概览
-          </li>
-        </ul>
-      
 
-      <section class="site-overview-wrap sidebar-panel">
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -589,22 +514,6 @@
         </div>
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组件概述"><span class="nav-number">2.</span> <span class="nav-text">组件概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Containers"><span class="nav-number">3.</span> <span class="nav-text">Containers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pod"><span class="nav-number">4.</span> <span class="nav-text">Pod</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Service"><span class="nav-number">5.</span> <span class="nav-text">Service</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Master、Node"><span class="nav-number">6.</span> <span class="nav-text">Master、Node</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Replication-Controller"><span class="nav-number">7.</span> <span class="nav-text">Replication Controller</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deployment"><span class="nav-number">8.</span> <span class="nav-text">Deployment</span></a></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       
