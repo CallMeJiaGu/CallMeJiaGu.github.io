@@ -275,6 +275,165 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/10/RocketMQ-源码分析-NamesrvController（三）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/2.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/10/RocketMQ-源码分析-NamesrvController（三）/" itemprop="url">RocketMQ 源码分析 NamesrvController（三）</a></h1>
+        
+
+        <div class="post-meta">
+		
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-10T20:42:01+08:00">
+                2018-12-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MQ/" itemprop="url" rel="index">
+                    <span itemprop="name">MQ</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>上一篇在讲到createNamesrvController方法的时候，根据<code>NamesrvConfig</code>和<code>NettyServerConfig</code>对象生成了一个<code>NamesrvController</code>对象，当时并没有deep到该类中，所以这篇来记录一下NamesrvController构造函数的分析。</p>
+<h3 id="NamesrvController类"><a href="#NamesrvController类" class="headerlink" title="NamesrvController类"></a>NamesrvController类</h3><p>下面是NamesrvController的构造类，这里重点关注的是<code>kvConfigManager</code>、<code>routeInfoManager</code>、<code>brokerHousekeepingService</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">NamesrvController</span><span class="params">(NamesrvConfig namesrvConfig, NettyServerConfig nettyServerConfig)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Name Server配置</span></span><br><span class="line">    <span class="keyword">this</span>.namesrvConfig = namesrvConfig;</span><br><span class="line">    <span class="comment">// Netty配置 </span></span><br><span class="line">    <span class="keyword">this</span>.nettyServerConfig = nettyServerConfig;</span><br><span class="line">    <span class="comment">// KV配置管理</span></span><br><span class="line">    <span class="keyword">this</span>.kvConfigManager = <span class="keyword">new</span> KVConfigManager(<span class="keyword">this</span>);</span><br><span class="line">    <span class="comment">// 路由信息管理 </span></span><br><span class="line">    <span class="keyword">this</span>.routeInfoManager = <span class="keyword">new</span> RouteInfoManager();</span><br><span class="line">    <span class="comment">// Broker连接事件处理服务 </span></span><br><span class="line">    <span class="keyword">this</span>.brokerHousekeepingService = <span class="keyword">new</span> BrokerHousekeepingService(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">this</span>.configuration = <span class="keyword">new</span> Configuration(</span><br><span class="line">        log,</span><br><span class="line">        <span class="keyword">this</span>.namesrvConfig, <span class="keyword">this</span>.nettyServerConfig</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">this</span>.configuration.setStorePathFromConfig(<span class="keyword">this</span>.namesrvConfig, <span class="string">"configStorePath"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="kvConfigManager"><a href="#kvConfigManager" class="headerlink" title="kvConfigManager"></a>kvConfigManager</h4><p>KVConfigManager作用：</p>
+<blockquote>
+<p>1.加载namesrvController指定的kvConfig配置文件(常为xxx/kvConfig.json)到内存进行读取、增加、删除kvConfig记录。<br>2.将内存记录的配置,持久化到文件<br>3.打印所有kvConfig配置</p>
+</blockquote>
+<font color="#FF0000">针对上面我有一个疑惑，就是kvConfig.json保存了什么配置呢？服务的一些配置不是在NamesrvConfig和NettyServerConfig中保留了吗？！</font>
+
+<p>KVConfigManager有三个主要成员变量:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">KVConfigManager</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);</span><br><span class="line">    <span class="comment">// Name Server主要控制类 </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> NamesrvController namesrvController;</span><br><span class="line">    <span class="comment">// 读写锁 </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ReadWriteLock lock = <span class="keyword">new</span> ReentrantReadWriteLock();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/** </span></span><br><span class="line"><span class="comment">    * 以命名空间为单位存储的配置文件,存数示例如下: </span></span><br><span class="line"><span class="comment">    * &#123;"configTable":&#123;"ORDER_TOPIC_CONFIG":&#123;"UnitTest":"test"&#125;&#125;&#125;% </span></span><br><span class="line"><span class="comment">    * 此处的Namespace为ORDER_TOPIC_CONFIG,暂时不知道Namespace具体的含义 </span></span><br><span class="line"><span class="comment">    */</span> </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* Namespace */</span>, HashMap&lt;String<span class="comment">/* Key */</span>, String<span class="comment">/* Value */</span>&gt;&gt; configTable =</span><br><span class="line">        <span class="keyword">new</span> HashMap&lt;String, HashMap&lt;String, String&gt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">KVConfigManager</span><span class="params">(NamesrvController namesrvController)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.namesrvController = namesrvController;</span><br><span class="line">    &#125;</span><br><span class="line">    ..........省略</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="RouteInfoManager"><a href="#RouteInfoManager" class="headerlink" title="RouteInfoManager"></a>RouteInfoManager</h3><p>RouteInfoManager实例中保存了整个消息集群的相关信息，这个是关键类，所以后面对其还需要进一步阅读：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RouteInfoManager</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> BROKER_CHANNEL_EXPIRED_TIME = <span class="number">1000</span> * <span class="number">60</span> * <span class="number">2</span>;</span><br><span class="line">    <span class="comment">// 读写锁 </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ReadWriteLock lock = <span class="keyword">new</span> ReentrantReadWriteLock();</span><br><span class="line">    <span class="comment">// Topic,以及对应的队列信息 </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* topic */</span>, List&lt;QueueData&gt;&gt; topicQueueTable;</span><br><span class="line">    <span class="comment">// 以Broker Name为单位的Broker集合 </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* brokerName */</span>, BrokerData&gt; brokerAddrTable;</span><br><span class="line">    <span class="comment">// 集群以及属于该进群的Broker列表 </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* clusterName */</span>, Set&lt;String<span class="comment">/* brokerName */</span>&gt;&gt; clusterAddrTable;</span><br><span class="line">    <span class="comment">// 存活的Broker地址列表 </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* brokerAddr */</span>, BrokerLiveInfo&gt; brokerLiveTable;</span><br><span class="line">    <span class="comment">// Broker对应的Filter Server列表 </span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String<span class="comment">/* brokerAddr */</span>, List&lt;String&gt;<span class="comment">/* Filter Server */</span>&gt; filterServerTable;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RouteInfoManager</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.topicQueueTable = <span class="keyword">new</span> HashMap&lt;String, List&lt;QueueData&gt;&gt;(<span class="number">1024</span>);</span><br><span class="line">        <span class="keyword">this</span>.brokerAddrTable = <span class="keyword">new</span> HashMap&lt;String, BrokerData&gt;(<span class="number">128</span>);</span><br><span class="line">        <span class="keyword">this</span>.clusterAddrTable = <span class="keyword">new</span> HashMap&lt;String, Set&lt;String&gt;&gt;(<span class="number">32</span>);</span><br><span class="line">        <span class="keyword">this</span>.brokerLiveTable = <span class="keyword">new</span> HashMap&lt;String, BrokerLiveInfo&gt;(<span class="number">256</span>);</span><br><span class="line">        <span class="keyword">this</span>.filterServerTable = <span class="keyword">new</span> HashMap&lt;String, List&lt;String&gt;&gt;(<span class="number">256</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    ..........省略</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="BrokerHousekeepingService"><a href="#BrokerHousekeepingService" class="headerlink" title="BrokerHousekeepingService"></a>BrokerHousekeepingService</h3><p>该类负责Broker连接事件的处理,实现了ChannelEventListener,主要用来管理RouteInfoManager的brokerLiveTable。BrokerHousekeepingService实现了ChannelEventListener接口, 并且NettyRemotingServer启动时会启动BrokerHousekeepingService。</p>
+<p>BrokerHousekeepingService会对连接事件, 连接关闭事件, 异常事件,闲置事件进行处理，进而来判断管理存活的broker。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BrokerHousekeepingService</span> <span class="keyword">implements</span> <span class="title">ChannelEventListener</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> NamesrvController namesrvController;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BrokerHousekeepingService</span><span class="params">(NamesrvController namesrvController)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.namesrvController = namesrvController;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//连接事件</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChannelConnect</span><span class="params">(String remoteAddr, Channel channel)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//关闭事件</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChannelClose</span><span class="params">(String remoteAddr, Channel channel)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.namesrvController.getRouteInfoManager().onChannelDestroy(remoteAddr, channel);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//异常事件</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChannelException</span><span class="params">(String remoteAddr, Channel channel)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.namesrvController.getRouteInfoManager().onChannelDestroy(remoteAddr, channel);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//闲置事件</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChannelIdle</span><span class="params">(String remoteAddr, Channel channel)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.namesrvController.getRouteInfoManager().onChannelDestroy(remoteAddr, channel);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面四个方法在监听到事件时，就会触发RouteInfoManager的onChannelDestroy()方法,这个方法比较关键的，所以后面单独抽出来讲。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/09/RocketMQ-源码分析-NamesrvStartup（二）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1593,161 +1752,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/17/Docker-容器通信/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="JinTx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/img/2.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Don't Stop">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/11/17/Docker-容器通信/" itemprop="url">Docker 容器通信</a></h1>
-        
-
-        <div class="post-meta">
-		
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-17T10:11:04+08:00">
-                2018-11-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Docker/" itemprop="url" rel="index">
-                    <span itemprop="name">Docker</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在docker低版本中，容器间的通信通常有以下三种方式：</p>
-<blockquote>
-<ol>
-<li>通过使用容器的IP地址来通信。</li>
-<li>通过宿主机的IP加上容器暴露出的端口号来通信。</li>
-<li>通过docker的link机制可以通过一个name来和另一个容器通信</li>
-</ol>
-</blockquote>
-<p>本章主要来讲解一下这三种连接方式。实验容器为 <code>python2.7</code> 以及 <code>mysql5.7</code>，可以直接从dockerHub上pull。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/11/17/Docker-容器通信/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1802,7 +1806,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-count">57</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
