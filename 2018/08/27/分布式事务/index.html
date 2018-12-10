@@ -113,10 +113,12 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言常把一个数据库内部的事务处理，如对多个表的操作，作为本地事务看待。数据库的事务处理对象是本地事务，而分布式事务处理的对象是全局事务。   所谓全局事务，是指分布式事务处理环境中，多个数据库可能需要共同完成一个工作，这个工作即是一个全局事务。 例如，一个事务中可能更新几个不同的数据库。对数据库的操作发生在系统的各处但必须全部被提交或回滚。此时一个数据库对自己内部所做操作的提交不仅依赖本身操作是否">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-10-23T01:47:11.780Z">
+<meta property="og:image" content="http://yoursite.com/2018/08/27/分布式事务/1.png">
+<meta property="og:updated_time" content="2018-12-10T12:19:51.976Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="分布式事务">
 <meta name="twitter:description" content="前言常把一个数据库内部的事务处理，如对多个表的操作，作为本地事务看待。数据库的事务处理对象是本地事务，而分布式事务处理的对象是全局事务。   所谓全局事务，是指分布式事务处理环境中，多个数据库可能需要共同完成一个工作，这个工作即是一个全局事务。 例如，一个事务中可能更新几个不同的数据库。对数据库的操作发生在系统的各处但必须全部被提交或回滚。此时一个数据库对自己内部所做操作的提交不仅依赖本身操作是否">
+<meta name="twitter:image" content="http://yoursite.com/2018/08/27/分布式事务/1.png">
 
 
 
@@ -421,6 +423,17 @@
 </ol>
 <h3 id="2PC和3PC的区别"><a href="#2PC和3PC的区别" class="headerlink" title="2PC和3PC的区别"></a>2PC和3PC的区别</h3><p>像2PC中的网络问题，3PC也不能很好的解决。但是针对等待指令或者回复，3PC对于协调者(Coordinator)和参与者(Cohort)都设置了<strong>超时机制</strong>，所以可以减少阻塞的时间。</p>
 <p>3PC也解决了，2PC中因为协调者、参与者都宕机情况下不一致问题的。</p>
+<p><strong>2PC和3PC是基于XA的，XA 协议通常实现在数据库资源层，直接作用于资源管理器上。因此，基于 XA 协议实现的分布式事务产品，无论是分布式数据库，还是分布式事务框架，对业务几乎都没有侵入，就像使用普通数据库一样。是依靠MySQL XA实现的，是DB层实现。</strong></p>
+<h3 id="TCC"><a href="#TCC" class="headerlink" title="TCC"></a>TCC</h3><p>TCC（Try-Confirm-Cancel）分布式事务模型相对于 XA 等传统模型，其特征在于它不依赖资源管理器（RM）对分布式事务的支持，而是通过对业务逻辑的分解来实现分布式事务。<strong>对代码的侵入性比较大。</strong>通常可以使用一些框架来实现三段业务逻辑的划分。</p>
+<p>因此，针对一个具体的业务服务，TCC 分布式事务模型需要业务系统提供三段业务逻辑：</p>
+<blockquote>
+<ol>
+<li>初步操作 Try：完成所有业务检查，预留必须的业务资源。</li>
+<li>确认操作 Confirm：真正执行的业务逻辑，不作任何业务检查，只使用 Try 阶段预留的业务资源。因此，只要 Try 操作成功，Confirm 必须能成功。另外，Confirm 操作需满足幂等性，保证一笔分布式事务有且只能成功一次。</li>
+<li>取消操作 Cancel：释放 Try 阶段预留的业务资源。同样的，Cancel 操作也需要满足幂等性。</li>
+</ol>
+</blockquote>
+<p><img src="/2018/08/27/分布式事务/1.png" alt="你想输入的替代文字"></p>
 
       
     </div>
@@ -623,7 +636,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2PC"><span class="nav-number">2.</span> <span class="nav-text">2PC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#准备阶段"><span class="nav-number">2.1.</span> <span class="nav-text">准备阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#提交阶段"><span class="nav-number">2.2.</span> <span class="nav-text">提交阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2PC存在的问题"><span class="nav-number">2.3.</span> <span class="nav-text">2PC存在的问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3PC"><span class="nav-number">3.</span> <span class="nav-text">3PC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CanCommit阶段"><span class="nav-number">3.1.</span> <span class="nav-text">CanCommit阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PreCommit阶段"><span class="nav-number">3.2.</span> <span class="nav-text">PreCommit阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#doCommit阶段"><span class="nav-number">3.3.</span> <span class="nav-text">doCommit阶段</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2PC和3PC的区别"><span class="nav-number">4.</span> <span class="nav-text">2PC和3PC的区别</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2PC"><span class="nav-number">2.</span> <span class="nav-text">2PC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#准备阶段"><span class="nav-number">2.1.</span> <span class="nav-text">准备阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#提交阶段"><span class="nav-number">2.2.</span> <span class="nav-text">提交阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2PC存在的问题"><span class="nav-number">2.3.</span> <span class="nav-text">2PC存在的问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3PC"><span class="nav-number">3.</span> <span class="nav-text">3PC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CanCommit阶段"><span class="nav-number">3.1.</span> <span class="nav-text">CanCommit阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PreCommit阶段"><span class="nav-number">3.2.</span> <span class="nav-text">PreCommit阶段</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#doCommit阶段"><span class="nav-number">3.3.</span> <span class="nav-text">doCommit阶段</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2PC和3PC的区别"><span class="nav-number">4.</span> <span class="nav-text">2PC和3PC的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCC"><span class="nav-number">5.</span> <span class="nav-text">TCC</span></a></li></ol></div>
             
 
           </div>
