@@ -105,18 +105,18 @@
 
 
 
-<meta name="description" content="前言上一篇在讲到createNamesrvController方法的时候，根据NamesrvConfig和NettyServerConfig对象生成了一个NamesrvController对象，当时并没有deep到该类中，所以这篇来记录一下NamesrvController构造函数的分析。 NamesrvController类下面是NamesrvController的构造类，这里重点关注的是kvC">
+<meta name="description" content="前言上一篇在讲到createNamesrvController方法的时候，根据NamesrvConfig和NettyServerConfig对象生成了一个NamesrvController对象，当时并没有deep到该类中，所以这篇来记录一下NamesrvController构造函数的分析。">
 <meta name="keywords" content="消息中间件,RocketMQ,源码分析">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RocketMQ 源码分析 NamesrvController（三）">
 <meta property="og:url" content="http://yoursite.com/2018/12/10/RocketMQ-源码分析-NamesrvController（三）/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言上一篇在讲到createNamesrvController方法的时候，根据NamesrvConfig和NettyServerConfig对象生成了一个NamesrvController对象，当时并没有deep到该类中，所以这篇来记录一下NamesrvController构造函数的分析。 NamesrvController类下面是NamesrvController的构造类，这里重点关注的是kvC">
+<meta property="og:description" content="前言上一篇在讲到createNamesrvController方法的时候，根据NamesrvConfig和NettyServerConfig对象生成了一个NamesrvController对象，当时并没有deep到该类中，所以这篇来记录一下NamesrvController构造函数的分析。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-12-10T13:49:43.235Z">
+<meta property="og:updated_time" content="2018-12-11T01:33:36.435Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RocketMQ 源码分析 NamesrvController（三）">
-<meta name="twitter:description" content="前言上一篇在讲到createNamesrvController方法的时候，根据NamesrvConfig和NettyServerConfig对象生成了一个NamesrvController对象，当时并没有deep到该类中，所以这篇来记录一下NamesrvController构造函数的分析。 NamesrvController类下面是NamesrvController的构造类，这里重点关注的是kvC">
+<meta name="twitter:description" content="前言上一篇在讲到createNamesrvController方法的时候，根据NamesrvConfig和NettyServerConfig对象生成了一个NamesrvController对象，当时并没有deep到该类中，所以这篇来记录一下NamesrvController构造函数的分析。">
 
 
 
@@ -370,6 +370,7 @@
 
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>上一篇在讲到createNamesrvController方法的时候，根据<code>NamesrvConfig</code>和<code>NettyServerConfig</code>对象生成了一个<code>NamesrvController</code>对象，当时并没有deep到该类中，所以这篇来记录一下NamesrvController构造函数的分析。</p>
+<a id="more"></a>
 <h3 id="NamesrvController类"><a href="#NamesrvController类" class="headerlink" title="NamesrvController类"></a>NamesrvController类</h3><p>下面是NamesrvController的构造类，这里重点关注的是<code>kvConfigManager</code>、<code>routeInfoManager</code>、<code>brokerHousekeepingService</code>。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">NamesrvController</span><span class="params">(NamesrvConfig namesrvConfig, NettyServerConfig nettyServerConfig)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Name Server配置</span></span><br><span class="line">    <span class="keyword">this</span>.namesrvConfig = namesrvConfig;</span><br><span class="line">    <span class="comment">// Netty配置 </span></span><br><span class="line">    <span class="keyword">this</span>.nettyServerConfig = nettyServerConfig;</span><br><span class="line">    <span class="comment">// KV配置管理</span></span><br><span class="line">    <span class="keyword">this</span>.kvConfigManager = <span class="keyword">new</span> KVConfigManager(<span class="keyword">this</span>);</span><br><span class="line">    <span class="comment">// 路由信息管理 </span></span><br><span class="line">    <span class="keyword">this</span>.routeInfoManager = <span class="keyword">new</span> RouteInfoManager();</span><br><span class="line">    <span class="comment">// Broker连接事件处理服务 </span></span><br><span class="line">    <span class="keyword">this</span>.brokerHousekeepingService = <span class="keyword">new</span> BrokerHousekeepingService(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">this</span>.configuration = <span class="keyword">new</span> Configuration(</span><br><span class="line">        log,</span><br><span class="line">        <span class="keyword">this</span>.namesrvConfig, <span class="keyword">this</span>.nettyServerConfig</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">this</span>.configuration.setStorePathFromConfig(<span class="keyword">this</span>.namesrvConfig, <span class="string">"configStorePath"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="kvConfigManager"><a href="#kvConfigManager" class="headerlink" title="kvConfigManager"></a>kvConfigManager</h4><p>KVConfigManager作用：</p>
