@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="消息中间件,RocketMQ,源码分析," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言RocketMQ在早期版本使用的是Zookeeper，考虑到Zookeeper不够轻量，后面用namesrv来代替。熟悉Zookeeper的知道它使用心跳检测来判断服务是否正常，那么namesrv肯定也少不了这块功能，那么它是怎么判断一个Broker节点是否Live呢？如果一个Broker断开了namesrv是如何处理的呢？ 在前面篇章提到NamesrvController的构造函数中有一个B">
+<meta name="keywords" content="消息中间件,RocketMQ,源码分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RocketMQ 源码分析 BrokerHousekeepingService（五）">
+<meta property="og:url" content="http://yoursite.com/2018/12/12/RocketMQ-源码分析-BrokerHousekeepingService（五）/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言RocketMQ在早期版本使用的是Zookeeper，考虑到Zookeeper不够轻量，后面用namesrv来代替。熟悉Zookeeper的知道它使用心跳检测来判断服务是否正常，那么namesrv肯定也少不了这块功能，那么它是怎么判断一个Broker节点是否Live呢？如果一个Broker断开了namesrv是如何处理的呢？ 在前面篇章提到NamesrvController的构造函数中有一个B">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/12/12/RocketMQ-源码分析-BrokerHousekeepingService（五）/1.png">
+<meta property="og:updated_time" content="2018-12-12T03:08:57.393Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RocketMQ 源码分析 BrokerHousekeepingService（五）">
+<meta name="twitter:description" content="前言RocketMQ在早期版本使用的是Zookeeper，考虑到Zookeeper不够轻量，后面用namesrv来代替。熟悉Zookeeper的知道它使用心跳检测来判断服务是否正常，那么namesrv肯定也少不了这块功能，那么它是怎么判断一个Broker节点是否Live呢？如果一个Broker断开了namesrv是如何处理的呢？ 在前面篇章提到NamesrvController的构造函数中有一个B">
+<meta name="twitter:image" content="http://yoursite.com/2018/12/12/RocketMQ-源码分析-BrokerHousekeepingService（五）/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/12/RocketMQ-源码分析-BrokerHousekeepingService（五）/"/>
+
+
+
+
+
+  <title>RocketMQ 源码分析 BrokerHousekeepingService（五） | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/12/RocketMQ-源码分析-BrokerHousekeepingService（五）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/2.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RocketMQ 源码分析 BrokerHousekeepingService（五）</h1>
+        
+
+        <div class="post-meta">
+		
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-12T09:46:00+08:00">
+                2018-12-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MQ/" itemprop="url" rel="index">
+                    <span itemprop="name">MQ</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>RocketMQ在早期版本使用的是Zookeeper，考虑到Zookeeper不够轻量，后面用namesrv来代替。熟悉Zookeeper的知道它使用心跳检测来判断服务是否正常，那么namesrv肯定也少不了这块功能，那么它是怎么判断一个Broker节点是否Live呢？如果一个Broker断开了namesrv是如何处理的呢？</p>
+<p>在前面篇章提到NamesrvController的构造函数中有一个BrokerHousekeepingService，这个就是来处理Broker连接发生变化的服务。</p>
+<a id="more"></a>
+<h3 id="BrokerHousekeepingService"><a href="#BrokerHousekeepingService" class="headerlink" title="BrokerHousekeepingService"></a>BrokerHousekeepingService</h3><p>BrokerHousekeepingService是NamesrvController构造函数的时候生成的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">NamesrvController</span><span class="params">(NamesrvConfig namesrvConfig, NettyServerConfig nettyServerConfig)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Name Server配置</span></span><br><span class="line">    <span class="keyword">this</span>.namesrvConfig = namesrvConfig;</span><br><span class="line">    <span class="comment">// Netty配置 </span></span><br><span class="line">    <span class="keyword">this</span>.nettyServerConfig = nettyServerConfig;</span><br><span class="line">    <span class="comment">// KV配置管理</span></span><br><span class="line">    <span class="keyword">this</span>.kvConfigManager = <span class="keyword">new</span> KVConfigManager(<span class="keyword">this</span>);</span><br><span class="line">    <span class="comment">// 路由信息管理 </span></span><br><span class="line">    <span class="keyword">this</span>.routeInfoManager = <span class="keyword">new</span> RouteInfoManager();</span><br><span class="line">    <span class="comment">// Broker连接事件处理服务 </span></span><br><span class="line">    <span class="keyword">this</span>.brokerHousekeepingService = <span class="keyword">new</span> BrokerHousekeepingService(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">this</span>.configuration = <span class="keyword">new</span> Configuration(</span><br><span class="line">        log,</span><br><span class="line">        <span class="keyword">this</span>.namesrvConfig, <span class="keyword">this</span>.nettyServerConfig</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">this</span>.configuration.setStorePathFromConfig(<span class="keyword">this</span>.namesrvConfig, <span class="string">"configStorePath"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看一下BrokerHousekeepingService这个类的情况：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BrokerHousekeepingService</span> <span class="keyword">implements</span> <span class="title">ChannelEventListener</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> NamesrvController namesrvController;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BrokerHousekeepingService</span><span class="params">(NamesrvController namesrvController)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.namesrvController = namesrvController;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChannelConnect</span><span class="params">(String remoteAddr, Channel channel)</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//监测close事件</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChannelClose</span><span class="params">(String remoteAddr, Channel channel)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.namesrvController.getRouteInfoManager().onChannelDestroy(remoteAddr, channel);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//监测异常事件</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChannelException</span><span class="params">(String remoteAddr, Channel channel)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.namesrvController.getRouteInfoManager().onChannelDestroy(remoteAddr, channel);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//监测闲置事件</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChannelIdle</span><span class="params">(String remoteAddr, Channel channel)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.namesrvController.getRouteInfoManager().onChannelDestroy(remoteAddr, channel);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到这个类实现了ChannelEventListener接口，除了onChannelConnect外，其余各个方法均委托给namesrvController的routeInfoManager的onChannelDestroy方法。</p>
+<p><strong>这里需要netty的一些基础，简单来说每一个broker与namesrv通过一个“通道”channel进行“沟通”。namesrv通过监测这些通道是否发生某些事件，去做出相应的变动。</strong>可以点进routeInfoManager的onChannelDestroy方法看看，对于宕机的broker是如何处理的。</p>
+<h3 id="onChannelDestroy"><a href="#onChannelDestroy" class="headerlink" title="onChannelDestroy"></a>onChannelDestroy</h3><p>onChannelDestroy大概有130行的代码，<strong>我打算将它拆开来分析</strong>，那么我拆的依据是什么呢？</p>
+<p>通过上一篇博客我们知道一个broker注册到namesrv的时候会触发registerBroker方法，registerBroker会往brokerAddrTable、clusterAddrTable、brokerLiveTable、topicQueueTable中添加新的broker信息。那么现在发现了一个宕机的broker，就是将上述的添加的信息一个个去除即可！！</p>
+<p>放一张registerBroker注册的图，方便我们知道broker和这些路由的关联。</p>
+<p><img src="/2018/12/12/RocketMQ-源码分析-BrokerHousekeepingService（五）/1.png" alt="你想输入的替代文字"></p>
+<h4 id="移除brokerLiveTable"><a href="#移除brokerLiveTable" class="headerlink" title="移除brokerLiveTable"></a>移除brokerLiveTable</h4><p>onChannelDestroy第一个要删除的就是<strong>brokerLiveTable</strong>中的信息，截取部分onChannelDestroy的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChannelDestroy</span><span class="params">(String remoteAddr, Channel channel)</span> </span>&#123;</span><br><span class="line">    String brokerAddrFound = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (channel != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">this</span>.lock.readLock().lockInterruptibly();</span><br><span class="line">                <span class="comment">//遍历了存活的BrokerTable，如果channel是相同的，获取对应的BrokerAddress</span></span><br><span class="line">                Iterator&lt;Entry&lt;String, BrokerLiveInfo&gt;&gt; itBrokerLiveTable =</span><br><span class="line">                    <span class="keyword">this</span>.brokerLiveTable.entrySet().iterator();</span><br><span class="line">                <span class="keyword">while</span> (itBrokerLiveTable.hasNext()) &#123;</span><br><span class="line">                    Entry&lt;String, BrokerLiveInfo&gt; entry = itBrokerLiveTable.next();</span><br><span class="line">                    <span class="comment">//如果LiveTable中的channel和传入的channel相同，则返回对应的brokerAddr</span></span><br><span class="line">                    <span class="keyword">if</span> (entry.getValue().getChannel() == channel) &#123;</span><br><span class="line">                        brokerAddrFound = entry.getKey();</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                <span class="keyword">this</span>.lock.readLock().unlock();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">"onChannelDestroy Exception"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">   <span class="comment">///省略...............</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这部分是比较简单的，就是迭代了brokerLiveTable，判断live表中channel和传入的channel是否为同一个对象，如果是则从把这个channel对应的brokerAddr返回到brokerAddrFound中。如果没有找到那么brokerAddrFound为null。</p>
+<blockquote>
+<font color="#FF0000">你们可能会有疑问为什么这里不在brokerLiveTable移除这个channel呢？！！</font>
+
+<p>注意看这步的操作是加了一个readLock，意味着现在允许其他线程对brokerLiveTable是可读，但是不允许其他线程变动brokerLiveTable。<strong>因为它希望再要修改brokerLiveTable的时候，读表的操作是不会被阻塞的</strong>。</p>
+</blockquote>
+<h4 id="移除brokerAddrTable"><a href="#移除brokerAddrTable" class="headerlink" title="移除brokerAddrTable"></a>移除brokerAddrTable</h4><p>接着往下看如何修改<strong>brokerAddrTable</strong>的，截取部分onChannelDestroy的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">this</span>.lock.writeLock().lockInterruptibly();</span><br><span class="line">    <span class="comment">//根据找到的brokerAddrFound移除LiveTable中的Broker</span></span><br><span class="line">    <span class="keyword">this</span>.brokerLiveTable.remove(brokerAddrFound);</span><br><span class="line">    <span class="keyword">this</span>.filterServerTable.remove(brokerAddrFound);</span><br><span class="line">    String brokerNameFound = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">boolean</span> removeBrokerName = <span class="keyword">false</span>;</span><br><span class="line">    Iterator&lt;Entry&lt;String, BrokerData&gt;&gt; itBrokerAddrTable =</span><br><span class="line">        <span class="keyword">this</span>.brokerAddrTable.entrySet().iterator();</span><br><span class="line">    <span class="keyword">while</span> (itBrokerAddrTable.hasNext() &amp;&amp; (<span class="keyword">null</span> == brokerNameFound)) &#123;</span><br><span class="line">        BrokerData brokerData = itBrokerAddrTable.next().getValue();</span><br><span class="line"></span><br><span class="line">        Iterator&lt;Entry&lt;Long, String&gt;&gt; it = brokerData.getBrokerAddrs().entrySet().iterator();</span><br><span class="line">        <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">            Entry&lt;Long, String&gt; entry = it.next();</span><br><span class="line">            Long brokerId = entry.getKey();</span><br><span class="line">            String brokerAddr = entry.getValue();</span><br><span class="line">            <span class="comment">//现在是针对brokerData中的BrokerAddrs，找到对应的从BrokerAddrs移除</span></span><br><span class="line">            <span class="keyword">if</span> (brokerAddr.equals(brokerAddrFound)) &#123;</span><br><span class="line">                brokerNameFound = brokerData.getBrokerName();</span><br><span class="line">                it.remove();</span><br><span class="line">                log.info(<span class="string">"remove brokerAddr[&#123;&#125;, &#123;&#125;] from brokerAddrTable, because channel destroyed"</span>,</span><br><span class="line">                    brokerId, brokerAddr);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//如果BrokerAddrs为空，那么brokerDataTable就需要把这个没有用的brokerData移除</span></span><br><span class="line">        <span class="keyword">if</span> (brokerData.getBrokerAddrs().isEmpty()) &#123;</span><br><span class="line">            removeBrokerName = <span class="keyword">true</span>;</span><br><span class="line">            itBrokerAddrTable.remove();</span><br><span class="line">            log.info(<span class="string">"remove brokerName[&#123;&#125;] from brokerAddrTable, because channel destroyed"</span>,</span><br><span class="line">                brokerData.getBrokerName());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//省略.....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先要明白<strong>brokerAddrTable</strong>是一个hashmap1，一个brokername对应一个brokerData。每一个brokerData存放了一个BrokerAddrs为hashmap2，一个brokerID对应一个brokerAddr。</p>
+<p>根据前面获得brokerAddrFound，第一个就是要移除BrokerAddrs中的一组信息。<font color="##FF0000">如果移除后，当前的BrokerAddrs已经是空的了：<code>if (brokerData.getBrokerAddrs().isEmpty())</code>，那么意味着一个brokername已经找不到对应的broker的addr和id了。</font>那么就要把brokerAddrTable对应的broker也要移除。<strong>解释的可能不太清楚，不过看看注册图可能就会明白。</strong></p>
+<h4 id="移除clusterAddrTable"><a href="#移除clusterAddrTable" class="headerlink" title="移除clusterAddrTable"></a>移除clusterAddrTable</h4><p>clusterAddrTable存放着集群的信息，如果宕机的broker的brokername只有它一个，那么集群信息中就需要把clusterAddrTable中的set<brokername>移除，截取部分onChannelDestroy的代码：</brokername></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//如果removeBrokerName，那么意味着以这个brokername为name的broker没有一个了。</span></span><br><span class="line"><span class="comment">//那么对应的集群中已经没有了cluter - &gt; broker了。所以这里要把集群中一个broker删除掉</span></span><br><span class="line"><span class="keyword">if</span> (brokerNameFound != <span class="keyword">null</span> &amp;&amp; removeBrokerName) &#123;</span><br><span class="line">    Iterator&lt;Entry&lt;String, Set&lt;String&gt;&gt;&gt; it = <span class="keyword">this</span>.clusterAddrTable.entrySet().iterator();</span><br><span class="line">    <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">        Entry&lt;String, Set&lt;String&gt;&gt; entry = it.next();</span><br><span class="line">        String clusterName = entry.getKey();</span><br><span class="line">        Set&lt;String&gt; brokerNames = entry.getValue();</span><br><span class="line">        <span class="comment">//直接移除在set中移除brokerNameFound</span></span><br><span class="line">        <span class="keyword">boolean</span> removed = brokerNames.remove(brokerNameFound);</span><br><span class="line">        <span class="keyword">if</span> (removed) &#123;</span><br><span class="line">            log.info(<span class="string">"remove brokerName[&#123;&#125;], clusterName[&#123;&#125;] from clusterAddrTable, because channel destroyed"</span>,</span><br><span class="line">                brokerNameFound, clusterName);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (brokerNames.isEmpty()) &#123;</span><br><span class="line">                log.info(<span class="string">"remove the clusterName[&#123;&#125;] from clusterAddrTable, because channel destroyed and no broker in this cluster"</span>,</span><br><span class="line">                    clusterName);</span><br><span class="line">                it.remove();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="移除topicQueueTable"><a href="#移除topicQueueTable" class="headerlink" title="移除topicQueueTable"></a>移除topicQueueTable</h4><p>一个topic可能会存在多个broker中，如果removeBrokerName为true，意味着原本存在brokername的信息就要移除，变量topicQueueTable中的List<queuedata>，如果有对应的brokername就移除。截取部分onChannelDestroy的代码：</queuedata></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//如果removeBrokerName，那么topic就不会再存放在一个叫brokerNameFound的broker中了，移除</span></span><br><span class="line"><span class="keyword">if</span> (removeBrokerName) &#123;</span><br><span class="line">    Iterator&lt;Entry&lt;String, List&lt;QueueData&gt;&gt;&gt; itTopicQueueTable =</span><br><span class="line">        <span class="keyword">this</span>.topicQueueTable.entrySet().iterator();</span><br><span class="line">    <span class="keyword">while</span> (itTopicQueueTable.hasNext()) &#123;</span><br><span class="line">        Entry&lt;String, List&lt;QueueData&gt;&gt; entry = itTopicQueueTable.next();</span><br><span class="line">        String topic = entry.getKey();</span><br><span class="line">        List&lt;QueueData&gt; queueDataList = entry.getValue();</span><br><span class="line"></span><br><span class="line">        Iterator&lt;QueueData&gt; itQueueData = queueDataList.iterator();</span><br><span class="line">        <span class="keyword">while</span> (itQueueData.hasNext()) &#123;</span><br><span class="line">            QueueData queueData = itQueueData.next();</span><br><span class="line">            <span class="keyword">if</span> (queueData.getBrokerName().equals(brokerNameFound)) &#123;</span><br><span class="line">                itQueueData.remove();</span><br><span class="line">                log.info(<span class="string">"remove topic[&#123;&#125; &#123;&#125;], from topicQueueTable, because channel destroyed"</span>,</span><br><span class="line">                    topic, queueData);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (queueDataList.isEmpty()) &#123;</span><br><span class="line">            itTopicQueueTable.remove();</span><br><span class="line">            log.info(<span class="string">"remove topic[&#123;&#125;] all queue, from topicQueueTable, because channel destroyed"</span>,</span><br><span class="line">                topic);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="onChannelDestroy整体代码"><a href="#onChannelDestroy整体代码" class="headerlink" title="onChannelDestroy整体代码"></a>onChannelDestroy整体代码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onChannelDestroy</span><span class="params">(String remoteAddr, Channel channel)</span> </span>&#123;</span><br><span class="line">    String brokerAddrFound = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (channel != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">this</span>.lock.readLock().lockInterruptibly();</span><br><span class="line">                <span class="comment">//遍历了存活的BrokerTable，如果channel是相同的，获取对应的BrokerAddress</span></span><br><span class="line">                Iterator&lt;Entry&lt;String, BrokerLiveInfo&gt;&gt; itBrokerLiveTable =</span><br><span class="line">                    <span class="keyword">this</span>.brokerLiveTable.entrySet().iterator();</span><br><span class="line">                <span class="keyword">while</span> (itBrokerLiveTable.hasNext()) &#123;</span><br><span class="line">                    Entry&lt;String, BrokerLiveInfo&gt; entry = itBrokerLiveTable.next();</span><br><span class="line">                    <span class="keyword">if</span> (entry.getValue().getChannel() == channel) &#123;</span><br><span class="line">                        brokerAddrFound = entry.getKey();</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                <span class="keyword">this</span>.lock.readLock().unlock();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">"onChannelDestroy Exception"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> == brokerAddrFound) &#123;<span class="comment">//说明现有存活的表中没有这个broker，直接用传入的remoteAddr</span></span><br><span class="line">        brokerAddrFound = remoteAddr;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        log.info(<span class="string">"the broker's channel destroyed, &#123;&#125;, clean it's data structure at once"</span>, brokerAddrFound);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (brokerAddrFound != <span class="keyword">null</span> &amp;&amp; brokerAddrFound.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">this</span>.lock.writeLock().lockInterruptibly();</span><br><span class="line">                <span class="comment">//根据找到的brokerAddrFound移除LiveTable中的Broker</span></span><br><span class="line">                <span class="keyword">this</span>.brokerLiveTable.remove(brokerAddrFound);</span><br><span class="line">                <span class="comment">//TODO filterServerTable是干什么的？</span></span><br><span class="line">                <span class="keyword">this</span>.filterServerTable.remove(brokerAddrFound);</span><br><span class="line">                String brokerNameFound = <span class="keyword">null</span>;</span><br><span class="line">                <span class="keyword">boolean</span> removeBrokerName = <span class="keyword">false</span>;</span><br><span class="line">                Iterator&lt;Entry&lt;String, BrokerData&gt;&gt; itBrokerAddrTable =</span><br><span class="line">                    <span class="keyword">this</span>.brokerAddrTable.entrySet().iterator();</span><br><span class="line">                <span class="keyword">while</span> (itBrokerAddrTable.hasNext() &amp;&amp; (<span class="keyword">null</span> == brokerNameFound)) &#123;</span><br><span class="line">                    BrokerData brokerData = itBrokerAddrTable.next().getValue();</span><br><span class="line"></span><br><span class="line">                    Iterator&lt;Entry&lt;Long, String&gt;&gt; it = brokerData.getBrokerAddrs().entrySet().iterator();</span><br><span class="line">                    <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">                        Entry&lt;Long, String&gt; entry = it.next();</span><br><span class="line">                        Long brokerId = entry.getKey();</span><br><span class="line">                        String brokerAddr = entry.getValue();</span><br><span class="line">                        <span class="comment">//上面的操作是将liveTable中移除，现在是针对brokerData中的BrokerAddrs，找到对应的从BrokerAddrs移除</span></span><br><span class="line">                        <span class="keyword">if</span> (brokerAddr.equals(brokerAddrFound)) &#123;</span><br><span class="line">                            brokerNameFound = brokerData.getBrokerName();</span><br><span class="line">                            it.remove();</span><br><span class="line">                            log.info(<span class="string">"remove brokerAddr[&#123;&#125;, &#123;&#125;] from brokerAddrTable, because channel destroyed"</span>,</span><br><span class="line">                                brokerId, brokerAddr);</span><br><span class="line">                            <span class="keyword">break</span>;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="comment">//如果BrokerAddrs为空，那么brokerDataTable就需要把这个没有用的brokerData移除</span></span><br><span class="line">                    <span class="keyword">if</span> (brokerData.getBrokerAddrs().isEmpty()) &#123;</span><br><span class="line">                        removeBrokerName = <span class="keyword">true</span>;</span><br><span class="line">                        itBrokerAddrTable.remove();</span><br><span class="line">                        log.info(<span class="string">"remove brokerName[&#123;&#125;] from brokerAddrTable, because channel destroyed"</span>,</span><br><span class="line">                            brokerData.getBrokerName());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">//如果removeBrokerName，那么意味着以这个brokername为name的broker没有一个了。</span></span><br><span class="line">                <span class="comment">//那么对应的集群中已经没有了cluter - &gt; broker了。所以这里要把集群中一个broker删除掉</span></span><br><span class="line">                <span class="keyword">if</span> (brokerNameFound != <span class="keyword">null</span> &amp;&amp; removeBrokerName) &#123;</span><br><span class="line">                    Iterator&lt;Entry&lt;String, Set&lt;String&gt;&gt;&gt; it = <span class="keyword">this</span>.clusterAddrTable.entrySet().iterator();</span><br><span class="line">                    <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">                        Entry&lt;String, Set&lt;String&gt;&gt; entry = it.next();</span><br><span class="line">                        String clusterName = entry.getKey();</span><br><span class="line">                        Set&lt;String&gt; brokerNames = entry.getValue();</span><br><span class="line">                        <span class="keyword">boolean</span> removed = brokerNames.remove(brokerNameFound);</span><br><span class="line">                        <span class="keyword">if</span> (removed) &#123;</span><br><span class="line">                            log.info(<span class="string">"remove brokerName[&#123;&#125;], clusterName[&#123;&#125;] from clusterAddrTable, because channel destroyed"</span>,</span><br><span class="line">                                brokerNameFound, clusterName);</span><br><span class="line"></span><br><span class="line">                            <span class="keyword">if</span> (brokerNames.isEmpty()) &#123;</span><br><span class="line">                                log.info(<span class="string">"remove the clusterName[&#123;&#125;] from clusterAddrTable, because channel destroyed and no broker in this cluster"</span>,</span><br><span class="line">                                    clusterName);</span><br><span class="line">                                it.remove();</span><br><span class="line">                            &#125;</span><br><span class="line"></span><br><span class="line">                            <span class="keyword">break</span>;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">//如果removeBrokerName，那么topic就不会再存放在一个叫brokerNameFound的broker中了，移除</span></span><br><span class="line">                <span class="keyword">if</span> (removeBrokerName) &#123;</span><br><span class="line">                    Iterator&lt;Entry&lt;String, List&lt;QueueData&gt;&gt;&gt; itTopicQueueTable =</span><br><span class="line">                        <span class="keyword">this</span>.topicQueueTable.entrySet().iterator();</span><br><span class="line">                    <span class="keyword">while</span> (itTopicQueueTable.hasNext()) &#123;</span><br><span class="line">                        Entry&lt;String, List&lt;QueueData&gt;&gt; entry = itTopicQueueTable.next();</span><br><span class="line">                        String topic = entry.getKey();</span><br><span class="line">                        List&lt;QueueData&gt; queueDataList = entry.getValue();</span><br><span class="line"></span><br><span class="line">                        Iterator&lt;QueueData&gt; itQueueData = queueDataList.iterator();</span><br><span class="line">                        <span class="keyword">while</span> (itQueueData.hasNext()) &#123;</span><br><span class="line">                            QueueData queueData = itQueueData.next();</span><br><span class="line">                            <span class="keyword">if</span> (queueData.getBrokerName().equals(brokerNameFound)) &#123;</span><br><span class="line">                                itQueueData.remove();</span><br><span class="line">                                log.info(<span class="string">"remove topic[&#123;&#125; &#123;&#125;], from topicQueueTable, because channel destroyed"</span>,</span><br><span class="line">                                    topic, queueData);</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line"></span><br><span class="line">                        <span class="keyword">if</span> (queueDataList.isEmpty()) &#123;</span><br><span class="line">                            itTopicQueueTable.remove();</span><br><span class="line">                            log.info(<span class="string">"remove topic[&#123;&#125;] all queue, from topicQueueTable, because channel destroyed"</span>,</span><br><span class="line">                                topic);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                <span class="keyword">this</span>.lock.writeLock().unlock();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">"onChannelDestroy Exception"</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/消息中间件/" rel="tag"># 消息中间件</a>
+          
+            <a href="/tags/RocketMQ/" rel="tag"># RocketMQ</a>
+          
+            <a href="/tags/源码分析/" rel="tag"># 源码分析</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/11/RocketMQ-源码分析-RouteInfoManager（四）/" rel="next" title="RocketMQ 源码分析 RouteInfoManager（四）">
+                <i class="fa fa-chevron-left"></i> RocketMQ 源码分析 RouteInfoManager（四）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/img/2.png"
+                alt="JinTx" />
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">59</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">32</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/CallMeJiaGu/CallMeJiaGu.github.io" target="_blank" title="github">
+                      
+                        <i class="fa fa-fw fa-github-square"></i>github</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="646696382@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://blog.csdn.net/MakeContral/" target="_blank" title="CSND">
+                      
+                        <i class="fa fa-fw fa-google"></i>CSND</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BrokerHousekeepingService"><span class="nav-number">2.</span> <span class="nav-text">BrokerHousekeepingService</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#onChannelDestroy"><span class="nav-number">3.</span> <span class="nav-text">onChannelDestroy</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#移除brokerLiveTable"><span class="nav-number">3.1.</span> <span class="nav-text">移除brokerLiveTable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#移除brokerAddrTable"><span class="nav-number">3.2.</span> <span class="nav-text">移除brokerAddrTable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#移除clusterAddrTable"><span class="nav-number">3.3.</span> <span class="nav-text">移除clusterAddrTable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#移除topicQueueTable"><span class="nav-number">3.4.</span> <span class="nav-text">移除topicQueueTable</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#onChannelDestroy整体代码"><span class="nav-number">4.</span> <span class="nav-text">onChannelDestroy整体代码</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
