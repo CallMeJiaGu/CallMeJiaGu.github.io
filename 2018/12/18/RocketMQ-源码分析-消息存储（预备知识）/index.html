@@ -113,7 +113,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言看到RocketMQ的性能问题的时候，通常能看到page cache、顺序IO写、预读等，要想设计出一个高性能的中间件，这部分的知识是绝对要掌握的。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-12-18T13:41:22.241Z">
+<meta property="og:updated_time" content="2018-12-18T13:43:27.658Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RocketMQ 源码分析 消息存储（预备知识一）">
 <meta name="twitter:description" content="前言看到RocketMQ的性能问题的时候，通常能看到page cache、顺序IO写、预读等，要想设计出一个高性能的中间件，这部分的知识是绝对要掌握的。">
@@ -391,7 +391,7 @@
 <p>这里还有一个原因是：<strong>RocketMQ采用MappedByteBuffer这种内存映射的方式有几个限制，其中之一是一次只能映射1.5~2G 的文件至用户态的虚拟内存，这也是为何RocketMQ默认设置单个CommitLog日志数据文件为1G的原因了</strong></p>
 </li>
 </ol>
-<h3 id="page-cache"><a href="#page-cache" class="headerlink" title="page cache"></a>page cache</h3><p>先举个例子：一位学者一上班开始撰写论文，边修改边写，如果每次修改一个词就写进磁盘中，这个IO开销太大了。所以这部分论文的数据都保存在高速缓存中。这部分缓存称为page cache。</p>
+<h3 id="page-cache"><a href="#page-cache" class="headerlink" title="page cache"></a>page cache</h3><p>先举个例子：一位学者一上班开始撰写论文，边修改边写，如果每次修改一个词就写进磁盘中，这个IO开销太大了。所以这部分论文的数据都保存在高速缓存中。就是说这部分的数据不会马上写入到磁盘中。这部分缓存称为page cache。</p>
 <p>这里需要提一点cache分成page cache和Buffer cache两者的区别：</p>
 <blockquote>
 <p>在文件层面上的数据会缓存到page cache。比如你打开了一个文件，文件中的内容就会缓存到page cache中。</p>
