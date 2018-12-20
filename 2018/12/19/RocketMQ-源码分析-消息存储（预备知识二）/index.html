@@ -115,7 +115,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/1.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/2.png">
-<meta property="og:updated_time" content="2018-12-20T12:09:06.197Z">
+<meta property="og:updated_time" content="2018-12-20T12:12:31.066Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RocketMQ 源码分析 消息存储（预备知识二）（转载+整理）">
 <meta name="twitter:description" content="前言在RMQ中为了提高commitlog文件的读写效率，而采用了一个叫做内存映射的技术。按照我的理解，内存映射在处理大文件上有非常大的性能提升，所以这篇来记录一下我对内存映射的理解。">
@@ -403,8 +403,7 @@
 <p>因此，内存映射的效率要比read/write效率高。</p>
 </blockquote>
 <p><img src="/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/2.png" alt="你想输入的替代文字"></p>
-<p>参考文章：</p>
-<p><a href="https://www.cnblogs.com/volcao/p/8818199.html" target="_blank" rel="noopener">https://www.cnblogs.com/volcao/p/8818199.html</a></p>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://www.cnblogs.com/volcao/p/8818199.html" target="_blank" rel="noopener">https://www.cnblogs.com/volcao/p/8818199.html</a></p>
 <p><a href="https://blog.csdn.net/gong_1/article/details/18405153" target="_blank" rel="noopener">https://blog.csdn.net/gong_1/article/details/18405153</a></p>
 <p><a href="http://www.cnblogs.com/shijingjing07/p/5611579.html" target="_blank" rel="noopener">http://www.cnblogs.com/shijingjing07/p/5611579.html</a> </p>
 
@@ -605,7 +604,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户态和内核态"><span class="nav-number">2.</span> <span class="nav-text">用户态和内核态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟内存"><span class="nav-number">3.</span> <span class="nav-text">虚拟内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存映射"><span class="nav-number">4.</span> <span class="nav-text">内存映射</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户态和内核态"><span class="nav-number">2.</span> <span class="nav-text">用户态和内核态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟内存"><span class="nav-number">3.</span> <span class="nav-text">虚拟内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存映射"><span class="nav-number">4.</span> <span class="nav-text">内存映射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">5.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
             
 
           </div>
