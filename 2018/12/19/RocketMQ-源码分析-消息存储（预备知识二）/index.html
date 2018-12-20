@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="造轮子,微服务,Zookeeper,RPC,Netty," />
+  <meta name="keywords" content="消息中间件,RocketMQ," />
 
 
 
@@ -105,18 +105,21 @@
 
 
 
-<meta name="description" content="前言第三版中往框架加入Netty实现通信框架，Zookeeper实现服务的注册。Netty可以帮助我们快速完成NIO的通信编程，Zookeeper则可以可以实现服务的注册以及发现。代码上传至github,链接.">
-<meta name="keywords" content="造轮子,微服务,Zookeeper,RPC,Netty">
+<meta name="description" content="前言在RMQ中为了提高commitlog文件的读写效率，而采用了一个叫做内存映射的技术。按照我的理解，内存映射在处理大文件上有非常大的性能提升，所以这篇来记录一下我对内存映射的理解。">
+<meta name="keywords" content="消息中间件,RocketMQ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="实现自己的RPC框架(三)">
-<meta property="og:url" content="http://yoursite.com/2018/09/05/实现自己的RPC框架-三/index.html">
+<meta property="og:title" content="RocketMQ 源码分析 消息存储（预备知识二）（转载+整理）">
+<meta property="og:url" content="http://yoursite.com/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言第三版中往框架加入Netty实现通信框架，Zookeeper实现服务的注册。Netty可以帮助我们快速完成NIO的通信编程，Zookeeper则可以可以实现服务的注册以及发现。代码上传至github,链接.">
+<meta property="og:description" content="前言在RMQ中为了提高commitlog文件的读写效率，而采用了一个叫做内存映射的技术。按照我的理解，内存映射在处理大文件上有非常大的性能提升，所以这篇来记录一下我对内存映射的理解。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-10-26T12:10:06.984Z">
+<meta property="og:image" content="http://yoursite.com/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/1.png">
+<meta property="og:image" content="http://yoursite.com/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/2.png">
+<meta property="og:updated_time" content="2018-12-20T12:09:06.197Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="实现自己的RPC框架(三)">
-<meta name="twitter:description" content="前言第三版中往框架加入Netty实现通信框架，Zookeeper实现服务的注册。Netty可以帮助我们快速完成NIO的通信编程，Zookeeper则可以可以实现服务的注册以及发现。代码上传至github,链接.">
+<meta name="twitter:title" content="RocketMQ 源码分析 消息存储（预备知识二）（转载+整理）">
+<meta name="twitter:description" content="前言在RMQ中为了提高commitlog文件的读写效率，而采用了一个叫做内存映射的技术。按照我的理解，内存映射在处理大文件上有非常大的性能提升，所以这篇来记录一下我对内存映射的理解。">
+<meta name="twitter:image" content="http://yoursite.com/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/1.png">
 
 
 
@@ -146,13 +149,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/09/05/实现自己的RPC框架-三/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/"/>
 
 
 
 
 
-  <title>实现自己的RPC框架(三) | Don't Stop</title>
+  <title>RocketMQ 源码分析 消息存储（预备知识二）（转载+整理） | Don't Stop</title>
   
 
 
@@ -279,7 +282,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/05/实现自己的RPC框架-三/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -296,7 +299,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">实现自己的RPC框架(三)</h1>
+          <h1 class="post-title" itemprop="name headline">RocketMQ 源码分析 消息存储（预备知识二）（转载+整理）</h1>
         
 
         <div class="post-meta">
@@ -309,8 +312,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-05T16:57:25+08:00">
-                2018-09-05
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-19T12:40:51+08:00">
+                2018-12-19
               </time>
             
 
@@ -332,8 +335,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/微服务/" itemprop="url" rel="index">
-                    <span itemprop="name">微服务</span>
+                  <a href="/categories/MQ/" itemprop="url" rel="index">
+                    <span itemprop="name">MQ</span>
                   </a>
                 </span>
 
@@ -369,15 +372,41 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>第三版中往框架加入Netty实现通信框架，Zookeeper实现服务的注册。Netty可以帮助我们快速完成NIO的通信编程，Zookeeper则可以可以实现服务的注册以及发现。代码上传至github,<a href="https://github.com/CallMeJiaGu/RPC_V4.git" target="_blank" rel="noopener">链接</a>.<br><a id="more"></a></p>
-<h3 id="Zookeeper-API"><a href="#Zookeeper-API" class="headerlink" title="Zookeeper API"></a>Zookeeper API</h3><p>创建会话：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Zookeeper(String connectString,<span class="keyword">int</span> sessionTimeout,Watcher watcher)</span><br><span class="line"></span><br><span class="line"><span class="comment">//指定的服务器列表，多个host:port之间用英文逗号分隔。还可以可选择的指定一个基路径</span></span><br><span class="line"><span class="comment">//如果指定了一个基路径，则所有后续操作基于这个及路径进行。</span></span><br><span class="line">connectString -- host:port[，host:port][basePath]</span><br><span class="line"></span><br><span class="line"><span class="comment">//会话超时时间。以毫秒为单位。客户端和服务器端之间的连接通过心跳包进行维系</span></span><br><span class="line"><span class="comment">//如果心跳包超过这个指定时间则认为会话超时失效。</span></span><br><span class="line">sessionTimeOut </span><br><span class="line"></span><br><span class="line"><span class="comment">//指定默认观察者。如果为null表示不需要观察者。</span></span><br><span class="line">watcher</span><br></pre></td></tr></table></figure></p>
-<p>创建节点:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//同步方式创建</span></span><br><span class="line"><span class="function">String <span class="title">create</span><span class="params">(<span class="keyword">final</span> String path,<span class="keyword">byte</span> data[],List&lt;ACL&gt; acl,CreateMode createMode)</span></span>;</span><br><span class="line"><span class="comment">//异步方式创建</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">create</span><span class="params">(<span class="keyword">final</span> String path,<span class="keyword">byte</span> data[],List&lt;ACL&gt; acl,CreateMode createMode,StringCallback cb,Object ctx)</span></span>;</span><br><span class="line"></span><br><span class="line">path 要创建的数据节点的路径</span><br><span class="line">data [] 节点创建时初始数据内容</span><br><span class="line">acl 节点acl安全策略</span><br><span class="line">createMode 创建模式</span><br><span class="line">PERSISTENT 持久</span><br><span class="line">PERSISTENT_SEQUENTIAL 持久顺序</span><br><span class="line">EPHEMERAL 临时</span><br><span class="line">EPHEMERAL_SEQUENTIAL 临时顺序</span><br></pre></td></tr></table></figure></p>
-<p>读取数据:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">List&lt;String&gt; <span class="title">getChildren</span><span class="params">(<span class="keyword">final</span> String path,Watcher watcher)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">path 要创建的数据节点的路径</span></span><br><span class="line"><span class="function">watcher 观察者，一旦在本子节点获取之后，子节点列表发生变更，服务器端向客户端发送消息，触发watcher中的回调。</span></span><br><span class="line"><span class="function">				注意，仅仅是通知而已，如果需要新的子节点列表，需要自己再次去获取。允许传入<span class="keyword">null</span>。</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="keyword">byte</span> [] <span class="title">getData</span><span class="params">(<span class="keyword">final</span> String path,Watcher watcher, Stat stat)</span></span></span><br><span class="line"><span class="function"><span class="keyword">byte</span> [] <span class="title">getData</span><span class="params">(String path,<span class="keyword">boolean</span> watch, Stat stat)</span></span></span><br></pre></td></tr></table></figure></p>
-<p>检查节点是否存在:<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Stat <span class="title">exists</span><span class="params">(<span class="keyword">final</span> String path,Watcher watcher)</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Stat <span class="title">exists</span><span class="params">(String path,<span class="keyword">boolean</span> watch)</span></span></span><br></pre></td></tr></table></figure></p>
-<h3 id="Netty的使用"><a href="#Netty的使用" class="headerlink" title="Netty的使用"></a>Netty的使用</h3><p>针对于Netty对NIO的封装，刚理解还是不明白Netty各个组件的用意是什么。不过简单的去了解之后，还是可以完成通信的，先在这TODO，以后有机会深入学习一下。因为很多的框架中都能看到Netty的使用。而且Netty设计到很多设计模式如Facade、Futrue等。想要搞明白Netty这些都需要先了解清楚，在这个基础使用起来更加有底。</p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>这个版本还是存在一些问题，如java的序列化低效。但是我们也并不是要完成的多完美，主要是学习的过程中，可以获得很多知识点。这款RPC我也不打算继续迭代下去，希望能吸收Netty的一些实现模式以及理解组件的实现原理之后再去尝试去开发。不然只是停留在使用阶段，也很容易忘掉。</p>
-<p>Zookeeper虽然实现了服务的注册和发现，但只是做了一个简单的随机轮询，应该有更好的方法实现负载均衡。不过通过对它的使用，对Zookeeper的理解也深刻了一点，看来做这个RPC框架收益的确是挺大的。</p>
-<p>JDK反射、动态规划都有了一个实践过程，这种过程很好，至少比浅浅的看一些博客要来得深刻多。关于Futrue、Callable在Netty的使用，我还没理解到，后面先把这块解决把！只要在学习的路上就好了！</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在RMQ中为了提高commitlog文件的读写效率，而采用了一个叫做内存映射的技术。按照我的理解，内存映射在处理大文件上有非常大的性能提升，所以这篇来记录一下我对内存映射的理解。</p>
+<a id="more"></a>
+<h3 id="用户态和内核态"><a href="#用户态和内核态" class="headerlink" title="用户态和内核态"></a>用户态和内核态</h3><p>我们都知道操作系统分为用户态和内核态，内核态表示当前为内核程序执行时的状态，用户态是用户程序代码运行的状态。用户态是不能直接和物理设备打交道的，如果想把硬盘的一块区域读到用户态，则需要两次拷贝(硬盘-&gt;内核-&gt;用户)。看用户态和内核态在一次IO使用的情况：</p>
+<blockquote>
+<p>读操作：操作系统检查内核的缓冲区有没有需要的数据，如果已经缓存了，那么就直接从缓存中返回；否则从磁盘中读取，然后缓存在操作系统的缓存中，因为只有内核程序才可以和IO设备进行读写，所以这个过程就是内核态，内核程序将缓冲区复制到用户空间中，内核态就结束，用户态继续执行。</p>
+<p>写操作：将数据从用户空间复制到内核空间的缓存中。这时对用户程序来说写操作就已经完成，内核空间再讲数据刷到磁盘中。至于什么时候再写到磁盘中由操作系统决定，除非显示地调用了sync同步命令。</p>
+</blockquote>
+<font color="#FF00000">那么为什么要分成用户态和内核态呢？</font>
+
+<p><strong>将它们分开主要是为了安全性考虑。即使用户的程序崩溃了，内核中的内核程序也不受影响。</strong></p>
+<h3 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h3><p>在早期的计算机中，是没有虚拟内存的概念的。我们要运行一个程序，会把程序全部装入内存，然后运行。当运行多个程序时，经常会出现<strong>进程地址空间不隔离，没有权限保护、内存使用效率低</strong>等问题。所以引入虚拟内存来避免上述的问题。</p>
+<p><font color="#FF00000">虚拟内存不只是“用磁盘空间来扩展物理内存”的意思——这只是扩充内存级别以使其包含硬盘驱动器而已。把内存扩展到磁盘只是使用虚拟内存技术的一个结果，</font>虚拟内存通过覆盖或者把处于不活动状态的程序以及它们的数据全部交换到磁盘上等方式来实现。</p>
+<p>Linux虚拟内存的大小为2^32（在32位机器上）刚好4G，内核将这4G字节的空间分为两部分。最高的1G字节（从虚地址0xC0000000到0xFFFFFFFF）供内核使用，称为“内核空间”。而较低的3G字节（从虚地址0x00000000 到0xBFFFFFFF），供各个进程使用，称为“用户空间”。因为每个进程可以通过系统调用进入内核，<strong><font color="#FF00000">因此，Linux内核空间由系统内的所有进程共享。</font></strong></p>
+<p>用户空间不是进程共享的，而是进程隔离的。每个进程最大都可以有3GB的用户空间。一个进程对其中一个地址的访问，与其它进程对于同一地址的访问绝不冲突。比如，一个进程从其用户空间的地址0x1234ABCD处可以读出整数8，而另外一个进程从其用户空间的地址0x1234ABCD处可以读出整数20，这取决于进程自身的逻辑。</p>
+<p>从上面我们知道，一个程序编译连接后形成的地址空间是一个虚拟地址空间，但是程序最终还是要运行在物理内存中。因此，应用程序所给出的任何虚地址最终必须被转化为物理地址，所以，虚拟地址空间必须被映射到物理内存空间中，这个映射关系需要通过硬件体系结构所规定的数据结构来建立。这就是我们所说的段描述符表和页表，Linux主要通过页表来进行映射。</p>
+<p>于是，我们得出一个结论，如果给出的页表不同，那么CPU将某一虚拟地址空间中的地址转化成的物理地址就会不同。所以我们为每一个进程都建立其页表，将每个进程的虚拟地址空间根据自己的需要映射到物理地址空间上。既然某一时刻在某一CPU上只能有一个进程在运行，那么当进程发生切换的时候，将页表也更换为相应进程的页表，这就可以实现每个进程都有自己的虚拟地址空间而互不影响。<strong>所以，在任意时刻，对于一个CPU来说，只需要有当前进程的页表，就可以实现其虚拟地址到物理地址的转化。</strong></p>
+<h3 id="内存映射"><a href="#内存映射" class="headerlink" title="内存映射"></a>内存映射</h3><p>首先，“映射”这个词，就和数学课上说的“一一映射”是一个意思，就是建立一种一一对应关系，在这里主要是只 <strong><font color="#FF0000">硬盘上文件的位置</font></strong>，与进程 <strong><font color="#FF0000">逻辑地址空间</font></strong>中 一块大小相同的区域之间的一一对应，如下图中过程1所示。这种对应关系纯属是逻辑上的概念，物理上是不存在的，原因是进程的逻辑地址空间本身就是不存在 的。在内存映射的过程中，并没有实际的数据拷贝，文件没有被载入内存，只是逻辑上被放入了内存，具体到代码，就是建立并初始化了相关的数据结构 （struct address_space），这个过程有系统调用mmap()实现，所以建立内存映射的效率很高。</p>
+<p><img src="/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/1.png" alt="你想输入的替代文字"></p>
+<p> <strong>既然建立内存映射没有进行实际的数据拷贝，那么进程又怎么能最终直接通过内存操作访问到硬盘上的文件呢？</strong></p>
+<blockquote>
+<p> mmap()会 返回一个指针ptr，它指向进程逻辑地址空间中的一个地址，这样以后，进程无需再调用read或write对文件进行读写，而只需要通过ptr就能够操作 文件。但是ptr所指向的是一个逻辑地址，要操作其中的数据，必须通过MMU将逻辑地址转换成物理地址，如图1中过程2所示。这个过程与内存映射无关。</p>
+<p>前面讲过，建立内存映射并没有实际拷贝数据，这时，MMU在地址映射表中是无法找到与ptr相对应的物理地址的，也就是MMU失败，将产生一个缺页中断，缺 页中断的中断响应函数会在swap中寻找相对应的页面，如果找不到（也就是该文件从来没有被读入内存的情况），则会通过mmap()建立的映射关系，从硬 盘上将文件读取到物理内存中，如图1中过程3所示。这个过程与内存映射无关。</p>
+</blockquote>
+<p><strong>用文件映射的方法对文件进行操作，效率要比read和write系统调用高，这是为什么呢？</strong></p>
+<blockquote>
+<font color="#FF0000">从代码层面上看，从硬盘上将文件读入内存，都要经过文件系统进行数据拷贝，并且数据拷贝操作是由文件系统和硬件驱动实现的，理论上来说，拷贝数据的效率是一 样的。</font>
+
+<p>read()是系统调用，其中进行了数据 拷贝，它首先将文件内容从硬盘拷贝到内核空间的一个缓冲区，如下图中过程1，然后再将这些数据拷贝到用户空间，如下图中过程2，在这个过程中，实际上完成 了<font color="#FF0000">两次数据拷贝</font> ；而mmap()也是系统调用，如前所述，mmap()中没有进行数据拷贝，真正的数据拷贝是在缺页中断处理时进行的，由于mmap()将文件直接映射到用户空间，所以中断处理函数根据这个映射关系，<font color="#FF0000">直接将文件从硬盘拷贝到用户空间，只进行了 一次数据拷贝 。</font></p>
+<p>因此，内存映射的效率要比read/write效率高。</p>
+</blockquote>
+<p><img src="/2018/12/19/RocketMQ-源码分析-消息存储（预备知识二）/2.png" alt="你想输入的替代文字"></p>
+<p>参考文章：</p>
+<p><a href="https://www.cnblogs.com/volcao/p/8818199.html" target="_blank" rel="noopener">https://www.cnblogs.com/volcao/p/8818199.html</a></p>
+<p><a href="https://blog.csdn.net/gong_1/article/details/18405153" target="_blank" rel="noopener">https://blog.csdn.net/gong_1/article/details/18405153</a></p>
+<p><a href="http://www.cnblogs.com/shijingjing07/p/5611579.html" target="_blank" rel="noopener">http://www.cnblogs.com/shijingjing07/p/5611579.html</a> </p>
 
       
     </div>
@@ -395,15 +424,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/造轮子/" rel="tag"># 造轮子</a>
+            <a href="/tags/消息中间件/" rel="tag"># 消息中间件</a>
           
-            <a href="/tags/微服务/" rel="tag"># 微服务</a>
-          
-            <a href="/tags/Zookeeper/" rel="tag"># Zookeeper</a>
-          
-            <a href="/tags/RPC/" rel="tag"># RPC</a>
-          
-            <a href="/tags/Netty/" rel="tag"># Netty</a>
+            <a href="/tags/RocketMQ/" rel="tag"># RocketMQ</a>
           
         </div>
       
@@ -416,8 +439,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/08/30/实现自己的RPC框架-二/" rel="next" title="实现自己的RPC框架(二)">
-                <i class="fa fa-chevron-left"></i> 实现自己的RPC框架(二)
+              <a href="/2018/12/18/RocketMQ-源码分析-消息存储（预备知识）/" rel="next" title="RocketMQ 源码分析 消息存储（预备知识一）">
+                <i class="fa fa-chevron-left"></i> RocketMQ 源码分析 消息存储（预备知识一）
               </a>
             
           </div>
@@ -425,10 +448,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/09/20/月记180920/" rel="prev" title="月记">
-                月记 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -586,7 +605,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Zookeeper-API"><span class="nav-number">2.</span> <span class="nav-text">Zookeeper API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Netty的使用"><span class="nav-number">3.</span> <span class="nav-text">Netty的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户态和内核态"><span class="nav-number">2.</span> <span class="nav-text">用户态和内核态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟内存"><span class="nav-number">3.</span> <span class="nav-text">虚拟内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存映射"><span class="nav-number">4.</span> <span class="nav-text">内存映射</span></a></li></ol></div>
             
 
           </div>
