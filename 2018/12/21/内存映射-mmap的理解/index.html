@@ -117,7 +117,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/4.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/5.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/6.png">
-<meta property="og:updated_time" content="2018-12-21T08:43:38.805Z">
+<meta property="og:updated_time" content="2018-12-21T12:56:43.979Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="内存映射 mmap的理解（转载+整理）">
 <meta name="twitter:description" content="前言上一篇解释了RMQ为了提高大文件的读写效率，使用了内存映射的方法，将磁盘上的文件与进程中的进程虚拟空间进行了映射，减少一次内核空间到用户空间的一次复制。看到这里我就有了疑惑，既然内存映射有这么好的特性，为什么还需要传统的IO呢？看下文的分析。">
@@ -442,7 +442,8 @@
 <p>但是如果，每次操作ptr读写前，先增加文件的大小，那么ptr在文件大小内部的操作就是合法的。例如，文件扩充4096字节，ptr就能操作ptr ~ [ (char)ptr + 4095]的空间。只要文件扩充的范围在1000个物理页（映射范围）内，ptr都可以对应操作相同的大小。</p>
 <p>这样，方便随时扩充文件空间，随时写入文件，不造成空间浪费。</p>
 <h3 id="为什么不直接用内存映射代替IO？"><a href="#为什么不直接用内存映射代替IO？" class="headerlink" title="为什么不直接用内存映射代替IO？"></a>为什么不直接用内存映射代替IO？</h3><p>现在回到一开始的问题，既然内存映射可以提高文件的读取效率，为什么还要使用IO呢？</p>
-<p>首先你要明白一点，直接将文件映射到虚拟内存，<font color="#FF0000">意味着没有数据没有缓存在内核缓存空间，而是直接读到了用户空间</font>，回想一下系统的IO和内核缓存搭配可以是的部分的文件使用效率更高。而且从mmap的细节我们可以看到，<font color="#FF0000">映射的文件最好是大于4k的（一个内存页的大小），并且最好是4k的倍数</font>。也就是说两个方式都是有优缺点的，所以不存在代替这个说法，只能通过分析其场景而选择不同的方式。</p>
+<p>首先你要明白一点，直接将文件映射到虚拟内存，<font color="#FF0000">意味着没有数据没有缓存在内核缓存空间，而是直接读到了用户空间</font>，回想一下系统的IO和内核缓存搭配可以使得部分的文件使用效率更高。（因为OS会根据局部性原理在一次read()系统调用的时候预读取更多的文件数据到内核空间缓冲区中，这样当下一次read()系统调用的时候发现要读取的数据已经存在于内核空间缓冲区中的时候只要直接拷贝数据到用户空间缓冲区中即可，无需再进行一次低效的磁盘I/O操作）</p>
+<p>而且从mmap的细节我们可以看到，<font color="#FF0000">映射的文件最好是大于4k的（一个内存页的大小），并且最好是4k的倍数</font>。也就是说两个方式都是有优缺点的，所以不存在代替这个说法，只能通过分析其场景而选择不同的方式。</p>
 <p>而RMQ的commitlog刚好1G，是符合内存映射的高效率的特点，所以RMQ可以使用内存映射加快文件的读写效率。</p>
 <h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://www.cnblogs.com/huxiao-tee/p/4660352.html#4008787" target="_blank" rel="noopener">https://www.cnblogs.com/huxiao-tee/p/4660352.html#4008787</a></p>
 
