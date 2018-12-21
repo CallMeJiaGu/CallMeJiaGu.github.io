@@ -117,7 +117,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/4.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/5.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/6.png">
-<meta property="og:updated_time" content="2018-12-21T08:33:10.010Z">
+<meta property="og:updated_time" content="2018-12-21T08:43:38.805Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="内存映射 mmap的理解（转载+整理）">
 <meta name="twitter:description" content="前言上一篇解释了RMQ为了提高大文件的读写效率，使用了内存映射的方法，将磁盘上的文件与进程中的进程虚拟空间进行了映射，减少一次内核空间到用户空间的一次复制。看到这里我就有了疑惑，既然内存映射有这么好的特性，为什么还需要传统的IO呢？看下文的分析。">
@@ -394,22 +394,28 @@
 <p>任务结构中的一个条目指向mm_struct，它描述了虚拟内存的当前状态。其中有两个字段是我们感兴趣的，pgd 和 mmap。pgd指向第一级页表的基址，mmap指向vm_area_struct的链表。</p>
 <h3 id="mmap内存映射原理"><a href="#mmap内存映射原理" class="headerlink" title="mmap内存映射原理"></a>mmap内存映射原理</h3><p>mmap内存映射的实现过程，总的来说可以分为三个阶段：</p>
 <p><strong>（一）进程启动映射过程，并在虚拟地址空间中为映射创建虚拟映射区域</strong></p>
+<blockquote>
 <p>1、进程在用户空间调用库函数mmap，原型：void <em>mmap(void </em>start, size_t length, int prot, int flags, int fd, off_t offset);</p>
 <p>2、在当前进程的虚拟地址空间中，寻找一段空闲的满足要求的连续的虚拟地址</p>
 <p>3、为此虚拟区分配一个vm_area_struct结构，接着对这个结构的各个域进行了初始化</p>
 <p>4、将新建的虚拟区结构（vm_area_struct）插入进程的虚拟地址区域链表或树中</p>
+</blockquote>
 <p><strong>（二）调用内核空间的系统调用函数mmap（不同于用户空间函数），实现文件物理地址和进程虚拟地址的一一映射关系</strong></p>
+<blockquote>
 <p>5、为映射分配了新的虚拟地址区域后，通过待映射的文件指针，在文件描述符表中找到对应的文件描述符，通过文件描述符，链接到内核“已打开文件集”中该文件的文件结构体（struct file），每个文件结构体维护着和这个已打开文件相关各项信息。</p>
 <p>6、通过该文件的文件结构体，链接到file_operations模块，调用内核函数mmap，其原型为：int mmap(struct file <em>filp, struct vm_area_struct </em>vma)，不同于用户空间库函数。</p>
 <p>7、内核mmap函数通过虚拟文件系统inode模块定位到文件磁盘物理地址。</p>
 <p>8、通过remap_pfn_range函数建立页表，即实现了文件地址和虚拟地址区域的映射关系。此时，这片虚拟地址并没有任何数据关联到主存中。</p>
+</blockquote>
 <p><strong>（三）进程发起对这片映射空间的访问，引发缺页异常，实现文件内容到物理内存（主存）的拷贝</strong></p>
 <p>注：前两个阶段仅在于创建虚拟区间并完成地址映射，但是并没有将任何文件数据的拷贝至主存。真正的文件读取是当进程发起读或写操作时。</p>
+<blockquote>
 <p>9、进程的读或写操作访问虚拟地址空间这一段映射地址，通过查询页表，发现这一段地址并不在物理页面上。因为目前只建立了地址映射，真正的硬盘数据还没有拷贝到内存中，因此引发缺页异常。</p>
 <p>10、缺页异常进行一系列判断，确定无非法操作后，内核发起请求调页过程。</p>
 <p>11、调页过程先在交换缓存空间（swap cache）中寻找需要访问的内存页，如果没有则调用nopage函数把所缺的页从磁盘装入到主存中。</p>
 <p>12、之后进程即可对这片主存进行读或者写的操作，如果写操作改变了其内容，一定时间后系统会自动回写脏页面到对应磁盘地址，也即完成了写入到文件的过程。</p>
 <p>注：修改过的脏页面并不会立即更新回文件中，而是有一段时间的延迟，可以调用msync()来强制同步, 这样所写的内容就能立即保存到文件里了。</p>
+</blockquote>
 <h3 id="mmap使用细节"><a href="#mmap使用细节" class="headerlink" title="mmap使用细节"></a>mmap使用细节</h3><blockquote>
 <p>1、使用mmap需要注意的一个关键点是，mmap映射区域大小必须是物理页大小(page_size)的整倍数（32位系统中通常是4k字节）。原因是，内存的最小粒度是页，而进程虚拟地址空间和内存的映射也是以页为单位。为了匹配内存的操作，mmap从磁盘到虚拟地址空间的映射也必须是页。</p>
 <p>2、内核可以跟踪被内存映射的底层对象（文件）的大小，进程可以合法的访问在当前文件大小以内又在内存映射区以内的那些字节。也就是说，如果文件的大小一直在扩张，只要在映射区域范围内的数据，进程都可以合法得到，这和映射建立时文件的大小无关。具体情形参见“情形三”。</p>
@@ -438,6 +444,7 @@
 <h3 id="为什么不直接用内存映射代替IO？"><a href="#为什么不直接用内存映射代替IO？" class="headerlink" title="为什么不直接用内存映射代替IO？"></a>为什么不直接用内存映射代替IO？</h3><p>现在回到一开始的问题，既然内存映射可以提高文件的读取效率，为什么还要使用IO呢？</p>
 <p>首先你要明白一点，直接将文件映射到虚拟内存，<font color="#FF0000">意味着没有数据没有缓存在内核缓存空间，而是直接读到了用户空间</font>，回想一下系统的IO和内核缓存搭配可以是的部分的文件使用效率更高。而且从mmap的细节我们可以看到，<font color="#FF0000">映射的文件最好是大于4k的（一个内存页的大小），并且最好是4k的倍数</font>。也就是说两个方式都是有优缺点的，所以不存在代替这个说法，只能通过分析其场景而选择不同的方式。</p>
 <p>而RMQ的commitlog刚好1G，是符合内存映射的高效率的特点，所以RMQ可以使用内存映射加快文件的读写效率。</p>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://www.cnblogs.com/huxiao-tee/p/4660352.html#4008787" target="_blank" rel="noopener">https://www.cnblogs.com/huxiao-tee/p/4660352.html#4008787</a></p>
 
       
     </div>
@@ -636,7 +643,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程中的虚拟内存"><span class="nav-number">2.</span> <span class="nav-text">进程中的虚拟内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mmap内存映射原理"><span class="nav-number">3.</span> <span class="nav-text">mmap内存映射原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mmap使用细节"><span class="nav-number">4.</span> <span class="nav-text">mmap使用细节</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么不直接用内存映射代替IO？"><span class="nav-number">5.</span> <span class="nav-text">为什么不直接用内存映射代替IO？</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程中的虚拟内存"><span class="nav-number">2.</span> <span class="nav-text">进程中的虚拟内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mmap内存映射原理"><span class="nav-number">3.</span> <span class="nav-text">mmap内存映射原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mmap使用细节"><span class="nav-number">4.</span> <span class="nav-text">mmap使用细节</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么不直接用内存映射代替IO？"><span class="nav-number">5.</span> <span class="nav-text">为什么不直接用内存映射代替IO？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">6.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
             
 
           </div>
