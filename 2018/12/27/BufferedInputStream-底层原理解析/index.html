@@ -105,18 +105,18 @@
 
 
 
-<meta name="description" content="前言RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，所以想要系统的学习一下java几种常见的IO操作，这篇主要来解析一下BufferedInputStream的实现原理。">
+<meta name="description" content="前言RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，这篇主要来解析一下BufferedInputStream的实现原理，看看它在IO上做了哪些优化。">
 <meta name="keywords" content="JDK源码,高性能IO">
 <meta property="og:type" content="article">
 <meta property="og:title" content="BufferedInputStream 底层原理解析">
 <meta property="og:url" content="http://yoursite.com/2018/12/27/BufferedInputStream-底层原理解析/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，所以想要系统的学习一下java几种常见的IO操作，这篇主要来解析一下BufferedInputStream的实现原理。">
+<meta property="og:description" content="前言RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，这篇主要来解析一下BufferedInputStream的实现原理，看看它在IO上做了哪些优化。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-12-28T02:40:52.033Z">
+<meta property="og:updated_time" content="2018-12-28T02:55:31.331Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="BufferedInputStream 底层原理解析">
-<meta name="twitter:description" content="前言RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，所以想要系统的学习一下java几种常见的IO操作，这篇主要来解析一下BufferedInputStream的实现原理。">
+<meta name="twitter:description" content="前言RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，这篇主要来解析一下BufferedInputStream的实现原理，看看它在IO上做了哪些优化。">
 
 
 
@@ -369,9 +369,9 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，所以想要系统的学习一下java几种常见的IO操作，这篇主要来解析一下BufferedInputStream的实现原理。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，这篇主要来解析一下BufferedInputStream的实现原理，看看它在IO上做了哪些优化。</p>
 <a id="more"></a>
-<h3 id="误区"><a href="#误区" class="headerlink" title="误区"></a>误区</h3><p>看到很多文章是这么描述BufferedInputStream性能高的原因：BufferedInputStream 将数据先保存在了缓存区，从而减少磁盘IO操作次数，提高IO效率。</p>
+<h3 id="误区"><a href="#误区" class="headerlink" title="误区"></a>误区</h3><p>看到很多文章是这么描述BufferedInputStream性能高的原因：BufferedInputStream 将数据先保存在了缓存区，从而减少磁盘IO操作次数，提高IO效率。这么说我觉得不够严谨。</p>
 <p><strong>第一点</strong>，的确BufferedInputStream 是将数据保存了缓存区，但是<font color="#FF00000">减少磁盘IO并不是BufferedInputStream来做的</font>，而是<font color="#FF00000">OS</font>来做的。OS根据局部性原理，会预读部分的数据到内存缓存区（pagecache），这样下次IO如果读取数据在缓存命中了，就不需要等待磁盘的寻址，而是直接返回数据。</p>
 <p>那么BufferedInputStream相比于FileInputStream优化了那块性能呢？<font color="#FF00000">答案是系统调用。</font></p>
 <h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><p>那么这里就来解释什么是系统调用了。<strong>我觉得在这里你可以认为是一次用户态和内核态的切换，以及CPU的一次参与。</strong></p>
@@ -382,27 +382,16 @@
 </blockquote>
 <p><strong>用一个例子来理解一下FileInputStream：</strong></p>
 <blockquote>
-<ol>
-<li><p>假设我要从一个文件中读取4个字节的内容，user mode 切换到 kernel mode，<strong>系统根据局部性原理</strong>，通过 DMA 会读入<strong>12</strong>个字节到 kernel buffer 中。<font color="#FF00000">这里涉及到一次上下文切换，以及一次数据的拷贝（DMA执行，CPU参与不大）。</font></p>
-</li>
-<li><p>然后再将 kernel buffer 中的<strong>4</strong>个字节的数据拷贝到 user buffer 中，kernel mode 切换到 user mode 。注意这个时候 kernel buffer 还保留了 8 个字节的数据。<font color="#FF00000">这里涉及到一次上下文切换，以及一次数据的拷贝（CPU执行）。</font></p>
-</li>
-<li><p>下次 user mode 中想再读取4个字节，那么就不需要等待DMA的拷贝，而是直接从 kernel buffer 中将剩下的字节拷贝到user buffer中。<font color="#FF00000">IO效率的确提高了，但是这部分的优化是OS来做的。</font></p>
-</li>
-</ol>
+<p>1.假设我要从一个文件中读取4个字节的内容，user mode 切换到 kernel mode，<strong>系统根据局部性原理</strong>，通过 DMA 会读入<strong>12</strong>个字节到 kernel buffer 中。<font color="#FF00000">这里涉及到一次上下文切换，以及一次数据的拷贝（DMA执行，CPU参与不大）。</font></p>
+<p>2.然后再将 kernel buffer 中的<strong>4</strong>个字节的数据拷贝到 user buffer 中，kernel mode 切换到 user mode 。注意这个时候 kernel buffer 还保留了 8 个字节的数据。<font color="#FF00000">这里涉及到一次上下文切换，以及一次数据的拷贝（CPU执行）。</font></p>
+<p>3.下次 user mode 中想再读取4个字节，那么就不需要等待DMA的拷贝，而是直接从 kernel buffer 中将剩下的字节拷贝到user buffer中。<font color="#FF00000">IO效率的确提高了，但是这部分的优化是OS来做的。</font></p>
 </blockquote>
 <p>但是BufferedInputStream 认为还有优化的空间在，它认为 user mode 想再读取字节的时候（上述的3），把数据从 kernel buffer 拷贝到 user buffer中，这个过程也涉及到了一次上下文切换，而且需要CPU来进行拷贝。<strong><font color="#FF00000">可不可以在 kernel buffer 把数据拷贝到 user buffer 的时候，多拷贝一点到 user buffer 中呢？</font></strong></p>
 <p><strong>同样的例子看看BufferedInputStream 读取的过程：</strong></p>
 <blockquote>
-<ol>
-<li>和FileInputStream一样。</li>
-<li>虽然我需要读4个字节，但是我会将 kernel buffer 中拷贝8个字节到  user buffer 中。 kernel buffer这个时候还剩下4个字节， <font color="#FF00000">user buffer有8个字节，其中4个字节user mode还没使用过。</font></li>
-</ol>
+<p>1.和FileInputStream一样。<br>2.虽然我需要读4个字节，但是我会将 kernel buffer 中拷贝8个字节到  user buffer 中。 kernel buffer这个时候还剩下4个字节， <font color="#FF00000">user buffer有8个字节，其中4个字节user mode还没使用过。</font></p>
 <p><strong>上面两步和FileInputStream唯一区别就是多拷贝了点数据到user buffer 中。</strong></p>
-<ol start="3">
-<li><font color="#FF00000"><strong>当我想再次读取4个字节的时候，因为数据已经在user buffer中了，我不需要上下文切换，而且可以让CPU执行更重要的事情了。</strong></font>
-</li>
-</ol>
+<p>3.<font color="#FF00000"><strong>当我想再次读取4个字节的时候，因为数据已经在user buffer中了，我不需要上下文切换，而且可以让CPU执行更重要的事情了。</strong></font></p>
 </blockquote>
 <p>现在可以清楚了BufferedInputStream 为什么可以更快了把，下面用源码来证明上述的说法。</p>
 <h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><p>看一下BufferedInputStream 的read方法：</p>
