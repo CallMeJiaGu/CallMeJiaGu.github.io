@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="JDK源码,高性能IO," />
 
 
 
@@ -105,14 +105,18 @@
 
 
 
+<meta name="description" content="前言RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，所以想要系统的学习一下java几种常见的IO操作，这篇主要来解析一下BufferedInputStream的实现原理。">
+<meta name="keywords" content="JDK源码,高性能IO">
 <meta property="og:type" content="article">
 <meta property="og:title" content="BufferedInputStream 底层原理解析">
 <meta property="og:url" content="http://yoursite.com/2018/12/27/BufferedInputStream-底层原理解析/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，所以想要系统的学习一下java几种常见的IO操作，这篇主要来解析一下BufferedInputStream的实现原理。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-12-27T13:50:00.917Z">
+<meta property="og:updated_time" content="2018-12-28T02:40:52.033Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="BufferedInputStream 底层原理解析">
+<meta name="twitter:description" content="前言RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，所以想要系统的学习一下java几种常见的IO操作，这篇主要来解析一下BufferedInputStream的实现原理。">
 
 
 
@@ -316,6 +320,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/JDK源码/" itemprop="url" rel="index">
+                    <span itemprop="name">JDK源码</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -343,7 +369,46 @@
       
 
       
-        
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>RMQ中为了实现高性能在IO上做了很多优化，在阿里中间件性能挑战赛也可以看到很多大神们在IO上花了很多功夫去分析优化，所以想要系统的学习一下java几种常见的IO操作，这篇主要来解析一下BufferedInputStream的实现原理。</p>
+<a id="more"></a>
+<h3 id="误区"><a href="#误区" class="headerlink" title="误区"></a>误区</h3><p>看到很多文章是这么描述BufferedInputStream性能高的原因：BufferedInputStream 将数据先保存在了缓存区，从而减少磁盘IO操作次数，提高IO效率。</p>
+<p><strong>第一点</strong>，的确BufferedInputStream 是将数据保存了缓存区，但是<font color="#FF00000">减少磁盘IO并不是BufferedInputStream来做的</font>，而是<font color="#FF00000">OS</font>来做的。OS根据局部性原理，会预读部分的数据到内存缓存区（pagecache），这样下次IO如果读取数据在缓存命中了，就不需要等待磁盘的寻址，而是直接返回数据。</p>
+<p>那么BufferedInputStream相比于FileInputStream优化了那块性能呢？<font color="#FF00000">答案是系统调用。</font></p>
+<h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><p>那么这里就来解释什么是系统调用了。<strong>我觉得在这里你可以认为是一次用户态和内核态的切换，以及CPU的一次参与。</strong></p>
+<p>看读取一个文件实际的过程如下：</p>
+<blockquote>
+<p>1、系统调用 read() 产生一个上下文切换：从 user mode 切换到 kernel mode，然后 DMA 执行拷贝，把文件数据<strong>从硬盘读到一个 kernel buffer 里</strong>。</p>
+<p>2、<strong>数据从 kernel buffer 拷贝到 user buffer</strong>，然后系统调用 read() 返回，这时又产生一个上下文切换：从kernel mode 切换到 user mode。</p>
+</blockquote>
+<p><strong>用一个例子来理解一下FileInputStream：</strong></p>
+<blockquote>
+<ol>
+<li><p>假设我要从一个文件中读取4个字节的内容，user mode 切换到 kernel mode，<strong>系统根据局部性原理</strong>，通过 DMA 会读入<strong>12</strong>个字节到 kernel buffer 中。<font color="#FF00000">这里涉及到一次上下文切换，以及一次数据的拷贝（DMA执行，CPU参与不大）。</font></p>
+</li>
+<li><p>然后再将 kernel buffer 中的<strong>4</strong>个字节的数据拷贝到 user buffer 中，kernel mode 切换到 user mode 。注意这个时候 kernel buffer 还保留了 8 个字节的数据。<font color="#FF00000">这里涉及到一次上下文切换，以及一次数据的拷贝（CPU执行）。</font></p>
+</li>
+<li><p>下次 user mode 中想再读取4个字节，那么就不需要等待DMA的拷贝，而是直接从 kernel buffer 中将剩下的字节拷贝到user buffer中。<font color="#FF00000">IO效率的确提高了，但是这部分的优化是OS来做的。</font></p>
+</li>
+</ol>
+</blockquote>
+<p>但是BufferedInputStream 认为还有优化的空间在，它认为 user mode 想再读取字节的时候（上述的3），把数据从 kernel buffer 拷贝到 user buffer中，这个过程也涉及到了一次上下文切换，而且需要CPU来进行拷贝。<strong><font color="#FF00000">可不可以在 kernel buffer 把数据拷贝到 user buffer 的时候，多拷贝一点到 user buffer 中呢？</font></strong></p>
+<p><strong>同样的例子看看BufferedInputStream 读取的过程：</strong></p>
+<blockquote>
+<ol>
+<li>和FileInputStream一样。</li>
+<li>虽然我需要读4个字节，但是我会将 kernel buffer 中拷贝8个字节到  user buffer 中。 kernel buffer这个时候还剩下4个字节， <font color="#FF00000">user buffer有8个字节，其中4个字节user mode还没使用过。</font></li>
+</ol>
+<p><strong>上面两步和FileInputStream唯一区别就是多拷贝了点数据到user buffer 中。</strong></p>
+<ol start="3">
+<li><font color="#FF00000"><strong>当我想再次读取4个字节的时候，因为数据已经在user buffer中了，我不需要上下文切换，而且可以让CPU执行更重要的事情了。</strong></font>
+</li>
+</ol>
+</blockquote>
+<p>现在可以清楚了BufferedInputStream 为什么可以更快了把，下面用源码来证明上述的说法。</p>
+<h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><p>看一下BufferedInputStream 的read方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">int</span> <span class="title">read</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (pos &gt;= count) &#123;</span><br><span class="line">        fill();</span><br><span class="line">        <span class="keyword">if</span> (pos &gt;= count)</span><br><span class="line">            <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> getBufIfOpen()[pos++] &amp; <span class="number">0xff</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">byte</span>[] getBufIfOpen() <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">    <span class="keyword">byte</span>[] buffer = buf;</span><br><span class="line">    <span class="keyword">if</span> (buffer == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Stream closed"</span>);</span><br><span class="line">    <span class="keyword">return</span> buffer;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到返回的数据的时候，是从一个数组返回的！！这个数组就是为了多保留预读进来的数据。当程序读取一个或多个字节时，可直接从byte数组中获取，当内存中的byte读取完后，会再次用底层输入流填充缓冲区数组。</p>
+
       
     </div>
     
@@ -357,6 +422,14 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JDK源码/" rel="tag"># JDK源码</a>
+          
+            <a href="/tags/高性能IO/" rel="tag"># 高性能IO</a>
+          
+        </div>
       
 
       
@@ -427,8 +500,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -469,7 +551,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">34</span>
+                  <span class="site-state-item-count">35</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -514,6 +596,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#误区"><span class="nav-number">2.</span> <span class="nav-text">误区</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系统调用"><span class="nav-number">3.</span> <span class="nav-text">系统调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#源码分析"><span class="nav-number">4.</span> <span class="nav-text">源码分析</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
