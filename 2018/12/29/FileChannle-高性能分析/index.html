@@ -113,7 +113,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言上一篇的博客中，我从底层上分析了BufferInputStream为什么效率会比FileInputStream来得高，这两种方式都是传统的IO，在JDK1.4 中NIO又多了两种新的IO方式：FileChannle 和 MMAP。这里着重来解释FileChannle的高性能的场景。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-12-29T14:04:18.698Z">
+<meta property="og:updated_time" content="2018-12-29T14:07:44.541Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="FileChannle 和 MMAP 高性能分析">
 <meta name="twitter:description" content="前言上一篇的博客中，我从底层上分析了BufferInputStream为什么效率会比FileInputStream来得高，这两种方式都是传统的IO，在JDK1.4 中NIO又多了两种新的IO方式：FileChannle 和 MMAP。这里着重来解释FileChannle的高性能的场景。">
@@ -375,13 +375,13 @@
 <p>其实这么说不够严谨，因为你<font color="#FF0000">必须用对</font>了FileChannle，不然不存在优势之说。如何用对，就需要先从FileChannle的特点入手，FileChannel 采用了 <strong>ByteBuffer</strong> 这样的内存缓冲区，让我们可以非常精准的<font color="#FF0000">控制写盘的大小</font>，这是普通 IO 无法实现的。</p>
 <p>简单来说，传统的IO写数据时，先是往pagecache写入数据，不会马上刷到磁盘，而是将对应的位置标记为脏页，然后内核程序会定时将脏页的数据统一刷到磁盘中，但是为了安全起见，如果突然断电了pagecache中的数据就会丢失，所以这个定时的时间还不能太长，<font color="#FF0000">但我们希望的是，每次刷盘的尽可能在脏页比较多的情况下，不然对磁盘的写入效率太低</font>。</p>
 <p>而 FileChannel 将ByteBuffer 中的数据也不会马上写入到磁盘中，也是先写到pagecache，但是FileChannel <font color="#FF0000">可以控制写盘的大小</font>，它当然会尽可能<font color="#FF0000">写满一块数据块</font>，然后<font color="#FF0000">再调用 force() 方法</font>，用于通知操作系统进行及时的刷盘。</p>
-<p>所以要想提高FileChannle的效率，必须要了解你磁盘的数据库大小然后做出写盘大小的调整，这样效率才会快。</p>
+<p><strong>所以要想提高FileChannle的效率，必须要了解你磁盘的数据库大小然后做出写盘大小的调整，这样效率才会快。</strong></p>
 <h3 id="MMAP"><a href="#MMAP" class="headerlink" title="MMAP"></a>MMAP</h3><p>关于内存映射，我在前面几篇的博客中已经对其做出了详细的解释，不明白的可以先看一下。</p>
 <blockquote>
 <p><a href="https://www.callmejiagu.com/2018/12/24/Linux-shm%E5%92%8Cmmap/" target="_blank" rel="noopener">Linux shm和mmap</a><br><a href="https://www.callmejiagu.com/2018/12/21/%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84-mmap%E7%9A%84%E7%90%86%E8%A7%A3/" target="_blank" rel="noopener">内存映射 mmap的理解（转载+整理）</a><br><a href="https://www.callmejiagu.com/2018/12/19/RocketMQ-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8%EF%BC%88%E9%A2%84%E5%A4%87%E7%9F%A5%E8%AF%86%E4%BA%8C%EF%BC%89/" target="_blank" rel="noopener">RocketMQ 源码分析 消息存储（预备知识二）（转载+整理）</a> </p>
 </blockquote>
-<p>既然已经将了这么多关于内存映射，这里为什么还要再浪费口舌继续解释呢？主要是希望对NIO的方式有一个更加系统的认识。相信大家在网上经常能看到这么一段话来描述MMAP：<font color="#FF0000">普通文件被映射到进程地址空间后，进程可以像访问普通内存一样对文件进行访问，不必再调用read,write</font>。 </p>
-<p>当时我是不能理解的，凭什么像访问内存一样速度就快呢？要知道<font color="#FF0000"><strong>访问内存就意味着可以使用指针地址来访问了</strong></font>，虽然在Java中没有指针这种说法。那使用地址为什么速度就快了呢？比如你要读取一个文件开头的偏移1000个字节，传统的做法是不是一个for循环遍历到1000个字节，但是现在有了指针，你就可以直接指定position就可以访问了。<font color="#FF0000">如果每条实际的消息规定占用10个字节，那么访问的时候，就可以直接使用 <strong>文件的起始地址 + n*10</strong> 来访问第n条消息了，这也太方便了吧！！</font></p>
+<p>既然已经将了这么多关于内存映射，这里为什么还要再浪费口舌继续解释呢？主要是希望对NIO的方式有一个更加系统的认识。相信大家在网上经常能看到这么一段话来描述MMAP：<font color="#FF0000">普通文件被映射到进程地址空间后，进程可以像访问普通内存一样对文件进行访问，不必再调用read,write</font>。 当时我是不能理解的，凭什么像访问内存一样速度就快呢？</p>
+<p>要知道<font color="#FF0000"><strong>访问内存就意味着可以使用指针地址来访问了</strong></font>，虽然在Java中没有指针这种说法。那使用地址为什么速度就快了呢？比如你要读取一个文件开头的偏移1000个字节，传统的做法是不是一个for循环遍历到1000个字节，但是现在有了指针，你就可以直接指定position就可以访问了。<font color="#FF0000">如果每条实际的消息规定占用10个字节，那么访问的时候，就可以直接使用 <strong>文件的起始地址 + n*10</strong> 来访问第n条消息了，这也太方便了吧！！</font></p>
 <p>mmap的读：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 读</span></span><br><span class="line"><span class="keyword">byte</span>[] data = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">4</span>];</span><br><span class="line"><span class="keyword">int</span> position = <span class="number">8</span>;</span><br><span class="line"><span class="comment">//从当前 mmap 指针的位置读取 4b 的数据</span></span><br><span class="line">mappedByteBuffer.get(data)；</span><br><span class="line"><span class="comment">//指定 position 读取 4b 的数据</span></span><br><span class="line">MappedByteBuffer subBuffer = mappedByteBuffer.slice();</span><br><span class="line">subBuffer.position(position);</span><br><span class="line">subBuffer.get(data);</span><br></pre></td></tr></table></figure>
 <p><font color="#FF0000"><strong>看到这是我在想，在RMQ中commitlog的偏移量存储在了Consume Queue中，这样是不是就可以利用上面访问内存的特性，根据偏移量快速定位到一条消息呢？</strong></font>只是我的猜测，如果有错，希望有大神能纠正。</p>
