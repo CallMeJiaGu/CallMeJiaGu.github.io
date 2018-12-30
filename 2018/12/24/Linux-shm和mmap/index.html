@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="Linux," />
+  <meta name="keywords" content="Linux，高性能IO," />
 
 
 
@@ -106,18 +106,18 @@
 
 
 <meta name="description" content="前言这几天看了不少关于mmap的资料，发现在查阅的过程对mmap存在两种不同的说法。 第一种：将磁盘文件与虚拟内存进行映射，通过页表在物理内存发现缺页的情况，于是将磁盘上的文件拷贝到对应的物理内存上。这个是正确的说法。 另外一种：mmap将一段内核内存和用户内存进行映射，这样当内核把磁盘的文件拷到内核缓存的时候，就不需要再拷贝到用户内存中。应为用户内存和内核内存已经映射过了。（错误的说法） 期初看">
-<meta name="keywords" content="Linux">
+<meta name="keywords" content="Linux，高性能IO">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Linux shm和mmap">
+<meta property="og:title" content="高性能IO 之 Linux shm和mmap的区别">
 <meta property="og:url" content="http://yoursite.com/2018/12/24/Linux-shm和mmap/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言这几天看了不少关于mmap的资料，发现在查阅的过程对mmap存在两种不同的说法。 第一种：将磁盘文件与虚拟内存进行映射，通过页表在物理内存发现缺页的情况，于是将磁盘上的文件拷贝到对应的物理内存上。这个是正确的说法。 另外一种：mmap将一段内核内存和用户内存进行映射，这样当内核把磁盘的文件拷到内核缓存的时候，就不需要再拷贝到用户内存中。应为用户内存和内核内存已经映射过了。（错误的说法） 期初看">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/12/24/Linux-shm和mmap/1.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/24/Linux-shm和mmap/2.png">
-<meta property="og:updated_time" content="2018-12-24T12:05:08.114Z">
+<meta property="og:updated_time" content="2018-12-30T05:09:39.694Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Linux shm和mmap">
+<meta name="twitter:title" content="高性能IO 之 Linux shm和mmap的区别">
 <meta name="twitter:description" content="前言这几天看了不少关于mmap的资料，发现在查阅的过程对mmap存在两种不同的说法。 第一种：将磁盘文件与虚拟内存进行映射，通过页表在物理内存发现缺页的情况，于是将磁盘上的文件拷贝到对应的物理内存上。这个是正确的说法。 另外一种：mmap将一段内核内存和用户内存进行映射，这样当内核把磁盘的文件拷到内核缓存的时候，就不需要再拷贝到用户内存中。应为用户内存和内核内存已经映射过了。（错误的说法） 期初看">
 <meta name="twitter:image" content="http://yoursite.com/2018/12/24/Linux-shm和mmap/1.png">
 
@@ -155,7 +155,7 @@
 
 
 
-  <title>Linux shm和mmap | Don't Stop</title>
+  <title>高性能IO 之 Linux shm和mmap的区别 | Don't Stop</title>
   
 
 
@@ -299,7 +299,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Linux shm和mmap</h1>
+          <h1 class="post-title" itemprop="name headline">高性能IO 之 Linux shm和mmap的区别</h1>
         
 
         <div class="post-meta">
@@ -335,8 +335,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/" itemprop="url" rel="index">
-                    <span itemprop="name">Linux</span>
+                  <a href="/categories/高性能IO/" itemprop="url" rel="index">
+                    <span itemprop="name">高性能IO</span>
                   </a>
                 </span>
 
@@ -402,7 +402,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Linux/" rel="tag"># Linux</a>
+            <a href="/tags/Linux，高性能IO/" rel="tag"># Linux，高性能IO</a>
           
         </div>
       
@@ -415,8 +415,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/12/21/内存映射-mmap的理解/" rel="next" title="内存映射 mmap的理解（转载+整理）">
-                <i class="fa fa-chevron-left"></i> 内存映射 mmap的理解（转载+整理）
+              <a href="/2018/12/21/内存映射-mmap的理解/" rel="next" title="高性能IO 之 内存映射 mmap的理解（转载+整理）">
+                <i class="fa fa-chevron-left"></i> 高性能IO 之 内存映射 mmap的理解（转载+整理）
               </a>
             
           </div>
@@ -425,8 +425,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/12/27/BufferedInputStream-底层原理解析/" rel="prev" title="BufferedInputStream 底层原理解析">
-                BufferedInputStream 底层原理解析 <i class="fa fa-chevron-right"></i>
+              <a href="/2018/12/27/BufferedInputStream-底层原理解析/" rel="prev" title="高性能IO 之 BufferedInputStream底层原理解析">
+                高性能IO 之 BufferedInputStream底层原理解析 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -530,7 +530,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">37</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

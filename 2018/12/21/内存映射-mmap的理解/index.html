@@ -94,7 +94,7 @@
 
 
 
-  <meta name="keywords" content="内存映射,mmap," />
+  <meta name="keywords" content="内存映射,mmap，高性能IO," />
 
 
 
@@ -106,9 +106,9 @@
 
 
 <meta name="description" content="前言上一篇解释了RMQ为了提高大文件的读写效率，使用了内存映射的方法，将磁盘上的文件与进程中的进程虚拟空间进行了映射，减少一次内核空间到用户空间的一次复制。看到这里我就有了疑惑，既然内存映射有这么好的特性，为什么还需要传统的IO呢？看下文的分析。">
-<meta name="keywords" content="内存映射,mmap">
+<meta name="keywords" content="内存映射,mmap，高性能IO">
 <meta property="og:type" content="article">
-<meta property="og:title" content="内存映射 mmap的理解（转载+整理）">
+<meta property="og:title" content="高性能IO 之 内存映射 mmap的理解（转载+整理）">
 <meta property="og:url" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言上一篇解释了RMQ为了提高大文件的读写效率，使用了内存映射的方法，将磁盘上的文件与进程中的进程虚拟空间进行了映射，减少一次内核空间到用户空间的一次复制。看到这里我就有了疑惑，既然内存映射有这么好的特性，为什么还需要传统的IO呢？看下文的分析。">
@@ -117,9 +117,9 @@
 <meta property="og:image" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/4.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/5.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/6.png">
-<meta property="og:updated_time" content="2018-12-21T12:56:43.979Z">
+<meta property="og:updated_time" content="2018-12-30T05:10:07.706Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="内存映射 mmap的理解（转载+整理）">
+<meta name="twitter:title" content="高性能IO 之 内存映射 mmap的理解（转载+整理）">
 <meta name="twitter:description" content="前言上一篇解释了RMQ为了提高大文件的读写效率，使用了内存映射的方法，将磁盘上的文件与进程中的进程虚拟空间进行了映射，减少一次内核空间到用户空间的一次复制。看到这里我就有了疑惑，既然内存映射有这么好的特性，为什么还需要传统的IO呢？看下文的分析。">
 <meta name="twitter:image" content="http://yoursite.com/2018/12/21/内存映射-mmap的理解/2.png">
 
@@ -157,7 +157,7 @@
 
 
 
-  <title>内存映射 mmap的理解（转载+整理） | Don't Stop</title>
+  <title>高性能IO 之 内存映射 mmap的理解（转载+整理） | Don't Stop</title>
   
 
 
@@ -301,7 +301,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">内存映射 mmap的理解（转载+整理）</h1>
+          <h1 class="post-title" itemprop="name headline">高性能IO 之 内存映射 mmap的理解（转载+整理）</h1>
         
 
         <div class="post-meta">
@@ -337,8 +337,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Linux/" itemprop="url" rel="index">
-                    <span itemprop="name">Linux</span>
+                  <a href="/categories/高性能IO/" itemprop="url" rel="index">
+                    <span itemprop="name">高性能IO</span>
                   </a>
                 </span>
 
@@ -465,7 +465,7 @@
           
             <a href="/tags/内存映射/" rel="tag"># 内存映射</a>
           
-            <a href="/tags/mmap/" rel="tag"># mmap</a>
+            <a href="/tags/mmap，高性能IO/" rel="tag"># mmap，高性能IO</a>
           
         </div>
       
@@ -488,8 +488,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/12/24/Linux-shm和mmap/" rel="prev" title="Linux shm和mmap">
-                Linux shm和mmap <i class="fa fa-chevron-right"></i>
+              <a href="/2018/12/24/Linux-shm和mmap/" rel="prev" title="高性能IO 之 Linux shm和mmap的区别">
+                高性能IO 之 Linux shm和mmap的区别 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -593,7 +593,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">37</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
