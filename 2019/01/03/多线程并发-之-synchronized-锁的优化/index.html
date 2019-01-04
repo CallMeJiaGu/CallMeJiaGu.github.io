@@ -107,7 +107,9 @@
 <meta property="og:description" content="前言早期版本的synchronized在性能上比较差，好在Jdk1.6之后对其进行种种优化，那么这篇我们就来学习一下synchronized锁都有哪些优化操作！因为网上关于这块的解析比较多了，所以基础如自旋、Mark Word就不再复述了，主要讲我对锁优化的认识！">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2019/01/03/多线程并发-之-synchronized-锁的优化/1.png">
-<meta property="og:updated_time" content="2019-01-03T12:34:59.187Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/03/多线程并发-之-synchronized-锁的优化/2.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/03/多线程并发-之-synchronized-锁的优化/4.png">
+<meta property="og:updated_time" content="2019-01-04T03:26:41.152Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="多线程并发 之 synchronized 锁的优化">
 <meta name="twitter:description" content="前言早期版本的synchronized在性能上比较差，好在Jdk1.6之后对其进行种种优化，那么这篇我们就来学习一下synchronized锁都有哪些优化操作！因为网上关于这块的解析比较多了，所以基础如自旋、Mark Word就不再复述了，主要讲我对锁优化的认识！">
@@ -382,7 +384,45 @@
 <blockquote>
 <p>以上就是竞争重量锁的基本情况，我们可以知道实现的关键在于monitor。<font color="#FF0000"><strong>而monitor是依赖于底层的操作系统的Mutex Lock来实现的</strong></font>，而操作系统实现线程之间的切换时需要从用户态转换到核心态，这个状态之间的转换需要相对比较长的时间，时间成本相对较高，这也是为什么早期的synchronized效率低的原因。</p>
 </blockquote>
-<p>JVM的开发者发现在很多情况下，在Java程序运行时，同步块中的代码都是不存在竞争的，不同的线程交替的执行同步块中的代码。这种情况下，用重量级锁是没必要的</p>
+<font color="#FF0000"><strong>重量锁更适合多线程同时进入临界区</strong></font>
+
+<h3 id="轻量锁"><a href="#轻量锁" class="headerlink" title="轻量锁"></a>轻量锁</h3><p>JVM的开发者发现在很多情况下，在Java程序运行时，同步块中的代码都是不存在竞争的，不同的线程交替的执行同步块中的代码。这种情况下，用重量级锁是没必要的。</p>
+<p>在重量锁的时候Mark Word指向了与之对应的monitor对象，<strong>在轻量锁的情况下Mark Word也是存放了一个指针，这个指针指向了竞争线程帧栈中的锁记录</strong>。听起来很绕口，看下面竞争的过程：</p>
+<p><img src="/2019/01/03/多线程并发-之-synchronized-锁的优化/2.png" alt="你想输入的替代文字"></p>
+<p>轻量锁竞争：</p>
+<blockquote>
+<p>当线程试图获取一个锁时，会先在当前的帧栈中创建用于存储锁记录的空间，然后将Mark Word的内容拷贝到这个记录空间。</p>
+<p>接着线程会再试图通过CAS修改Mark Word，让Mark Word中的内容变成一个指针，指向刚刚创建的锁记录的地址。修改成功的线程就拿到了锁。<font color="#FF0000">如果失败了，它不会像重量锁一样马上将线程挂起</font>，轻量锁就是要解决重量锁<strong>动不动</strong>就把线程挂起来的操作（内核态与用户态的切换成本高），因为它认为锁马上就会被释放掉，它会通过占用CPU再去尝试修改几次，这个过程就是<strong>自旋</strong>。<font color="#FF0000">轻量锁优化的地方在于：它认为自旋的时间与线程挂起的操作相比是划算的</font>。</p>
+</blockquote>
+<p>轻量锁释放：</p>
+<blockquote>
+<p>如果一个线程2通过自旋还是没有得到锁，<font color="#FF0000">它就认为再这样占用CPU的时间反而不值当了</font>，还不如把线程挂起来，不去浪费CPU的时间，等待占用锁的线程1释放之后的中断。也就是说这个锁已经不适合使用轻量锁了，应该膨胀为重量锁，<font color="#FF0000">于是自旋失败的线程2会把Mark Word修改成指向monitor的指针</font>。</p>
+<p>线程1同步块执行完毕之后发现，<font color="#FF0000">诶！Mark Word原来不是指向线程1中的锁记录吗？！！</font>怎么现在指向其他地方了（指向monitor），他知道了有其他线程因为自旋几次失败，然后修改了Mark Word。那么线程1释放完锁后就唤醒被挂起的线程2。然后这个锁就变成了重量锁。</p>
+<p>线程1同步块执行完毕，<strong>如果发现Mark Word还是指向当前线程的锁记录</strong>，<font color="#FF0000">那么说明没有其他线程在它使用的期间因为获取锁失败，而修改Mark Word的值</font>。于是把刚刚拷贝到帧栈中的Display Mark Word拷贝回原来的对象头中。竞争不够强烈，还是使用轻量锁。</p>
+</blockquote>
+<font color="#FF0000"><strong>轻量锁更适用于多个线程交替进入临界区</strong></font>
+
+<h3 id="偏向锁"><a href="#偏向锁" class="headerlink" title="偏向锁"></a>偏向锁</h3><p><font color="#FF0000">因为轻量锁想要知道多线程竞争是否激烈（究竟是交替进入还是同时竞争）</font>，所以会拷贝Mark Word以及通过CAS修改Mark Word，过程会涉及到多次CAS（CAS本身仍旧是一种操作系统同步原语，有一定的开销）。但JVM的开发者发现多数情况下：<strong>一个对象在一段很长的时间内都只被一个线程用</strong>。那么偏向锁就此出现。</p>
+<p>从上面的轻量锁和重量锁我们知道一个对象的Mark Word会存放一个指针，而在偏向锁中，<font color="#FF0000">Mark Word存放线程ID来标识当前使用的线程</font>。</p>
+<p><img src="/2019/01/03/多线程并发-之-synchronized-锁的优化/4.png" alt="你想输入的替代文字"></p>
+<p>偏向锁加锁：</p>
+<blockquote>
+<p>当该对象第一次被线程获得锁的时候，发现是匿名偏向状态，则会用CAS指令，将<code>mark word</code>中的thread id由0改成当前线程Id。如果成功，则代表获得了偏向锁，继续执行同步块中的代码。否则，将偏向锁撤销，升级为轻量级锁。</p>
+<p>当有其他线程尝试获得锁时，就需要等到<code>safe point</code>时将偏向锁撤销为无锁状态或升级为轻量级/重量级锁。<code>safe point</code>这个词我们在GC中经常会提到，其代表了一个状态，在该状态下所有线程都是暂停的（大概这么个意思）</p>
+</blockquote>
+<p>偏向锁为什么要升级：</p>
+<blockquote>
+<p>我当时在想如果不存在重量、轻量锁，无论线程多少个都使用偏向锁来做可以吗？我觉得是可以的。<font color="#FF0000">但是你想如果当其他线程想要获取的时候，就需要等到safe point，而等待是不是就要通过挂起或者自旋呢</font>？那么到底是使用自旋还是挂起呢？<font color="#FF0000">当然是先考虑自旋了</font>。所以偏向锁就变成了轻量锁，轻量锁不适合再使用重量锁。所以不存在哪个锁代替哪个锁，只是哪个场景适用，就用哪个！</p>
+</blockquote>
+<p>当只有一个线程反复进入同步块时，偏向锁带来的性能开销基本可以忽略（<font color="#FF0000">线程会在帧栈中复制一个<code>Displaced Mark Word</code>为空的<code>Lock Record</code>用来表示重复进入的一个次数，因为操纵的是线程私有的栈，因此不需要用到CAS指令，所以性能很高</font>）</p>
+<h3 id="我之前的疑惑"><a href="#我之前的疑惑" class="headerlink" title="我之前的疑惑"></a>我之前的疑惑</h3><ol>
+<li>当时在想synchronized针对代码块、方法块的时候，不是没有指定对象吗？没有对象不就没有Mark Word吗？现在再去看就知道为什么synchronized针对代码块、方法块是以当前对象的为锁的，这样就解决Mark Word不存在的疑惑了。</li>
+<li>潜意识认为synchronize性能很差，但这个只是针对早期的版本，因为早期的版本只有重量锁，所以性能差。</li>
+</ol>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="http://blog.sina.com.cn/s/blog_c038e9930102v2i0.html" target="_blank" rel="noopener">http://blog.sina.com.cn/s/blog_c038e9930102v2i0.html</a></p>
+<p><a href="https://github.com/farmerjohngit/myblog/issues/12" target="_blank" rel="noopener">https://github.com/farmerjohngit/myblog/issues/12</a></p>
+<p><a href="https://blog.csdn.net/javazejian/article/details/72828483#%E5%81%8F%E5%90%91%E9%94%81" target="_blank" rel="noopener">https://blog.csdn.net/javazejian/article/details/72828483#%E5%81%8F%E5%90%91%E9%94%81</a></p>
+<p><a href="https://www.zhihu.com/question/53826114/answer/236363126" target="_blank" rel="noopener">https://www.zhihu.com/question/53826114/answer/236363126</a></p>
 
       
     </div>
@@ -579,7 +619,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重量锁"><span class="nav-number">2.</span> <span class="nav-text">重量锁</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重量锁"><span class="nav-number">2.</span> <span class="nav-text">重量锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#轻量锁"><span class="nav-number">3.</span> <span class="nav-text">轻量锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#偏向锁"><span class="nav-number">4.</span> <span class="nav-text">偏向锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#我之前的疑惑"><span class="nav-number">5.</span> <span class="nav-text">我之前的疑惑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">6.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
             
 
           </div>
