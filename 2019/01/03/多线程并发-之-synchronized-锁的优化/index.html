@@ -109,7 +109,8 @@
 <meta property="og:image" content="http://yoursite.com/2019/01/03/多线程并发-之-synchronized-锁的优化/1.png">
 <meta property="og:image" content="http://yoursite.com/2019/01/03/多线程并发-之-synchronized-锁的优化/2.png">
 <meta property="og:image" content="http://yoursite.com/2019/01/03/多线程并发-之-synchronized-锁的优化/4.png">
-<meta property="og:updated_time" content="2019-01-04T03:26:41.152Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/03/多线程并发-之-synchronized-锁的优化/5.png">
+<meta property="og:updated_time" content="2019-01-04T06:48:52.294Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="多线程并发 之 synchronized 锁的优化">
 <meta name="twitter:description" content="前言早期版本的synchronized在性能上比较差，好在Jdk1.6之后对其进行种种优化，那么这篇我们就来学习一下synchronized锁都有哪些优化操作！因为网上关于这块的解析比较多了，所以基础如自旋、Mark Word就不再复述了，主要讲我对锁优化的认识！">
@@ -415,6 +416,12 @@
 <p>我当时在想如果不存在重量、轻量锁，无论线程多少个都使用偏向锁来做可以吗？我觉得是可以的。<font color="#FF0000">但是你想如果当其他线程想要获取的时候，就需要等到safe point，而等待是不是就要通过挂起或者自旋呢</font>？那么到底是使用自旋还是挂起呢？<font color="#FF0000">当然是先考虑自旋了</font>。所以偏向锁就变成了轻量锁，轻量锁不适合再使用重量锁。所以不存在哪个锁代替哪个锁，只是哪个场景适用，就用哪个！</p>
 </blockquote>
 <p>当只有一个线程反复进入同步块时，偏向锁带来的性能开销基本可以忽略（<font color="#FF0000">线程会在帧栈中复制一个<code>Displaced Mark Word</code>为空的<code>Lock Record</code>用来表示重复进入的一个次数，因为操纵的是线程私有的栈，因此不需要用到CAS指令，所以性能很高</font>）</p>
+<h3 id="锁优化总体流程图"><a href="#锁优化总体流程图" class="headerlink" title="锁优化总体流程图"></a>锁优化总体流程图</h3><p>当使用synchronized代码块的时候，通过反编译得到字节码后可以看到代码块上有对应的monitor：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">monitorenter  <span class="comment">//进入同步方法</span></span><br><span class="line"><span class="comment">//..........省略其他  </span></span><br><span class="line">monitorexit   <span class="comment">//退出同步方法</span></span><br><span class="line"><span class="comment">//省略其他.......</span></span><br><span class="line">monitorexit <span class="comment">//退出同步方法</span></span><br></pre></td></tr></table></figure>
+<p>synchronized代码块的时候,可以看到其字节码会将该方法标识位ACC_SYNCHRONIZED，指明位同步方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">syncTask</span><span class="params">()</span></span>;</span><br><span class="line">    descriptor: ()V</span><br><span class="line">    <span class="comment">//方法标识ACC_PUBLIC代表public修饰，ACC_SYNCHRONIZED指明该方法为同步方法</span></span><br><span class="line">    flags: ACC_PUBLIC, ACC_SYNCHRONIZED</span><br><span class="line">    <span class="comment">//省略其他.......</span></span><br></pre></td></tr></table></figure>
+<p>当线程访问同步快时，就会先判断当前锁状态，然后做出对应的操作：</p>
+<p><img src="/2019/01/03/多线程并发-之-synchronized-锁的优化/5.png" alt="你想输入的替代文字"></p>
 <h3 id="我之前的疑惑"><a href="#我之前的疑惑" class="headerlink" title="我之前的疑惑"></a>我之前的疑惑</h3><ol>
 <li>当时在想synchronized针对代码块、方法块的时候，不是没有指定对象吗？没有对象不就没有Mark Word吗？现在再去看就知道为什么synchronized针对代码块、方法块是以当前对象的为锁的，这样就解决Mark Word不存在的疑惑了。</li>
 <li>潜意识认为synchronize性能很差，但这个只是针对早期的版本，因为早期的版本只有重量锁，所以性能差。</li>
@@ -619,7 +626,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重量锁"><span class="nav-number">2.</span> <span class="nav-text">重量锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#轻量锁"><span class="nav-number">3.</span> <span class="nav-text">轻量锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#偏向锁"><span class="nav-number">4.</span> <span class="nav-text">偏向锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#我之前的疑惑"><span class="nav-number">5.</span> <span class="nav-text">我之前的疑惑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">6.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重量锁"><span class="nav-number">2.</span> <span class="nav-text">重量锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#轻量锁"><span class="nav-number">3.</span> <span class="nav-text">轻量锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#偏向锁"><span class="nav-number">4.</span> <span class="nav-text">偏向锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#锁优化总体流程图"><span class="nav-number">5.</span> <span class="nav-text">锁优化总体流程图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#我之前的疑惑"><span class="nav-number">6.</span> <span class="nav-text">我之前的疑惑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">7.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
             
 
           </div>
