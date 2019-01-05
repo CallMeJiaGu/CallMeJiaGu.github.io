@@ -106,7 +106,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来从底层原理去解释volatile的机制，以及volatile应用场景。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-05T14:24:29.982Z">
+<meta property="og:updated_time" content="2019-01-05T14:26:29.669Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="多线程并发 之 volatile">
 <meta name="twitter:description" content="前言相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来从底层原理去解释volatile的机制，以及volatile应用场景。">
@@ -364,7 +364,7 @@
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来从底层原理去解释volatile的机制，以及volatile应用场景。</p>
 <a id="more"></a>
-<h3 id="两个优化"><a href="#两个优化" class="headerlink" title="两个优化"></a>两个优化</h3><p>要想解释volatile之前，我觉得需要先明白volatile的两个作用，可见性和防止重排序。那什么是可见性，以及为什么要防止重排序呢？需要从操作系统的两个优化入手解释了。</p>
+<h3 id="两个点"><a href="#两个点" class="headerlink" title="两个点"></a>两个点</h3><p>再解释volatile之前，我觉得需要先从操作系统的两个点手解释了。分别是指令重排序和可见性问题。</p>
 <h4 id="指令重排序"><a href="#指令重排序" class="headerlink" title="指令重排序"></a>指令重排序</h4><p>指令重排序简单来讲，就是以下的程序可能并不会像你想象的一样顺序执行下来，2可能会比1先执行掉。但是不会改变存在数据依赖关系的两个操作的执行顺序比如3就不会在1,2之前执行。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a = <span class="number">1</span>; <span class="comment">//1</span></span><br><span class="line"><span class="keyword">int</span> b = <span class="number">1</span>; <span class="comment">//2</span></span><br><span class="line"><span class="keyword">int</span> c = a + b; <span class="comment">//3</span></span><br></pre></td></tr></table></figure>
 <p>重排序有分为三种，这里简单介绍两种重排序。编译器优化的重排序、指令级并行的重排序</p>
@@ -575,7 +575,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两个优化"><span class="nav-number">2.</span> <span class="nav-text">两个优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#指令重排序"><span class="nav-number">2.1.</span> <span class="nav-text">指令重排序</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两个点"><span class="nav-number">2.</span> <span class="nav-text">两个点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#指令重排序"><span class="nav-number">2.1.</span> <span class="nav-text">指令重排序</span></a></li></ol></li></ol></div>
             
 
           </div>
