@@ -98,18 +98,21 @@
 
 
 
-<meta name="description" content="前言相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来从底层原理去解释volatile的机制，以及volatile应用场景。">
+<meta name="description" content="前言相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来分享一下我对volatile的了解。">
 <meta name="keywords" content="volatile">
 <meta property="og:type" content="article">
 <meta property="og:title" content="多线程并发 之 volatile">
 <meta property="og:url" content="http://yoursite.com/2019/01/05/多线程并发-之-volatile/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来从底层原理去解释volatile的机制，以及volatile应用场景。">
+<meta property="og:description" content="前言相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来分享一下我对volatile的了解。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-05T14:26:29.669Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/05/多线程并发-之-volatile/1.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/01/05/多线程并发-之-volatile/2.png">
+<meta property="og:updated_time" content="2019-01-06T12:50:09.777Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="多线程并发 之 volatile">
-<meta name="twitter:description" content="前言相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来从底层原理去解释volatile的机制，以及volatile应用场景。">
+<meta name="twitter:description" content="前言相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来分享一下我对volatile的了解。">
+<meta name="twitter:image" content="http://yoursite.com/2019/01/05/多线程并发-之-volatile/1.jpg">
 
 
 
@@ -362,23 +365,50 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来从底层原理去解释volatile的机制，以及volatile应用场景。</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>相信大家谈及到 Java 多线程的时候，对volatile一定不会陌生。这篇我就来分享一下我对volatile的了解。</p>
 <a id="more"></a>
-<h3 id="两个点"><a href="#两个点" class="headerlink" title="两个点"></a>两个点</h3><p>再解释volatile之前，我觉得需要先从操作系统的两个点手解释了。分别是指令重排序和可见性问题。</p>
-<h4 id="指令重排序"><a href="#指令重排序" class="headerlink" title="指令重排序"></a>指令重排序</h4><p>指令重排序简单来讲，就是以下的程序可能并不会像你想象的一样顺序执行下来，2可能会比1先执行掉。但是不会改变存在数据依赖关系的两个操作的执行顺序比如3就不会在1,2之前执行。</p>
+<h3 id="两个优化点"><a href="#两个优化点" class="headerlink" title="两个优化点"></a>两个优化点</h3><p>再解释volatile之前，我觉得需要先从操作系统的两个点手解释了。分别是指令重排序和高速缓存问题。</p>
+<h4 id="指令重排序"><a href="#指令重排序" class="headerlink" title="指令重排序"></a>指令重排序</h4><p>指令重排序简单来讲，就是以下的程序可能并不会像你想象的一样顺序执行下来，2可能会比1先执行掉。但是不会改变存在数据依赖关系的两个操作的执行顺序，如3就不会在1,2之前执行。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a = <span class="number">1</span>; <span class="comment">//1</span></span><br><span class="line"><span class="keyword">int</span> b = <span class="number">1</span>; <span class="comment">//2</span></span><br><span class="line"><span class="keyword">int</span> c = a + b; <span class="comment">//3</span></span><br></pre></td></tr></table></figure>
 <p>重排序有分为三种，这里简单介绍两种重排序。编译器优化的重排序、指令级并行的重排序</p>
-<ul>
+<ol>
 <li>编译器优化的重排序</li>
-</ul>
-<p>编译器在不改变单线程程序语义的前提下（代码中不包含synchronized关键字），可以重新安排语句的执行顺序。可以说编译器重排序通过分析，然后<font color="#FF0000">刻意修改了执行顺序</font>使得执行效率得以提高。</p>
-<ul>
+</ol>
+<p>编译器在不改变单线程程序语义的前提下，可以重新安排语句的执行顺序。可以说编译重排序通过分析，然后<font color="#FF0000">刻意修改了执行顺序</font>使得执行效率得以提高。</p>
+<ol start="2">
 <li>指令级并行的重排序</li>
-</ul>
+</ol>
 <p>首先要明白<font color="#FF0000">指令级并行的重排序并不是刻意</font>去打乱执行顺序的，它总是顺序去取指令（<font color="#FF0000">虽然可能在编译的时候已经被打乱了</font>），但是指令执行时的各种条件，指令与指令之间的相互影响，可能导致顺序放入流水线的指令，最终乱序执行完成。这就是所谓的<font color="#FF0000"><strong>“顺序流入，乱序流出”</strong></font>。举个例子：假设操作系统有两个加法器，一个除法器，执行以下命令：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a = a + <span class="number">1</span>;   <span class="comment">//1</span></span><br><span class="line">b = b / <span class="number">0.1</span>; <span class="comment">//2</span></span><br><span class="line">c = c + <span class="number">1</span>;   <span class="comment">//3</span></span><br></pre></td></tr></table></figure>
 <p>那么很有可能就会因为两个加法器可以同时执行1,3两条命令，又因为种种原因导致除法器执行速度慢，所以就导致3会先与2被执行。</p>
-<p><strong>一句话概述就是在<font color="#FF0000">单线程</font>中指令会被打乱执行，但是结果和每一条命令顺序执行的结果是一样的。</strong>特意指定了单线程也就是说在多线程下，指令重排序会导致最终的结果预料不到。</p>
+<p><strong>一句话概述就是在<font color="#FF0000">单线程</font>中指令会被打乱执行，但是结果和每一条命令顺序执行的结果是一样的。</strong>特意指定了单线程也就是说在多线程下，指令重排序会导致最终的结果预料不到。这个在后文解释。</p>
+<h4 id="高速缓存"><a href="#高速缓存" class="headerlink" title="高速缓存"></a>高速缓存</h4><p>操作系统优化的另外一个点就是高速缓存。从下图中可以知道CPU执行命令的时候，与主存之间存在速度上的差异，所以引入了高速缓存来弥补CPU等待低效率的主存。</p>
+<p><img src="/2019/01/05/多线程并发-之-volatile/1.jpg" alt="你想输入的替代文字"></p>
+<p>同样举个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(i=<span class="number">0</span>; i&lt;<span class="number">100</span>; i++)&#123;</span><br><span class="line">    a = a + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果没有高速缓存那么每一次 <code>a+1</code> CPU要用到a变量时，会先将a从主存获取到寄存器上，执行完毕再写回到主存。效率很明显比较低效。</p>
+<p>如果这时候引入了缓存，那么先把主存中的数据读入到缓存中，寄存器和缓存直接的读写入会高效很多，<font color="#FF0000">执行完毕把数据从缓存刷到主存上</font>。</p>
+<h3 id="两个点在多线程下出现的问题"><a href="#两个点在多线程下出现的问题" class="headerlink" title="两个点在多线程下出现的问题"></a>两个点在多线程下出现的问题</h3><p>上述两个优化点在单线程是没什么问题的，但是在多线程都会出现难以预料的问题，先看使用高速缓存在多线程带来的影响。</p>
+<h4 id="可见性问题"><a href="#可见性问题" class="headerlink" title="可见性问题"></a>可见性问题</h4><p>虽然利用缓存是提高了执行效率，但是也带来了一个新的问题，就是可见性问题。<font color="#FF0000">在多线程情况下</font>，如果一个变量被两个线程共用就有可能出现问题。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//线程1执行的代码</span></span><br><span class="line"><span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">i = <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//线程2执行的代码</span></span><br><span class="line">j = i;</span><br></pre></td></tr></table></figure>
+<p>假若执行线程1的是CPU1，执行线程2的是CPU2。由上面的分析可知，当线程1执行 i =10这句时，会先把i的初始值加载到CPU1的高速缓存中，然后赋值为10，那么在CPU1的高速缓存当中i的值变为10了，却没有立即写入到主存当中。</p>
+<p>此时线程2执行 j = i，它会先去主存读取i的值并加载到CPU2的缓存当中，注意此时内存当中i的值还是0，那么就会使得j的值为0，而不是10.</p>
+<p><font color="#FF0000">这就是可见性问题，线程1对变量i修改了之后，线程2没有立即看到线程1修改的值</font>。</p>
+<h4 id="重排序的问题"><a href="#重排序的问题" class="headerlink" title="重排序的问题"></a>重排序的问题</h4><p>虽然重排序不会影响单个线程内程序执行的结果，但是多线程呢？下面看一个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//线程1:</span></span><br><span class="line">context = loadContext();   <span class="comment">//语句1</span></span><br><span class="line">inited = <span class="keyword">true</span>;             <span class="comment">//语句2</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//线程2:</span></span><br><span class="line"><span class="keyword">while</span>(!inited )&#123;</span><br><span class="line">  sleep()</span><br><span class="line">&#125;</span><br><span class="line">doSomethingwithconfig(context);</span><br></pre></td></tr></table></figure>
+<p>上面代码中，由于语句1和语句2没有数据依赖性，因此可能会被重排序。假如发生了重排序，在线程1执行过程中先执行语句2，而此是线程2会以为初始化工作已经完成，那么就会跳出while循环，去执行doSomethingwithconfig(context)方法，而此时context并没有被初始化，就会导致程序出错。</p>
+<h3 id="如何解决上述问题"><a href="#如何解决上述问题" class="headerlink" title="如何解决上述问题"></a>如何解决上述问题</h3><blockquote>
+<p>对于可见性，Java提供了volatile关键字来保证可见性。当一个共享变量被volatile修饰时，<font color="#FF0000"><strong>它会保证修改的值会立即被更新到主存</strong></font>，当有其他线程需要读取时，它会去内存中读取新值。</p>
+<p>而普通的共享变量不能保证可见性，因为普通共享变量被修改之后，什么时候被写入主存是不确定的，当其他线程去读取时，此时内存中可能还是原来的旧值，因此无法保证可见性。</p>
+</blockquote>
+<blockquote>
+<p>对于重排序问题，在Java里面，可以通过volatile关键字来保证一定的“有序性”，<font color="#FF0000"><strong>简单来说就是通过内存屏障使得指令在重排序时不会将后面的代码排到内存屏障之前，不会将前面的代码排到内存屏障之后</strong></font>。对于内存屏障的认识还不够深，所以这里不细将内存屏障。</p>
+</blockquote>
+<h3 id="volatile解决不了原子性问题"><a href="#volatile解决不了原子性问题" class="headerlink" title="volatile解决不了原子性问题"></a>volatile解决不了原子性问题</h3><p><strong>volatile只能解决可见性，不能保证原子性。</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Test lock = <span class="keyword">new</span> Test();</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        </span><br><span class="line">        Thread thread = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++) &#123;</span><br><span class="line">                    a++;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        </span><br><span class="line">        Thread thread1 = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++) &#123;</span><br><span class="line">                    a++;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        thread.start();</span><br><span class="line">        thread1.start();</span><br><span class="line"></span><br><span class="line">        thread.join();</span><br><span class="line">        thread1.join();</span><br><span class="line">        System.out.println(a);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果这个时候两个线程同时对a（初始值0）进行加100次，两个线程执行完毕会发现最后a的值是小于20000的，这是因为<code>a++</code><font color="#FF0000">不是一个原子操作</font>，就算你使用了volatile也不能保证结果是20000！</p>
+<p><img src="/2019/01/05/多线程并发-之-volatile/2.png" alt="你想输入的替代文字"></p>
+<p>看上图，我们知道<font color="#FF0000">虽然volatile保证线程取值都是最新的值</font>，但是在你不能保证一个线程在写回a的时候，另外一个线程刚好也是写回的，就会导致一个线程的一次加被覆盖无效了。</p>
 
       
     </div>
@@ -575,7 +605,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两个点"><span class="nav-number">2.</span> <span class="nav-text">两个点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#指令重排序"><span class="nav-number">2.1.</span> <span class="nav-text">指令重排序</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两个优化点"><span class="nav-number">2.</span> <span class="nav-text">两个优化点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#指令重排序"><span class="nav-number">2.1.</span> <span class="nav-text">指令重排序</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#高速缓存"><span class="nav-number">2.2.</span> <span class="nav-text">高速缓存</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两个点在多线程下出现的问题"><span class="nav-number">3.</span> <span class="nav-text">两个点在多线程下出现的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#可见性问题"><span class="nav-number">3.1.</span> <span class="nav-text">可见性问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重排序的问题"><span class="nav-number">3.2.</span> <span class="nav-text">重排序的问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何解决上述问题"><span class="nav-number">4.</span> <span class="nav-text">如何解决上述问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#volatile解决不了原子性问题"><span class="nav-number">5.</span> <span class="nav-text">volatile解决不了原子性问题</span></a></li></ol></div>
             
 
           </div>
