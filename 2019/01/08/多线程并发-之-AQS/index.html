@@ -98,19 +98,19 @@
 
 
 
-<meta name="description" content="前言前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。 网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻">
+<meta name="description" content="前言前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻底">
 <meta name="keywords" content="AQS">
 <meta property="og:type" content="article">
 <meta property="og:title" content="多线程并发 之 AQS（整理+转载）">
 <meta property="og:url" content="http://yoursite.com/2019/01/08/多线程并发-之-AQS/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。 网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻">
+<meta property="og:description" content="前言前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻底">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2019/01/08/多线程并发-之-AQS/2.png">
-<meta property="og:updated_time" content="2019-01-13T13:34:53.272Z">
+<meta property="og:updated_time" content="2019-01-13T13:46:56.270Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="多线程并发 之 AQS（整理+转载）">
-<meta name="twitter:description" content="前言前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。 网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻">
+<meta name="twitter:description" content="前言前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻底">
 <meta name="twitter:image" content="http://yoursite.com/2019/01/08/多线程并发-之-AQS/2.png">
 
 
@@ -364,10 +364,10 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。</p>
-<p>网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻底的去解析AQS，所以这篇博客我只记录一下我一些看法，详细的看下面的博客。</p>
-<p><a href="https://blog.csdn.net/javazejian/article/details/75043422" target="_blank" rel="noopener">深入剖析基于并发AQS的(独占锁)重入锁(ReetrantLock)及其Condition实现原理</a></p>
-<p><a href="https://blog.csdn.net/javazejian/article/details/76167357" target="_blank" rel="noopener">剖析基于并发AQS的共享锁的实现(基于信号量Semaphore)</a></p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻底的去解析AQS，所以这篇博客我只记录一下我一些看法，详细的看下面的博客。</p>
+<blockquote>
+<p><a href="https://blog.csdn.net/javazejian/article/details/75043422" target="_blank" rel="noopener">深入剖析基于并发AQS的(独占锁)重入锁(ReetrantLock)及其Condition实现原理</a><br><a href="https://blog.csdn.net/javazejian/article/details/76167357" target="_blank" rel="noopener">剖析基于并发AQS的共享锁的实现(基于信号量Semaphore)</a></p>
+</blockquote>
 <a id="more"></a>
 <h3 id="Synchronized和Lock的区别"><a href="#Synchronized和Lock的区别" class="headerlink" title="Synchronized和Lock的区别"></a>Synchronized和Lock的区别</h3><p>你们可能会想既然实现同步方法已经有synchronized了，为什么还需要搞一个Lock出来呢？<font color="#FF0000">Lock还要我们显示的去释放锁，有可能忘了释放造成死锁</font>。主要是因为Lock在某些场景更优于synchronized。</p>
 <blockquote>
