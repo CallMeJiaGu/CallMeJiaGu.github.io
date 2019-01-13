@@ -434,7 +434,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/01/08/多线程并发-之-AQS/" itemprop="url">多线程并发 之 AQS</a></h1>
+                <a class="post-title-link" href="/2019/01/08/多线程并发-之-AQS/" itemprop="url">多线程并发 之 AQS（整理+转载）</a></h1>
         
 
         <div class="post-meta">
@@ -508,9 +508,17 @@
 
       
         
-          
-            
-          
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。</p>
+<p>网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻底的去解析AQS，所以这篇博客我只记录一下我一些看法，详细的看下面的博客。</p>
+<p><a href="https://blog.csdn.net/javazejian/article/details/75043422" target="_blank" rel="noopener">深入剖析基于并发AQS的(独占锁)重入锁(ReetrantLock)及其Condition实现原理</a></p>
+<p><a href="https://blog.csdn.net/javazejian/article/details/76167357" target="_blank" rel="noopener">剖析基于并发AQS的共享锁的实现(基于信号量Semaphore)</a></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/01/08/多线程并发-之-AQS/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>

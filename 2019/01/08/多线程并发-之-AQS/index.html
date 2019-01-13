@@ -98,15 +98,20 @@
 
 
 
+<meta name="description" content="前言前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。 网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻">
 <meta name="keywords" content="AQS">
 <meta property="og:type" content="article">
-<meta property="og:title" content="多线程并发 之 AQS">
+<meta property="og:title" content="多线程并发 之 AQS（整理+转载）">
 <meta property="og:url" content="http://yoursite.com/2019/01/08/多线程并发-之-AQS/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。 网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-13T07:02:06.896Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/08/多线程并发-之-AQS/2.png">
+<meta property="og:updated_time" content="2019-01-13T13:34:53.272Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="多线程并发 之 AQS">
+<meta name="twitter:title" content="多线程并发 之 AQS（整理+转载）">
+<meta name="twitter:description" content="前言前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。 网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻">
+<meta name="twitter:image" content="http://yoursite.com/2019/01/08/多线程并发-之-AQS/2.png">
 
 
 
@@ -142,7 +147,7 @@
 
 
 
-  <title>多线程并发 之 AQS | Don't Stop</title>
+  <title>多线程并发 之 AQS（整理+转载） | Don't Stop</title>
   
 
 
@@ -286,7 +291,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">多线程并发 之 AQS</h1>
+          <h1 class="post-title" itemprop="name headline">多线程并发 之 AQS（整理+转载）</h1>
         
 
         <div class="post-meta">
@@ -359,7 +364,28 @@
       
 
       
-        
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面博客中讲的synchronized是一个隐式锁，即锁的持有与释放都是隐式的，直观上感受就是在字节码可以看到一对monitorenter、monitorexit。而这篇讲的Lock是一个显示锁，即加锁和释放都是要手动编写的。Lock的一些实现如ReetrantLock底层实现细节是依赖于AQS的。</p>
+<p>网上关于AQS的文章非常多，但是我觉得能够讲清楚的寥寥无几。下面两篇博客是无数不多的能够深入彻底的去解析AQS，所以这篇博客我只记录一下我一些看法，详细的看下面的博客。</p>
+<p><a href="https://blog.csdn.net/javazejian/article/details/75043422" target="_blank" rel="noopener">深入剖析基于并发AQS的(独占锁)重入锁(ReetrantLock)及其Condition实现原理</a></p>
+<p><a href="https://blog.csdn.net/javazejian/article/details/76167357" target="_blank" rel="noopener">剖析基于并发AQS的共享锁的实现(基于信号量Semaphore)</a></p>
+<a id="more"></a>
+<h3 id="Synchronized和Lock的区别"><a href="#Synchronized和Lock的区别" class="headerlink" title="Synchronized和Lock的区别"></a>Synchronized和Lock的区别</h3><p>你们可能会想既然实现同步方法已经有synchronized了，为什么还需要搞一个Lock出来呢？<font color="#FF0000">Lock还要我们显示的去释放锁，有可能忘了释放造成死锁</font>。主要是因为Lock在某些场景更优于synchronized。</p>
+<blockquote>
+<p>1.比如对一个只读操作是不需要同步的，但是synchronized是一个悲观锁，性能会很差，而Lock可以基于其的实现<code>ReentrantReadWriteLock</code>允许多个读线程同时访问，但不允许写线程和读线程、写线程和写线程同时访问。</p>
+<p>2.又或者一个场景如果等到锁的线程时间过久了，Lock是可以通过获得可中断锁的，而synchronized就没有中断锁。中断锁的应用可以看<a href="https://www.cnblogs.com/ChenD/p/7908427.html" target="_blank" rel="noopener">这里</a>。</p>
+</blockquote>
+<h3 id="AQS概述"><a href="#AQS概述" class="headerlink" title="AQS概述"></a>AQS概述</h3><p>AbstractQueuedSynchronizer又称为<strong>队列同步</strong>器(后面简称AQS)，它是用来构建锁或其他同步组件的基础框架，内部通过一个int类型的成员变量state来控制同步状态。比如在ReentrantLock中，state用来表示同步状态，当state=0时，则说明没有任何线程占有共享资源的锁，当state=1时，则说明有线程目前正在使用共享变量。而在Semaphore中，state虽然也是用来控制同步状态，但是其值表示为同一时间能访问共享资源的线程数量。</p>
+<p><font color="#FF0000"><strong>也就是说如Semaphore、ReentrantLock都是基于AQS的，只不过为了各自功能，所以实现上不同而已</strong></font>。</p>
+<p><img src="/2019/01/08/多线程并发-之-AQS/2.png" alt="你想输入的替代文字"></p>
+<h3 id="ReentrantLock基本原理"><a href="#ReentrantLock基本原理" class="headerlink" title="ReentrantLock基本原理"></a>ReentrantLock基本原理</h3><p>AQS同步器中维护着一个同步队列，当线程获取同步状态失败后（<font color="#FF0000"><strong>通过CAS修改state的值，并且当前持有该同步资源的不是该线程</strong></font>,详细看上面的博客），将会被封装成Node结点，加入到同步队列中并进行自旋操作，当当前线程结点的前驱结点为head时，将尝试获取同步状态，获取成功将自己设置为head结点。在释放同步状态时，则通过调用子类(ReetrantLock中的Sync内部类)的tryRelease(int releases)方法释放同步状态，释放成功则唤醒后继结点的线程。</p>
+<h3 id="Semaphore基本原理"><a href="#Semaphore基本原理" class="headerlink" title="Semaphore基本原理"></a>Semaphore基本原理</h3><p>AQS中<font color="#FF0000"><strong>通过state值来控制对共享资源访问的线程数</strong></font>，每当线程请求同步状态成功，state值将会减1，如果超过限制数量的线程将被封装共享模式的Node结点加入同步队列等待，直到其他执行线程释放同步状态，才有机会获得执行权，而每个线程执行完成任务释放同步状态后，state值将会增加1，这就是共享锁的基本实现模型。</p>
+<h3 id="CountDownLatch基本原理"><a href="#CountDownLatch基本原理" class="headerlink" title="CountDownLatch基本原理"></a>CountDownLatch基本原理</h3><p>CountDownLatch通过AQS里面的共享锁来实现的，在创建CountDownLatch时候，会传递一个参数count，该参数是锁计数器的初始状态，表示该共享锁能够被count个线程同时获取。当某个线程调用CountDownLatch对象的await方法时候，该线程会等待共享锁可获取时，才能获取共享锁继续运行，而共享锁可获取的的条件是<font color="#FF0000"><strong>state == 0</strong></font>，而锁倒数计数器的初始值为count，每当一个线程调用该CountDownLatch对象的countDown()方法时候，计数器才-1，所以必须有count个线程调用该countDown()方法后，锁计数器才为0，这个时候等待的线程才能继续运行。</p>
+<h3 id="公平锁和非公平锁"><a href="#公平锁和非公平锁" class="headerlink" title="公平锁和非公平锁"></a>公平锁和非公平锁</h3><p>在ReentrantLock和Semaphore<font color="#FF0000"><strong>都有两种实现</strong></font>，分别是公平锁和非公平锁。两者的不同在与：</p>
+<blockquote>
+<p>公平锁在线程请求到来时先会判断同步队列是否存在结点，如果存在先执行同步队列中的结点线程，当前线程将封装成node加入同步队列等待。</p>
+<p>而非公平锁呢，当线程请求到来时，不管同步队列是否存在线程结点，直接尝试获取同步状态，获取成功直接访问共享资源，但请注意在绝大多数情况下，非公平锁才是我们理想的选择，毕竟从效率上来说非公平锁总是胜于公平锁。</p>
+</blockquote>
+
       
     </div>
     
@@ -453,8 +479,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -540,6 +575,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Synchronized和Lock的区别"><span class="nav-number">2.</span> <span class="nav-text">Synchronized和Lock的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AQS概述"><span class="nav-number">3.</span> <span class="nav-text">AQS概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReentrantLock基本原理"><span class="nav-number">4.</span> <span class="nav-text">ReentrantLock基本原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Semaphore基本原理"><span class="nav-number">5.</span> <span class="nav-text">Semaphore基本原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CountDownLatch基本原理"><span class="nav-number">6.</span> <span class="nav-text">CountDownLatch基本原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#公平锁和非公平锁"><span class="nav-number">7.</span> <span class="nav-text">公平锁和非公平锁</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
