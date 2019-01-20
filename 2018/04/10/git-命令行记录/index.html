@@ -107,7 +107,10 @@
 <meta property="og:description" content="前言前一阵在使用IDEA往github上传代码，老是出现仓库上传的错误，打开.git文件夹修改config文件也没能成功。所以打算直接用命令行进行操作，这里简单的记录一下往github上传基本命令以及过程可能会遇到的问题。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/04/10/git-命令行记录/1.png">
-<meta property="og:updated_time" content="2018-11-04T07:52:23.038Z">
+<meta property="og:image" content="http://yoursite.com/2018/04/10/git-命令行记录/2.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/10/git-命令行记录/3.png">
+<meta property="og:image" content="http://yoursite.com/2018/04/10/git-命令行记录/4.png">
+<meta property="og:updated_time" content="2019-01-20T11:48:36.136Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="git 命令行记录">
 <meta name="twitter:description" content="前言前一阵在使用IDEA往github上传代码，老是出现仓库上传的错误，打开.git文件夹修改config文件也没能成功。所以打算直接用命令行进行操作，这里简单的记录一下往github上传基本命令以及过程可能会遇到的问题。">
@@ -373,19 +376,31 @@
 <p>要想学会使用git，还要明白一个概念。一个是本地仓库、一个是远程仓库。</p>
 <p><code>git commit</code>是将本地修改过的文件提交到本地库中。<code>git push</code>是将本地库中的最新信息发送给远程库。所以要想把本地的代码上传到远程仓库（GitHub），就需要先提交代码到本地仓库。</p>
 <p>使用<code>git add</code>，这个命令是在提交之前告诉git有哪些东西需要提交。把<code>README.md</code>这个文件先添加上去。当然你也可以把<code>src文件夹</code>存放源码的文件上传上去。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git add README.md</span><br></pre></td></tr></table></figure>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git add ./src</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git add README.md</span><br><span class="line">git add ./src</span><br></pre></td></tr></table></figure>
 <p>使用git commit提交到本地仓库。这个时候<code>README.md</code>和<code>src文件夹</code>都上传至本地仓库了。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git commit</span><br></pre></td></tr></table></figure>
-<p>这个时候可以使用<code>git push</code>把本地仓库上传至远程仓库了，所以这个时候你要指定你远程仓库的地址。将本地的分支与远程仓库的分支进行关联</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git remote add abc https://github.com/CallMeJiaGu/testgit.git</span><br></pre></td></tr></table></figure>
-<p>其中的<code>abc</code>是remote的名称，多数情况下是使用<code>origin</code>命名的，不过当要配置多个remote的时候，就以name来区别。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git remote add &lt;name&gt; &lt;url&gt;</span><br></pre></td></tr></table></figure>
-<p>然后使用git push把代码上传至远程仓库。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git push abc</span><br></pre></td></tr></table></figure>
+<p>这个时候可以使用<code>git push</code>把本地仓库上传至远程仓库了，所以这个时候你要指定你远程仓库的地址。将本地仓库与远程仓库的进行关联</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git remote add &lt;name&gt; &lt;url&gt;</span><br><span class="line">git remote add abc https://github.com/CallMeJiaGu/testgit.git</span><br></pre></td></tr></table></figure>
+<p>其中的<code>abc</code>是远程仓库的名称，多数情况下是使用<code>origin</code>命名的，不过当要配置多个远程仓库的时候，就以name来区别。</p>
+<p>然后使用git push把代码上传至远程仓库。<strong>要注意要指定远程仓库对应的分支</strong>，可能你的仓库只有一个master分支，但是指定一下是比较好的习惯。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git push -u &lt;remotename&gt; &lt;branch&gt;</span><br><span class="line">git push -u abc master</span><br></pre></td></tr></table></figure>
 <h3 id="配置ignore文件"><a href="#配置ignore文件" class="headerlink" title="配置ignore文件"></a>配置ignore文件</h3><p>有时候我们希望使用<code>git add ./</code>将当前文件夹下的所有东西都提交上去，但是过滤掉一些配置文件或者class文件，就可以在该文件夹新建一个<code>.gitignore</code>文件，然后写入你要过滤的文件格式。比如我过滤了.idea文件夹和以class结尾的文件。</p>
 <figure class="highlight tex"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">.idea</span><br><span class="line">*.class</span><br></pre></td></tr></table></figure>
 <p>这样上传的时候，就会自动过滤我们配置好的文件。</p>
+<hr>
+<hr>
+<h3 id="更新2019-01-20"><a href="#更新2019-01-20" class="headerlink" title="更新2019/01/20"></a>更新2019/01/20</h3><p>使用git branch <branchname>来创建本地上的分支，然后切换到创建的分支上：</branchname></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git branch jin_branch <span class="comment">#创建分支</span></span><br><span class="line">git checkout jin_branch <span class="comment">#切换分支</span></span><br></pre></td></tr></table></figure>
+<p>使用git branch查看分支的列表：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git branch <span class="comment">#查看分支列表</span></span><br></pre></td></tr></table></figure>
+<p>提交本地分支到远程的分支：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git push  &lt;remotename&gt;  &lt;branchname&gt;</span><br><span class="line">git push oringin jin_branch</span><br></pre></td></tr></table></figure>
+<p>可以看到在github上的确有新创建的分支:</p>
+<p><img src="/2018/04/10/git-命令行记录/2.png" alt="你想输入的替代文字"></p>
+<p>在这个分支上的提交代码可以选择是否合并:</p>
+<p><img src="/2018/04/10/git-命令行记录/3.png" alt="你想输入的替代文字"></p>
+<p>查看提交是否有冲突，选择将它合并</p>
+<p><img src="/2018/04/10/git-命令行记录/4.png" alt="你想输入的替代文字"></p>
 
       
     </div>
@@ -586,7 +601,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#上传过程"><span class="nav-number">2.</span> <span class="nav-text">上传过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置ignore文件"><span class="nav-number">3.</span> <span class="nav-text">配置ignore文件</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#上传过程"><span class="nav-number">2.</span> <span class="nav-text">上传过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置ignore文件"><span class="nav-number">3.</span> <span class="nav-text">配置ignore文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更新2019-01-20"><span class="nav-number">4.</span> <span class="nav-text">更新2019/01/20</span></a></li></ol></div>
             
 
           </div>
