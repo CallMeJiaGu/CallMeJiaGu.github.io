@@ -98,18 +98,20 @@
 
 
 
-<meta name="description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。 可达性分析、 引用计数法首先第一个需要明白的问题就是哪些对象需要回收，在JVM中有两种方法，分别是可达性分析以引用计数法。 引用计数法引用计数法给每一个对象配置一个引用计数器，如果有其他对象引用它，计数器就加1，当引用失效时，计数器减1，直到该对象的计数器为0为止，则">
+<meta name="description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。">
 <meta name="keywords" content="垃圾回收">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM 之 垃圾回收">
 <meta property="og:url" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。 可达性分析、 引用计数法首先第一个需要明白的问题就是哪些对象需要回收，在JVM中有两种方法，分别是可达性分析以引用计数法。 引用计数法引用计数法给每一个对象配置一个引用计数器，如果有其他对象引用它，计数器就加1，当引用失效时，计数器减1，直到该对象的计数器为0为止，则">
+<meta property="og:description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-31T03:36:11.756Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/F:/blog/source/_posts/1-1548936074017.png">
+<meta property="og:updated_time" content="2019-01-31T12:01:16.147Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM 之 垃圾回收">
-<meta name="twitter:description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。 可达性分析、 引用计数法首先第一个需要明白的问题就是哪些对象需要回收，在JVM中有两种方法，分别是可达性分析以引用计数法。 引用计数法引用计数法给每一个对象配置一个引用计数器，如果有其他对象引用它，计数器就加1，当引用失效时，计数器减1，直到该对象的计数器为0为止，则">
+<meta name="twitter:description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。">
+<meta name="twitter:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/F:/blog/source/_posts/1-1548936074017.png">
 
 
 
@@ -363,6 +365,7 @@
 
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。</p>
+<a id="more"></a>
 <h3 id="可达性分析、-引用计数法"><a href="#可达性分析、-引用计数法" class="headerlink" title="可达性分析、 引用计数法"></a>可达性分析、 引用计数法</h3><p>首先第一个需要明白的问题就是哪些对象需要回收，在JVM中有两种方法，分别是可达性分析以引用计数法。</p>
 <h4 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h4><p>引用计数法给每一个对象配置一个引用计数器，如果有其他对象引用它，计数器就加1，当引用失效时，计数器减1，直到该对象的计数器为0为止，则可以清理。</p>
 <p>引用计数法效率很高，但是存在些许问题，如不能解决<strong>循环引用问题、计数器需要占用对位</strong>。为了更好的理解引用计数法，先来看下面的Demo：</p>
@@ -376,6 +379,9 @@
 <p><strong>谈一下我的看法</strong>，<font color="#FF0000"><strong>首先GCRoots是引用的对象，并不是引用指针</strong></font>。那么它是如何来解决循环引用的问题呢？看下面的解析：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        GcObject obj1 = <span class="keyword">new</span> GcObject(); <span class="comment">//Step 1</span></span><br><span class="line">        GcObject obj2 = <span class="keyword">new</span> GcObject(); <span class="comment">//Step 2</span></span><br><span class="line">    </span><br><span class="line">        obj1.instance = obj2; <span class="comment">//Step 3</span></span><br><span class="line">        obj2.instance = obj1; <span class="comment">//Step 4</span></span><br><span class="line">    </span><br><span class="line">        obj1 = <span class="keyword">null</span>; <span class="comment">//Step 5</span></span><br><span class="line">        obj2 = <span class="keyword">null</span>; <span class="comment">//Step 6</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GcObject</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> Object instance = <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>首先GC Roots是还存在引用的<strong>对象</strong>，step5,step6会导致<strong>栈帧中的本地变量表</strong>的引用失效，所以这个时候<code>obj1实例</code>,<code>obj2实例</code>不是能够引用到的对象，所以是不能够作为GC Roots的，这两个对象是会被回收的。</p>
+<blockquote>
+<p>无论是可达性还是引用计数器都涉及到了引用的概念，为了使得对象回收更加的合理性，引入了四种引用来帮助垃圾回收。</p>
+</blockquote>
 <h3 id="四种引用"><a href="#四种引用" class="headerlink" title="四种引用"></a>四种引用</h3><h4 id="强引用"><a href="#强引用" class="headerlink" title="强引用"></a><strong>强引用</strong></h4><p>我的疑惑：强引用对象不会被回收吗？<code>A a = new A()</code>  。经常看到有人是这么描述强引用的：就算内存抛出异常。也不会回收强引用对象。这么说是没错，但是有一个前提就是<font color="#FF0000"><strong>强引用还存在的时候</strong></font>。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span></span>&#123;</span><br><span class="line">	Object obj_0 = <span class="keyword">new</span> Object(); <span class="comment">//强引用不是不会回收的嘛？</span></span><br><span class="line">	Object obj_1 = <span class="keyword">new</span> Object();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>原本的的看法是obj_0是不会被回收的，因为周志明的书上写强引用是不会被回收的，<font color="#FF0000">但是注意只有在强引用还存在的情况下才不会被回收！</font>如果这个帧栈结束后，那么帧栈中指向堆中对象的引用就会被回收，那么强引用就不存在了，所以方法结束后，该对象会被回收。</p>
@@ -386,8 +392,36 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Bitmap bitmap =  <span class="keyword">new</span> Img(...);</span><br><span class="line">map.put(bitmap.getName(),bitmap);</span><br><span class="line"><span class="comment">/*当你想回收这个bitmap对象，手动将bitmap = null 是没有用的</span></span><br><span class="line"><span class="comment"> *map中还存在着对这个bitmap强引用的key，所以是不会被回收的</span></span><br><span class="line"><span class="comment"> *除非你手动remove，但是这个过程嵌入性太大，不合适。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">bitmap = <span class="keyword">null</span> ;</span><br></pre></td></tr></table></figure>
 <p>一种做法是可以使用<strong>weakHashMap</strong>，这个map中的key是一个指向bitmap对象的软引用指针。所以当你将<code>bitmap = null</code>之后，key指向bitmap就是一个软引用了，当一个对象<font color="#FF0000"><strong>只有</strong></font>软引用的时候，它就会在下次GC的时候回收。</p>
 <h4 id="虚引用"><a href="#虚引用" class="headerlink" title="虚引用"></a><strong>虚引用</strong></h4><p>对象销毁前的一些操作，比如说资源释放等。<code>Object.finalize()</code>虽然也可以做这类动作，但是这个方式即不安全又低效。</p>
-<h3 id="垃圾回收算法"><a href="#垃圾回收算法" class="headerlink" title="垃圾回收算法"></a>垃圾回收算法</h3><p>回收的算法</p>
-<h3 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h3><p>回收的实现</p>
+<blockquote>
+<p>介绍完引用的概念，再来介绍一下垃圾对象回收都有哪些策略。</p>
+</blockquote>
+<h3 id="垃圾回收算法"><a href="#垃圾回收算法" class="headerlink" title="垃圾回收算法"></a>垃圾回收算法</h3><p>常用的GC算法有清除、复制、整理、分代收集算法。</p>
+<h4 id="标记-清除"><a href="#标记-清除" class="headerlink" title="标记-清除"></a>标记-清除</h4><p>最基础的垃圾收集算法，算法分为“标记”和“清除”两个阶段：首先标记出所有需要回收的对象，在标记完成之后统一回收掉所有被标记的对象。</p>
+<p><font color="#FF0000"><strong>两个不足点</strong></font>：效率低下以及标记清除之后会产生大量的不连续的内存碎片。（空间碎片太多会导致当程序需要为较大对象分配内存时无法找到足够的连续内存而不得不提前触发另一次垃圾收集动作）</p>
+<h4 id="复制算法"><a href="#复制算法" class="headerlink" title="复制算法"></a>复制算法</h4><p>将可用内存按容量分成大小相等的两块，每次只使用其中一块，当这块内存使用完了，就将还存活的对象复制到另一块内存上去，然后把使用过的内存空间一次清理掉。</p>
+<p><font color="#FF0000"><strong>不足点</strong></font>：可使用的内存降为原来一半。</p>
+<h4 id="标记-整理"><a href="#标记-整理" class="headerlink" title="标记-整理"></a>标记-整理</h4><p><strong>标记-整理算法在标记-清除算法基础上做了改进</strong>。</p>
+<h4 id="分代收集算法"><a href="#分代收集算法" class="headerlink" title="分代收集算法"></a>分代收集算法</h4><p>根据内存中对象的存活周期不同，将内存划分为几块，java的虚拟机中一般把内存划分为新生代和年老代，当新创建对象时一般在新生代中分配内存空间，当新生代垃圾收集器回收几次之后仍然存活的对象会被移动到年老代内存中，当大对象在新生代中无法找到足够的连续内存时也直接在年老代中创建。</p>
+<blockquote>
+<p>如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。</p>
+</blockquote>
+<h3 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h3><p>常用的垃圾收集器有如下几种：</p>
+<ul>
+<li><p><strong>Serial</strong> 收集器是最基本、发展历史最悠久的收集器。是单线程的收集器。</p>
+</li>
+<li><p><strong>ParNew</strong> 收集器其实就是Serial收集器的多线程版本</p>
+</li>
+<li><p><strong>Parallel Scavenge </strong>收集器是一个新生代收集器，它也是使用复制算法的收集器，与ParNew一样都是多线程收集器，区别在于它<font color="#FF0000"><strong>对吞吐量是可控的</strong></font>。</p>
+</li>
+<li><p><strong>Serial Old</strong> 是Serial收集器的老年代版本，它同样是一个单线程收集器，使用标记整理算法。</p>
+</li>
+<li><p><strong>Parallel Old</strong> 是Parallel Scavenge收集器的老年代版本，使用多线程和“标记-整理”算法。这个收集器在1.6中才开始提供。</p>
+</li>
+<li><strong>CMS </strong>收集器是一种以获取<font color="#FF0000"><strong>最短回收停顿时间为目标</strong></font>的收集器。</li>
+</ul>
+<p><img src="/2019/01/23/JVM-之-垃圾回收/F:/blog\source\_posts\1-1548936074017.png" alt="你想输入的替代文字"></p>
+<p>年轻代使用的：</p>
+<p>老年代使用的：</p>
 
       
     </div>
@@ -588,7 +622,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可达性分析、-引用计数法"><span class="nav-number">2.</span> <span class="nav-text">可达性分析、 引用计数法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引用计数法"><span class="nav-number">2.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可达性分析"><span class="nav-number">2.2.</span> <span class="nav-text">可达性分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四种引用"><span class="nav-number">3.</span> <span class="nav-text">四种引用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#强引用"><span class="nav-number">3.1.</span> <span class="nav-text">强引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#软引用"><span class="nav-number">3.2.</span> <span class="nav-text">软引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#弱引用"><span class="nav-number">3.3.</span> <span class="nav-text">弱引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚引用"><span class="nav-number">3.4.</span> <span class="nav-text">虚引用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾回收算法"><span class="nav-number">4.</span> <span class="nav-text">垃圾回收算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">5.</span> <span class="nav-text">垃圾收集器</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可达性分析、-引用计数法"><span class="nav-number">2.</span> <span class="nav-text">可达性分析、 引用计数法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引用计数法"><span class="nav-number">2.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可达性分析"><span class="nav-number">2.2.</span> <span class="nav-text">可达性分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四种引用"><span class="nav-number">3.</span> <span class="nav-text">四种引用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#强引用"><span class="nav-number">3.1.</span> <span class="nav-text">强引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#软引用"><span class="nav-number">3.2.</span> <span class="nav-text">软引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#弱引用"><span class="nav-number">3.3.</span> <span class="nav-text">弱引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚引用"><span class="nav-number">3.4.</span> <span class="nav-text">虚引用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾回收算法"><span class="nav-number">4.</span> <span class="nav-text">垃圾回收算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-清除"><span class="nav-number">4.1.</span> <span class="nav-text">标记-清除</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制算法"><span class="nav-number">4.2.</span> <span class="nav-text">复制算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-整理"><span class="nav-number">4.3.</span> <span class="nav-text">标记-整理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分代收集算法"><span class="nav-number">4.4.</span> <span class="nav-text">分代收集算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">5.</span> <span class="nav-text">垃圾收集器</span></a></li></ol></div>
             
 
           </div>
