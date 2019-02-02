@@ -106,12 +106,12 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/F:/blog/source/_posts/1-1548936074017.png">
-<meta property="og:updated_time" content="2019-01-31T12:01:16.147Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/1.png">
+<meta property="og:updated_time" content="2019-02-02T05:31:23.526Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM 之 垃圾回收">
 <meta name="twitter:description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。">
-<meta name="twitter:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/F:/blog/source/_posts/1-1548936074017.png">
+<meta name="twitter:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/1.png">
 
 
 
@@ -405,23 +405,58 @@
 <blockquote>
 <p>如果说收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。</p>
 </blockquote>
-<h3 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h3><p>常用的垃圾收集器有如下几种：</p>
-<ul>
-<li><p><strong>Serial</strong> 收集器是最基本、发展历史最悠久的收集器。是单线程的收集器。</p>
-</li>
-<li><p><strong>ParNew</strong> 收集器其实就是Serial收集器的多线程版本</p>
-</li>
-<li><p><strong>Parallel Scavenge </strong>收集器是一个新生代收集器，它也是使用复制算法的收集器，与ParNew一样都是多线程收集器，区别在于它<font color="#FF0000"><strong>对吞吐量是可控的</strong></font>。</p>
-</li>
-<li><p><strong>Serial Old</strong> 是Serial收集器的老年代版本，它同样是一个单线程收集器，使用标记整理算法。</p>
-</li>
-<li><p><strong>Parallel Old</strong> 是Parallel Scavenge收集器的老年代版本，使用多线程和“标记-整理”算法。这个收集器在1.6中才开始提供。</p>
-</li>
-<li><strong>CMS </strong>收集器是一种以获取<font color="#FF0000"><strong>最短回收停顿时间为目标</strong></font>的收集器。</li>
+<h3 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h3><p>常用的垃圾收集器有如下几种：（下图每一条连线表示他们可以组合）</p>
+<p><img src="/2019/01/23/JVM-之-垃圾回收/1.png" alt="你想输入的替代文字"></p>
+<h4 id="年轻代使用的收集器"><a href="#年轻代使用的收集器" class="headerlink" title="年轻代使用的收集器"></a>年轻代使用的收集器</h4><ul>
+<li><strong>Serial</strong> 收集器是最基本、发展历史最悠久的收集器。是单线程的收集器。（<strong>复制算法</strong>）</li>
+<li><strong>ParNew</strong> 收集器其实就是Serial收集器的多线程版本。（<strong>复制算法</strong>）</li>
+<li><strong>Parallel Scavenge </strong>收集器是一个新生代收集器，与ParNew一样都是多线程收集器，区别在于它<font color="#FF0000"><strong>对吞吐量是可控的</strong></font>。（<strong>复制算法</strong>）</li>
 </ul>
-<p><img src="/2019/01/23/JVM-之-垃圾回收/F:/blog\source\_posts\1-1548936074017.png" alt="你想输入的替代文字"></p>
-<p>年轻代使用的：</p>
-<p>老年代使用的：</p>
+<blockquote>
+<p>上面三个是<strong>在年轻代使用的垃圾收集器</strong>，因为年轻代分为了Eden和S1,S2，而且大多数分配在年轻代的对象只有小部分会存活下来，所以可以将Eden和S1复制到S2，所以<font color="#FF0000"><strong>都采用的了复制算法</strong></font>。</p>
+</blockquote>
+<h4 id="老年代使用的收集器"><a href="#老年代使用的收集器" class="headerlink" title="老年代使用的收集器"></a>老年代使用的收集器</h4><ul>
+<li><strong>Serial Old</strong> 是Serial收集器的老年代版本，它同样是一个单线程收集器。（<strong>标记整理算法</strong>）</li>
+<li><strong>Parallel Old</strong> 是Parallel Scavenge收集器的老年代版本，使用多线程和“标记-整理”算法。这个收集器在1.6中才开始提供。（<strong>标记整理算法</strong>）</li>
+</ul>
+<blockquote>
+<p>说一下我的看法：为什么在老年代中不采用复制算法呢？<strong>第一</strong>它没有具备新生代的多个堆区的条件，s1,s2。如果要采用就需要把老年代划分成两个相等大小的，比较浪费空间。<strong>第二</strong>老年代大多数都是大对象，采用复制算法比较费时。所以它们采用了标记整理算法。</p>
+</blockquote>
+<ul>
+<li><strong>CMS </strong>收集器是一种以获取<font color="#FF0000"><strong>最短回收停顿时间为目标</strong></font>的收集器。（<strong>标记-清除</strong>）</li>
+</ul>
+<p>从名字（包含“Mark Sweep”）上就可以看出CMS收集器是基于“标记-清除”算法实现的。具体回收过程如下：</p>
+<blockquote>
+<p>初始标记（CMS initial mark）<br>并发标记（CMS concurrent mark）<br>重新标记（CMS remark）<br>并发清除（CMS concurrent sweep）</p>
+<p>其中<strong>初始标记、重新标记这两个步骤仍然需要“Stop The World”</strong>。初始标记仅仅只是标记一下GC Roots能直接关联到的对象，速度很快，并发标记阶段就是进行GC Roots Tracing的过程，而重新标记阶段则是为了修正并发标记期间，因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间一般会比初始标记阶段稍长一些，但远比并发标记的时间短。</p>
+</blockquote>
+<p>我的第一个疑惑就是：<font color="#FF0000"><strong>为什么CMS不像上诉两个收集器一样采用标记整理算法呢</strong></font>？</p>
+<blockquote>
+<p>我觉得需要从CMS的目标去解释，它的目标是获取最短的停顿时间，标记整理算法还需要一个整理的过程，使得它的回收速度变慢。</p>
+</blockquote>
+<p>我的第二个疑惑：<font color="#FF0000"><strong>CMS目标是最短回收停顿时间，这个Parallel的目标可控的吞吐量有什么区别呢</strong></font>？</p>
+<blockquote>
+<p>首先需要明白Parallel的吞吐量是怎么来的：<br>$$<br>吞吐量=\frac{运行用户代码时间}{运行用户代码时间+垃圾收集时间}<br>$$</p>
+</blockquote>
+<blockquote>
+<p>CMS是为了减少垃圾回收时间的这类应用尤其重视服务的响应速度，希望系统停顿时间最短，以给用户带来较好的体验。而GC的<font color="#FF0000">停顿时间缩短是以牺牲吞吐量和新生代空间换来的</font>。系统把新生代调小一点：原来的500MB的新生代空间，每10秒收集一次，每次停顿100毫秒。现在变成了300MB，每5秒收集一次，每次停顿时间70毫秒。每次停顿时间是减少了，但是整体的吞吐量却下降了。</p>
+</blockquote>
+<p>我的第三个疑惑：<font color="#FF0000"><strong>CMS的和Parallel的应用场景</strong></font>？</p>
+<blockquote>
+<p> Parallel是可控吞吐量的，也就是吞吐量越高CPU执行时间程序的代码的时间就会越长，根据这个特性Parallel比较适用于需要尽快完成程序的任务。</p>
+<p> CMS更实用于和用户交互比较频繁的，因为它的停顿时间短，所以用户体验会比较好。</p>
+</blockquote>
+<p>我的第四个疑惑：<font color="#FF0000"><strong>CMS的后备预案是什么</strong></font>？</p>
+<blockquote>
+<p>这个需要从CMS的一个不足点说起，CMS因为有一个并发清理的阶段，所以在清理的时候也会产生垃圾，所以不能在老年代满了再去回收，一般默认是在垃圾为堆大小的68%的时候才去回收。如果在回收的时候，预留的内存不够用户使用，则会出现“Concurrent Mode Failure”，虚拟机就会采用一次后备预案启用serial Old对老年代进行清理。</p>
+</blockquote>
+<ul>
+<li><strong>G1收集器（Garbage-First）</strong>：是当今收集器技术发展的最前沿的成果之一，G1是一款面向服务器端应用的垃圾收集器。</li>
+</ul>
+<blockquote>
+<p>于CMS一样它的关注点在于降低停顿时间，不过G1一个大优势是<strong>可预测的停顿</strong>。G1可以指定一段时间，垃圾消耗不会超过这个时间。</p>
+<p>G1大致的做法是将堆化分成了若干个Region，在每次回收的时候，会优先回收价值最大的Region。保证G1在有限的时间内可以尽可能高的收集效率。</p>
+</blockquote>
 
       
     </div>
@@ -622,7 +657,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可达性分析、-引用计数法"><span class="nav-number">2.</span> <span class="nav-text">可达性分析、 引用计数法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引用计数法"><span class="nav-number">2.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可达性分析"><span class="nav-number">2.2.</span> <span class="nav-text">可达性分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四种引用"><span class="nav-number">3.</span> <span class="nav-text">四种引用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#强引用"><span class="nav-number">3.1.</span> <span class="nav-text">强引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#软引用"><span class="nav-number">3.2.</span> <span class="nav-text">软引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#弱引用"><span class="nav-number">3.3.</span> <span class="nav-text">弱引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚引用"><span class="nav-number">3.4.</span> <span class="nav-text">虚引用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾回收算法"><span class="nav-number">4.</span> <span class="nav-text">垃圾回收算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-清除"><span class="nav-number">4.1.</span> <span class="nav-text">标记-清除</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制算法"><span class="nav-number">4.2.</span> <span class="nav-text">复制算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-整理"><span class="nav-number">4.3.</span> <span class="nav-text">标记-整理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分代收集算法"><span class="nav-number">4.4.</span> <span class="nav-text">分代收集算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">5.</span> <span class="nav-text">垃圾收集器</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可达性分析、-引用计数法"><span class="nav-number">2.</span> <span class="nav-text">可达性分析、 引用计数法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引用计数法"><span class="nav-number">2.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可达性分析"><span class="nav-number">2.2.</span> <span class="nav-text">可达性分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四种引用"><span class="nav-number">3.</span> <span class="nav-text">四种引用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#强引用"><span class="nav-number">3.1.</span> <span class="nav-text">强引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#软引用"><span class="nav-number">3.2.</span> <span class="nav-text">软引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#弱引用"><span class="nav-number">3.3.</span> <span class="nav-text">弱引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚引用"><span class="nav-number">3.4.</span> <span class="nav-text">虚引用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾回收算法"><span class="nav-number">4.</span> <span class="nav-text">垃圾回收算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-清除"><span class="nav-number">4.1.</span> <span class="nav-text">标记-清除</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制算法"><span class="nav-number">4.2.</span> <span class="nav-text">复制算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-整理"><span class="nav-number">4.3.</span> <span class="nav-text">标记-整理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分代收集算法"><span class="nav-number">4.4.</span> <span class="nav-text">分代收集算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">5.</span> <span class="nav-text">垃圾收集器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#年轻代使用的收集器"><span class="nav-number">5.1.</span> <span class="nav-text">年轻代使用的收集器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#老年代使用的收集器"><span class="nav-number">5.2.</span> <span class="nav-text">老年代使用的收集器</span></a></li></ol></li></ol></div>
             
 
           </div>
