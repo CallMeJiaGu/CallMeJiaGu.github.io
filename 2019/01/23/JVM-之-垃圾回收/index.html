@@ -107,7 +107,8 @@
 <meta property="og:description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/1.png">
-<meta property="og:updated_time" content="2019-02-02T05:31:23.526Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/2.png">
+<meta property="og:updated_time" content="2019-02-02T05:43:08.604Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM 之 垃圾回收">
 <meta name="twitter:description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。">
@@ -436,8 +437,9 @@
 </blockquote>
 <p>我的第二个疑惑：<font color="#FF0000"><strong>CMS目标是最短回收停顿时间，这个Parallel的目标可控的吞吐量有什么区别呢</strong></font>？</p>
 <blockquote>
-<p>首先需要明白Parallel的吞吐量是怎么来的：<br>$$<br>吞吐量=\frac{运行用户代码时间}{运行用户代码时间+垃圾收集时间}<br>$$</p>
+<p>首先需要明白Parallel的吞吐量是怎么来的： </p>
 </blockquote>
+<p><img src="/2019/01/23/JVM-之-垃圾回收/2.png" alt="你想输入的替代文字"></p>
 <blockquote>
 <p>CMS是为了减少垃圾回收时间的这类应用尤其重视服务的响应速度，希望系统停顿时间最短，以给用户带来较好的体验。而GC的<font color="#FF0000">停顿时间缩短是以牺牲吞吐量和新生代空间换来的</font>。系统把新生代调小一点：原来的500MB的新生代空间，每10秒收集一次，每次停顿100毫秒。现在变成了300MB，每5秒收集一次，每次停顿时间70毫秒。每次停顿时间是减少了，但是整体的吞吐量却下降了。</p>
 </blockquote>
