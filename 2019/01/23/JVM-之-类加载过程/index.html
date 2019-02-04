@@ -98,15 +98,18 @@
 
 
 
+<meta name="description" content="前言这篇主要来记录 JVM 的类加载过程以及双亲委派机制。多数网上能找到的我就不复述了，侧重记录我的疑惑以及了解。">
 <meta name="keywords" content="class Loader">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM 之 类加载过程">
 <meta property="og:url" content="http://yoursite.com/2019/01/23/JVM-之-类加载过程/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言这篇主要来记录 JVM 的类加载过程以及双亲委派机制。多数网上能找到的我就不复述了，侧重记录我的疑惑以及了解。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-23T01:53:32.411Z">
+<meta property="og:updated_time" content="2019-02-04T03:31:03.758Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM 之 类加载过程">
+<meta name="twitter:description" content="前言这篇主要来记录 JVM 的类加载过程以及双亲委派机制。多数网上能找到的我就不复述了，侧重记录我的疑惑以及了解。">
 
 
 
@@ -359,7 +362,18 @@
       
 
       
-        
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>这篇主要来记录 JVM 的类加载过程以及双亲委派机制。多数网上能找到的我就不复述了，侧重记录我的疑惑以及了解。</p>
+<a id="more"></a>
+<h3 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h3><p>加载 ： 将类加载到虚拟机中。 </p>
+<p>验证 ： 验证Class 类的对象头，如 <code>Caffe baby</code> ，类名是否符合标准格式。</p>
+<p>准备 ： 给一些常量分配初始值。 </p>
+<p>解析 ： 这里算是一个映射，将方法名于常量池中的方法映射。</p>
+<p>初始化： 执行类中的静态块和静态变量的赋值。</p>
+<h3 id="双亲委派机制"><a href="#双亲委派机制" class="headerlink" title="双亲委派机制"></a>双亲委派机制</h3><p>bootstrap、启动类加载器、扩展类加载器、</p>
+<p>自己定义了String类可以被加载进来吗？这个需要看你自定义的类所在的包是哪里了。</p>
+<p>如果你的String类是在Test.* 下面的没问题。</p>
+<p>如果是在java.lang.String 就会报错。</p>
+<h4 id="为什么需要双亲委派机制"><a href="#为什么需要双亲委派机制" class="headerlink" title="为什么需要双亲委派机制"></a>为什么需要双亲委派机制</h4><h4 id="原理是什么？"><a href="#原理是什么？" class="headerlink" title="原理是什么？"></a>原理是什么？</h4><h3 id="如何破解双亲委派机制"><a href="#如何破解双亲委派机制" class="headerlink" title="如何破解双亲委派机制"></a>如何破解双亲委派机制</h3>
       
     </div>
     
@@ -453,8 +467,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -540,6 +563,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类加载过程"><span class="nav-number">2.</span> <span class="nav-text">类加载过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双亲委派机制"><span class="nav-number">3.</span> <span class="nav-text">双亲委派机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#为什么需要双亲委派机制"><span class="nav-number">3.1.</span> <span class="nav-text">为什么需要双亲委派机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#原理是什么？"><span class="nav-number">3.2.</span> <span class="nav-text">原理是什么？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何破解双亲委派机制"><span class="nav-number">4.</span> <span class="nav-text">如何破解双亲委派机制</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
