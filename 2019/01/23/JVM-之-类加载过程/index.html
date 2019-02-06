@@ -106,7 +106,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言这篇主要来记录 JVM 的类加载过程以及双亲委派机制。多数网上能找到的我就不复述了，侧重记录我的疑惑以及了解。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-02-04T03:31:03.758Z">
+<meta property="og:updated_time" content="2019-02-06T05:10:16.923Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM 之 类加载过程">
 <meta name="twitter:description" content="前言这篇主要来记录 JVM 的类加载过程以及双亲委派机制。多数网上能找到的我就不复述了，侧重记录我的疑惑以及了解。">
@@ -364,16 +364,41 @@
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>这篇主要来记录 JVM 的类加载过程以及双亲委派机制。多数网上能找到的我就不复述了，侧重记录我的疑惑以及了解。</p>
 <a id="more"></a>
-<h3 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h3><p>加载 ： 将类加载到虚拟机中。 </p>
-<p>验证 ： 验证Class 类的对象头，如 <code>Caffe baby</code> ，类名是否符合标准格式。</p>
-<p>准备 ： 给一些常量分配初始值。 </p>
-<p>解析 ： 这里算是一个映射，将方法名于常量池中的方法映射。</p>
-<p>初始化： 执行类中的静态块和静态变量的赋值。</p>
-<h3 id="双亲委派机制"><a href="#双亲委派机制" class="headerlink" title="双亲委派机制"></a>双亲委派机制</h3><p>bootstrap、启动类加载器、扩展类加载器、</p>
-<p>自己定义了String类可以被加载进来吗？这个需要看你自定义的类所在的包是哪里了。</p>
-<p>如果你的String类是在Test.* 下面的没问题。</p>
-<p>如果是在java.lang.String 就会报错。</p>
-<h4 id="为什么需要双亲委派机制"><a href="#为什么需要双亲委派机制" class="headerlink" title="为什么需要双亲委派机制"></a>为什么需要双亲委派机制</h4><h4 id="原理是什么？"><a href="#原理是什么？" class="headerlink" title="原理是什么？"></a>原理是什么？</h4><h3 id="如何破解双亲委派机制"><a href="#如何破解双亲委派机制" class="headerlink" title="如何破解双亲委派机制"></a>如何破解双亲委派机制</h3>
+<h3 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h3><p><strong>加载</strong> ： 将类加载到虚拟机中。这个<code>加载</code> 和 <code>类加载</code> 需要注意区别 ，加载只是类加载的一个过程而已。 </p>
+<p><strong>验证</strong> ： 这一阶段的目的是为了确保 Class 文件字节流中包含的信息符合当前虚拟机的要求，不会危害到虚拟的安全。验证大概分为三部分：</p>
+<blockquote>
+<ol>
+<li><strong>文件格式验证</strong>。验证Class 类的字节流是否以魔术开头 <code>Caffe babe</code> 、版本号是否在当前虚拟机处理的范围。</li>
+<li><strong>元数据验证</strong>。验证加载的类是否有父类，父类是否被final修饰(修饰不能被继承)，如果父类是否为抽象类等，如果是需要实现抽象的方法。</li>
+<li><strong>字节码验证</strong>。来确保被加载的类方体体不会威胁到虚拟机。</li>
+</ol>
+</blockquote>
+<p><strong>准备</strong> ： 给<font color="#FF0000"><strong>类变量</strong></font>分配内存并且赋予初始值。注意在准备阶段的初始值为零值。如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> value = <span class="number">123</span>;</span><br></pre></td></tr></table></figure>
+<p>在准备阶段后value被附上了初始值（零值）0，只有在<strong>初始化阶段</strong> value 才赋予123。</p>
+<p><strong>解析</strong> ： 这里算是一个映射，将位于常量池的符号引用转变为直接引用。</p>
+<blockquote>
+<p>符合引用：是一组以符号来描述引用的目标。和内存布局是无关的。</p>
+<p>直接引用：可以理解为指向目标的指针、相对偏移量。和内存布局是相关的。</p>
+</blockquote>
+<p><strong>初始化</strong>： 注意在准备阶段的时候，已经为类变量赋上一次<strong>系统要求的初始值</strong>，<font color="#FF0000"><strong>这些动作都是虚拟机主导和控制的，到了初始化阶段</strong></font>，虚拟机才执行Java程序代码，主要是执行类中的静态块以及静态变量的赋值操作。</p>
+<h3 id="双亲委派机制"><a href="#双亲委派机制" class="headerlink" title="双亲委派机制"></a>双亲委派机制</h3><p>在上述类加载过程中的第一步<code>加载</code>将类加载到虚拟机是由类加载器来执行的。类的加载器大致有如下：<strong>启动类加载器</strong>（Bootstrap ClassLoader）、<strong>扩展类加载器</strong>（Extension ClassLoader）、<strong>应用类加载器</strong>（Application ClassLoader）。它们之间采用了双亲委派机制互相配合。</p>
+<blockquote>
+<p>1.启动类加载器BootstrapClassLoader:</p>
+<p>是嵌在JVM内核中的加载器，该加载器是用C++语言写的，主要负载加载JAVA_HOME/lib下的类库，启动类加载器无法被应用程序直接使用。</p>
+<p>2.扩展类加载器Extension ClassLoader：</p>
+<p>该加载器器是用JAVA编写，且它的父类加载器是Bootstrap，是由sun.misc.Launcher$ExtClassLoader实现的，主要加载JAVA_HOME/lib/ext目录中的类库。开发者可以这几使用扩展类加载器。</p>
+<p>3.统类加载器App ClassLoader：</p>
+<p>系统类加载器，也称为应用程序类加载器，负责加载应用程序classpath目录下的所有jar和class文件。它的父加载器为Ext ClassLoader。</p>
+</blockquote>
+<p>当虚拟机接受到一个类的加载请求时，它将这个加载请求委派给父类加载器进行加载，只有当父类加载器自己无法完成加载请求时，子类加载器才会尝试自己加载。</p>
+<h4 id="为什么需要双亲委派机制"><a href="#为什么需要双亲委派机制" class="headerlink" title="为什么需要双亲委派机制"></a>为什么需要双亲委派机制</h4><p>那么系统为什么要采用这个机制呢？都让一个加载器来加载不行吗？</p>
+<p><strong>1.避免重复加载</strong>。当父亲已经加载了该类的时候，就没有必要子ClassLoader再加载一次。<br><strong>2.安全性</strong>。如果不使用这种委托模式，那我们就可以随时使用自定义的String来动态替代java核心api中定义类型，这样会存在非常大的安全隐患。</p>
+<h4 id="可否实现自己的-String-类"><a href="#可否实现自己的-String-类" class="headerlink" title="可否实现自己的 String 类"></a>可否实现自己的 String 类</h4><p>看到网上有一道面试题：自己定义了String类可以被加载进来吗？</p>
+<p>这个需要看你自定义的类所在的包是哪里了。<font color="#FF0000"><strong>如果你的String类是在自定义的包下</strong></font>，是没问题的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> test;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by jintx on 2019/2/4.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">String</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"hello"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(java.lang.String args[])</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    String string = <span class="keyword">new</span> String();</span><br><span class="line">    string.sayHello();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果是在String 创建在 java.lang下 就会报错。</p>
+<h3 id="如何破解双亲委派机制"><a href="#如何破解双亲委派机制" class="headerlink" title="如何破解双亲委派机制"></a>如何破解双亲委派机制</h3>
       
     </div>
     
@@ -573,7 +598,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类加载过程"><span class="nav-number">2.</span> <span class="nav-text">类加载过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双亲委派机制"><span class="nav-number">3.</span> <span class="nav-text">双亲委派机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#为什么需要双亲委派机制"><span class="nav-number">3.1.</span> <span class="nav-text">为什么需要双亲委派机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#原理是什么？"><span class="nav-number">3.2.</span> <span class="nav-text">原理是什么？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何破解双亲委派机制"><span class="nav-number">4.</span> <span class="nav-text">如何破解双亲委派机制</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类加载过程"><span class="nav-number">2.</span> <span class="nav-text">类加载过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双亲委派机制"><span class="nav-number">3.</span> <span class="nav-text">双亲委派机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#为什么需要双亲委派机制"><span class="nav-number">3.1.</span> <span class="nav-text">为什么需要双亲委派机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可否实现自己的-String-类"><span class="nav-number">3.2.</span> <span class="nav-text">可否实现自己的 String 类</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何破解双亲委派机制"><span class="nav-number">4.</span> <span class="nav-text">如何破解双亲委派机制</span></a></li></ol></div>
             
 
           </div>
