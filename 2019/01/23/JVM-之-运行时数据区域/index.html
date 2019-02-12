@@ -98,15 +98,20 @@
 
 
 
+<meta name="description" content="前言为了方便记忆回顾，在这里记录一下 JVM 运行时数据区域的一些知识点。">
 <meta name="keywords" content="JVM">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM 之 运行时数据区域">
 <meta property="og:url" content="http://yoursite.com/2019/01/23/JVM-之-运行时数据区域/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言为了方便记忆回顾，在这里记录一下 JVM 运行时数据区域的一些知识点。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-23T01:53:48.350Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-运行时数据区域/1.png">
+<meta property="og:updated_time" content="2019-02-12T03:57:35.251Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM 之 运行时数据区域">
+<meta name="twitter:description" content="前言为了方便记忆回顾，在这里记录一下 JVM 运行时数据区域的一些知识点。">
+<meta name="twitter:image" content="http://yoursite.com/2019/01/23/JVM-之-运行时数据区域/1.png">
 
 
 
@@ -359,7 +364,42 @@
       
 
       
-        
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>为了方便记忆回顾，在这里记录一下 JVM 运行时数据区域的一些知识点。</p>
+<a id="more"></a>
+<h3 id="运行时数据区域"><a href="#运行时数据区域" class="headerlink" title="运行时数据区域"></a>运行时数据区域</h3><p><img src="/2019/01/23/JVM-之-运行时数据区域/1.png" alt="你想输入的替代文字"></p>
+<p><strong>堆</strong></p>
+<blockquote>
+<p>堆内存是 JVM 所有线程共享的部分，在虚拟机启动的时候就已经创建。所有的<strong>对象</strong>和<strong>数组</strong>都在堆上进行分配。这部分空间可通过 GC 进行回收。</p>
+</blockquote>
+<p><strong>虚拟机栈</strong></p>
+<blockquote>
+<p>每个线程有一个私有的栈，随着线程的创建而创建。栈里面存着的是一种叫“栈帧”的东西，每个方法会创建一个栈帧，栈帧中存放了局部变量表（基本数据类型和对象引用）、操作数栈、方法出口等信息。</p>
+</blockquote>
+<p><strong>本地方法栈</strong></p>
+<blockquote>
+<p>这部分主要与虚拟机用到的 Native 方法相关。比如一个IO操作，最后肯定是会调用到Native的方法的，像字节码是不能直接调用到内核程序的，这里的 Native 的实现可以是C或者C++。</p>
+</blockquote>
+<p><strong>方法区</strong></p>
+<blockquote>
+<p>主要用于存储类的信息、常量池、方法数据、方法代码等，这里的方法区是JVM的一种规范，经常看到永久代或者元空间是其的某种实现。两种会在下面讨论区别。</p>
+</blockquote>
+<p><strong>PC 寄存器</strong></p>
+<blockquote>
+<p>每个线程都有自己的程序计数器，该寄存器中保存当前执行指令的地址。</p>
+</blockquote>
+<h3 id="永久代和元空间"><a href="#永久代和元空间" class="headerlink" title="永久代和元空间"></a>永久代和元空间</h3><p><code>java.lang.OutOfMemoryError: PermGen space</code> 在JDK1.8之前是一个常见异常，这里的 “PermGen space”其实指的就是方法区。在JDK1.8之后，使用了元空间来代替这个永久代。<font color="#FF0000"><strong>元空间与永久代之间最大的区别在于</strong></font>：元空间并不在虚拟机中，而是<font color="#FF0000"><strong>使用本地内存</strong></font>。因此，默认情况下，元空间的大小仅受本地内存限制。</p>
+<p><strong>为什么叫元空间</strong>，是因为这里面存储的是类的元数据信息，JVM的实现中将类的元数据放入 native memory, 将字符串池和类的静态变量放入Java堆中. 这样可以加载多少类的元数据就由系统的实际可用空间来控制了。</p>
+<h4 id="为什么要用元空间来取代永久代？"><a href="#为什么要用元空间来取代永久代？" class="headerlink" title="为什么要用元空间来取代永久代？"></a>为什么要用元空间来取代永久代？</h4><p>可能会有疑惑，为什么取代掉永久代呢？它有什么不足点呢？</p>
+<p><strong>永久代的不足</strong></p>
+<blockquote>
+<p><strong>主要的一个原因</strong>就是类及方法的信息等比较难确定其大小，<font color="#FF0000"><strong>因此对于永久代的大小指定比较困难</strong></font>，太小容易出现永久代溢出，太大则容易导致老年代溢出。<strong>第二个原因</strong>是永久代会为 GC 回收效率偏低，基本上是强引用。</p>
+</blockquote>
+<p><strong>元空间的好处</strong></p>
+<blockquote>
+<p>默认情况下，类元数据只受可用的本地内存限制（容量取决于是32位或是64位操作系统的可用虚拟内存大小）。参数（MaxMetaspaceSize）用于限制本地内存分配给类元数据的大小。如果没有指定这个参数，元空间会在运行时根据需要<font color="#FF0000"><strong>动态调整</strong></font>。</p>
+</blockquote>
+<p>之前不管是不是需要，JVM都会吃掉那块空间……如果设置得太小，JVM会死掉；如果设置得太大，这块内存就被JVM浪费了。理论上说，现在你完全可以不关注这个，因为JVM会在运行时自动调校为“合适的大小”</p>
+
       
     </div>
     
@@ -453,8 +493,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -540,6 +589,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行时数据区域"><span class="nav-number">2.</span> <span class="nav-text">运行时数据区域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#永久代和元空间"><span class="nav-number">3.</span> <span class="nav-text">永久代和元空间</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#为什么要用元空间来取代永久代？"><span class="nav-number">3.1.</span> <span class="nav-text">为什么要用元空间来取代永久代？</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
