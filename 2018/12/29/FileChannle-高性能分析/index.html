@@ -106,7 +106,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言上一篇的博客中，我从底层上分析了BufferInputStream为什么效率会比FileInputStream来得高，这两种方式都是传统的IO，在JDK1.4 中NIO又多了两种新的IO方式：FileChannle 和 MMAP。这里着重来解释FileChannle的高性能的场景。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-12-30T05:05:57.541Z">
+<meta property="og:updated_time" content="2019-02-19T08:13:46.446Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="高性能IO 之 FileChannle和MMAP分析">
 <meta name="twitter:description" content="前言上一篇的博客中，我从底层上分析了BufferInputStream为什么效率会比FileInputStream来得高，这两种方式都是传统的IO，在JDK1.4 中NIO又多了两种新的IO方式：FileChannle 和 MMAP。这里着重来解释FileChannle的高性能的场景。">
@@ -380,7 +380,26 @@
 <p><font color="#FF0000"><strong>看到这是我在想，在RMQ中commitlog的偏移量存储在了Consume Queue中，这样是不是就可以利用上面访问内存的特性，根据偏移量快速定位到一条消息呢？</strong></font>只是我的猜测，如果有错，希望有大神能纠正。</p>
 <p>同样的也可以指定position进行读写，mmap的读写：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 写</span></span><br><span class="line"><span class="keyword">byte</span>[] data = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">4</span>];</span><br><span class="line"><span class="keyword">int</span> position = <span class="number">8</span>;</span><br><span class="line"><span class="comment">//从当前 mmap 指针的位置写入 4b 的数据</span></span><br><span class="line">mappedByteBuffer.put(data);</span><br><span class="line"><span class="comment">//指定 position 写入 4b 的数据</span></span><br><span class="line">MappedByteBuffer subBuffer = mappedByteBuffer.slice();</span><br><span class="line">subBuffer.position(position);</span><br><span class="line">subBuffer.put(data);</span><br></pre></td></tr></table></figure>
+<h3 id="更新2019-2-19"><a href="#更新2019-2-19" class="headerlink" title="更新2019.2.19"></a>更新2019.2.19</h3><h3 id="NIO-之-直接内存"><a href="#NIO-之-直接内存" class="headerlink" title="NIO 之 直接内存"></a>NIO 之 直接内存</h3><p>下面内容的原文在下方的参考文章给出。</p>
+<blockquote>
+<p>在NIO 中  DirectByteBuffer是Java用于实现堆外内存的一个重要类，我们可以通过该类实现堆外内存的创建、使用和销毁。</p>
+<p>DirectByteBuffer该类本身还是位于Java内存模型的堆中。堆内内存是JVM可以直接管控、操纵。而DirectByteBuffer中的unsafe.allocateMemory(size);是个一个native方法，这个方法分配的是堆外内存，通过C的malloc来进行分配的。分配的内存是系统本地的内存，并不在Java的内存中，也不属于JVM管控范围，所以在DirectByteBuffer一定会存在某种方式来操纵堆外内存。</p>
+</blockquote>
+<p><strong>背景知识：</strong></p>
+<blockquote>
+<p>用户进程(位于用户态中)要通过系统调用(<strong>Java中即使JNI</strong>)来调用内核态中的资源</p>
+<p>在linux中内核态的权限是最高的，那么在内核态的场景下，操作系统是可以访问任何一个内存区域的，所以操作系统是可以访问到Java堆的这个内存区域的。</p>
+</blockquote>
+<p>Q：那为什么操作系统不直接访问Java堆内的内存区域了？</p>
+<blockquote>
+<p>这是因为JNI方法访问的内存区域是一个已经确定了的内存区域地质，那么该内存地址指向的是Java堆内内存的话，那么如果在操作系统正在访问这个内存地址的时候，Java在这个时候进行了GC操作，而GC操作会涉及到数据的移动操作[GC经常会进行先标志在压缩的操作。即，将可回收的空间做标志，然后清空标志位置的内存，然后会进行一个压缩，压缩就会涉及到对象的移动，移动的目的是为了腾出一块更加完整、连续的内存空间，以容纳更大的新对象]，数据的移动会使JNI调用的数据错乱。所以JNI调用的内存是不能进行GC操作的。</p>
+</blockquote>
+<h4 id="使用堆外内存的原因"><a href="#使用堆外内存的原因" class="headerlink" title="使用堆外内存的原因"></a>使用堆外内存的原因</h4><blockquote>
+<p>1.<strong>对垃圾回收停顿的改善</strong>。因为full gc 意味着彻底回收，彻底回收时，垃圾收集器会对所有分配的堆内内存进行完整的扫描，这意味着一个重要的事实——<font color="#FF0000"><strong>这样一次垃圾收集对Java应用造成的影响，跟堆的大小是成正比的。过大的堆会影响Java应用的性能。如果使用堆外内存的话，堆外内存是直接受操作系统管理( 而不是虚拟机 )。这样做的结果就是能保持一个较小的堆内内存，以减少垃圾收集对应用的影响</strong></font>。</p>
+<p>2.<strong>在某些场景下可以提升程序I/O操纵的性能</strong>。少去了将数据从堆内内存拷贝到堆外内存的步骤。</p>
+</blockquote>
 <h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="http://www.jiangxinlingdu.com/thought/2018/11/28/io.html?tdsourcetag=s_pcqq_aiomsg" target="_blank" rel="noopener">文件IO操作的一些最佳实践</a></p>
+<p><a href="https://www.jianshu.com/p/007052ee3773" target="_blank" rel="noopener">堆外内存 之 DirectByteBuffer 详解</a></p>
 
       
     </div>
@@ -581,7 +600,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FileChannle"><span class="nav-number">2.</span> <span class="nav-text">FileChannle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MMAP"><span class="nav-number">3.</span> <span class="nav-text">MMAP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">4.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FileChannle"><span class="nav-number">2.</span> <span class="nav-text">FileChannle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MMAP"><span class="nav-number">3.</span> <span class="nav-text">MMAP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更新2019-2-19"><span class="nav-number">4.</span> <span class="nav-text">更新2019.2.19</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NIO-之-直接内存"><span class="nav-number">5.</span> <span class="nav-text">NIO 之 直接内存</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用堆外内存的原因"><span class="nav-number">5.1.</span> <span class="nav-text">使用堆外内存的原因</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">6.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
             
 
           </div>
