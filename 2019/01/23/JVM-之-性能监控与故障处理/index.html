@@ -87,7 +87,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="JVM," />
 
 
 
@@ -98,14 +98,25 @@
 
 
 
+<meta name="description" content="前言 接触项目多多少少会碰到各种问题，OOM就是最常见的一种，记得在维护社科联项目的时候就经常碰到，而当时处理的方式也是非常的暴力，就是简单修改 JVM  -Xmx和 -Xms的值，然后写了一个脚本让服务在凌晨的时候重启。这算是应急措施，要想真正解决该问题还是学会分析OOM出现的原因，然后解决。这里记录一次OOM处理状况。">
+<meta name="keywords" content="JVM">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM 之 性能监控与故障处理">
 <meta property="og:url" content="http://yoursite.com/2019/01/23/JVM-之-性能监控与故障处理/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言 接触项目多多少少会碰到各种问题，OOM就是最常见的一种，记得在维护社科联项目的时候就经常碰到，而当时处理的方式也是非常的暴力，就是简单修改 JVM  -Xmx和 -Xms的值，然后写了一个脚本让服务在凌晨的时候重启。这算是应急措施，要想真正解决该问题还是学会分析OOM出现的原因，然后解决。这里记录一次OOM处理状况。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-23T02:00:07.274Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-性能监控与故障处理/1.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-性能监控与故障处理/2.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-性能监控与故障处理/3.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-性能监控与故障处理/5.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-性能监控与故障处理/4.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-性能监控与故障处理/6.png">
+<meta property="og:updated_time" content="2019-02-20T12:57:17.873Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM 之 性能监控与故障处理">
+<meta name="twitter:description" content="前言 接触项目多多少少会碰到各种问题，OOM就是最常见的一种，记得在维护社科联项目的时候就经常碰到，而当时处理的方式也是非常的暴力，就是简单修改 JVM  -Xmx和 -Xms的值，然后写了一个脚本让服务在凌晨的时候重启。这算是应急措施，要想真正解决该问题还是学会分析OOM出现的原因，然后解决。这里记录一次OOM处理状况。">
+<meta name="twitter:image" content="http://yoursite.com/2019/01/23/JVM-之-性能监控与故障处理/1.png">
 
 
 
@@ -309,6 +320,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/JVM/" itemprop="url" rel="index">
+                    <span itemprop="name">JVM</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -336,7 +369,40 @@
       
 
       
-        
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p> 接触项目多多少少会碰到各种问题，OOM就是最常见的一种，记得在维护社科联项目的时候就经常碰到，而当时处理的方式也是非常的暴力，就是简单修改 JVM  -Xmx和 -Xms的值，然后写了一个脚本让服务在凌晨的时候重启。这算是应急措施，要想真正解决该问题还是学会分析OOM出现的原因，然后解决。这里记录一次OOM处理状况。</p>
+<a id="more"></a>
+<h3 id="MAT分析"><a href="#MAT分析" class="headerlink" title="MAT分析"></a>MAT分析</h3><p>当时OOM的状况已经重现不了，所以这里就模拟当时的一个场景，然后分析是如何通过MAT来排除问题的。MAT是eclipse的插件，关于它的安装网上有很多，这里不复述了。以下代码来模拟内存溢出。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">OOMObject</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] agrs)</span> </span>&#123;</span><br><span class="line">        List&lt;OOMObject&gt; list = <span class="keyword">new</span> ArrayList&lt;OOMObject&gt;();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            list.add(<span class="keyword">new</span> OOMObject());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>设置JVM运行参数：<code>-Xms20m -Xmx20m -XX:+HeapDumpOnOutOfMemoryError</code>。发生异常后生产的dump文件的默认名称为”java_pid进程id.hprof”，<strong>默认生成路径为工程的根目录</strong>。</p>
+<p><img src="/2019/01/23/JVM-之-性能监控与故障处理/1.png" alt="你想输入的替代文字"></p>
+<p>使用MAT打开生成的hprof文件，最先展示就是Overview概述界面，可以对Heap Dump有一个大致的了解，并提供了一些视图、报告的入口。</p>
+<p><img src="/2019/01/23/JVM-之-性能监控与故障处理/2.png" alt="你想输入的替代文字"></p>
+<p>基本上Overview的概述是不能清楚知道具体是什么问题，需要点击查看Histogram（<strong>柱状图</strong>）视图和Dominator Tree（<strong>支配树</strong>）视图。</p>
+<h3 id="Histogram-视图"><a href="#Histogram-视图" class="headerlink" title="Histogram 视图"></a>Histogram 视图</h3><p>Histogram视图在上图标注1可以点开，打开后如下图：</p>
+<p><img src="/2019/01/23/JVM-之-性能监控与故障处理/3.png" alt="你想输入的替代文字"></p>
+<p>从Histogram视图可以看出，哪个Class类的对象实例数量比较多，以及占用的内存比较大。</p>
+<blockquote>
+<p><strong>Shallow Size</strong>是<strong>对象本身占据的内存的大小</strong>，不包含其引用的对象。对于常规对象（非数组）的Shallow Size由其成员变量的数量和类型来定，而数组的ShallowSize由数组类型和数组长度来决定，它为数组元素大小的总和。</p>
+<p><strong>Retained Size</strong>=<strong>当前对象大小+当前对象可直接或间接引用到的对象的大小总和</strong>。可以在下面看到对两者的对比。</p>
+</blockquote>
+<p>不过，多数情况下，在Histogram视图看到实例对象数量比较多的类都是一些基础类型，如char[]（因为其构成了String）、String、byte[]，所以仅从这些是无法判断出具体导致内存泄露的类或者方法的，<font color="#FF0000"><strong>如果Histogram视图展示的数量多的实例对象不是基础类型，是有嫌疑的某个类，如项目代码中的bean类型，那么就要重点关注了</strong></font>。比如下图我们可以看到自定义bean占用了很大的内存，那么这个类很有可能就是突破口了。</p>
+<p><img src="/2019/01/23/JVM-之-性能监控与故障处理/5.png" alt="你想输入的替代文字"></p>
+<h3 id="Dominator-视图"><a href="#Dominator-视图" class="headerlink" title="Dominator 视图"></a>Dominator 视图</h3><p>如果在Histogram并不能发现什么，可以从Dominator 视图入手（点击Histogram视图旁边的按钮）。如下图中，我们可以看到java.lang.Thread Shallow Heap只占了120个字节大小，但是它Retained Heap引用到的对象却有7203584个字节，通常这种对象都是要怀疑的对象。</p>
+<p><img src="/2019/01/23/JVM-之-性能监控与故障处理/4.png" alt="你想输入的替代文字"></p>
+<p>在怀疑的对象上右键选择到List object：</p>
+<p><strong>List objects –&gt; with outgoing references</strong>：查看当前对象<strong>持有</strong>的外部对象引用（在对象关系图中为从当前对象指向外的箭头）</p>
+<p><strong>List objects –&gt; with incoming references：</strong>查看当前对象<strong>被</strong>哪些外部对象所引用（在对象关系图中为指向当前对象的箭头）</p>
+<p>查看它的 outgoing references 发现它的引用对象中占最大比例的是OOMObject，由此也能发现可疑的对象。这个时候和开发人员沟通一下看看可疑对象在哪些地方使用的不恰当，一般能解决掉。</p>
+<p><img src="/2019/01/23/JVM-之-性能监控与故障处理/6.png" alt="你想输入的替代文字"></p>
+<p> 社科联项目OOM原因</p>
+<p>当时记得是管理员要添加一块功能，具体是将所有项目成员的所有信息都打印到Excel中，设计到了表的关联查询，导致存放的hashMap对象够大，而且这个HashMap是一个static类变量，没能及时的回收导致内存溢出。</p>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p>MAT使用详细解析，<strong>解析的很好</strong></p>
+<p><a href="https://www.cnblogs.com/trust-freedom/p/6744948.html" target="_blank" rel="noopener">https://www.cnblogs.com/trust-freedom/p/6744948.html</a> </p>
+<p>真实实例分析</p>
+<p><a href="https://blog.csdn.net/nielinqi520/article/details/78455614" target="_blank" rel="noopener">https://blog.csdn.net/nielinqi520/article/details/78455614</a></p>
+<p><a href="https://blog.csdn.net/yulio1234/article/details/79242182" target="_blank" rel="noopener">https://blog.csdn.net/yulio1234/article/details/79242182</a></p>
+<p><a href="https://blog.csdn.net/t594362122/article/details/78258185" target="_blank" rel="noopener">https://blog.csdn.net/t594362122/article/details/78258185</a></p>
+
       
     </div>
     
@@ -350,6 +416,12 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JVM/" rel="tag"># JVM</a>
+          
+        </div>
       
 
       
@@ -424,8 +496,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -511,6 +592,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MAT分析"><span class="nav-number">2.</span> <span class="nav-text">MAT分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Histogram-视图"><span class="nav-number">3.</span> <span class="nav-text">Histogram 视图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dominator-视图"><span class="nav-number">4.</span> <span class="nav-text">Dominator 视图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">5.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
