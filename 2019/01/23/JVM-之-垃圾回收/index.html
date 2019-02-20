@@ -108,7 +108,8 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/1.png">
 <meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/2.png">
-<meta property="og:updated_time" content="2019-02-08T13:41:23.994Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/23/JVM-之-垃圾回收/3.png">
+<meta property="og:updated_time" content="2019-02-20T07:13:05.515Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JVM 之 垃圾回收">
 <meta name="twitter:description" content="前言这篇主要从GC算法、GC收集器以及哪些对象可GC等方面来记录。在这我不会详细的去阐述GC的细节，简单的记录我的一些疑惑和看法。">
@@ -459,6 +460,30 @@
 <p>于CMS一样它的关注点在于降低停顿时间，不过G1一个大优势是<strong>可预测的停顿</strong>。G1可以指定一段时间，垃圾消耗不会超过这个时间。</p>
 <p>G1大致的做法是将堆化分成了若干个Region，在每次回收的时候，会优先回收价值最大的Region。保证G1在有限的时间内可以尽可能高的收集效率。</p>
 </blockquote>
+<h3 id="默认情况下使用的垃圾收集器"><a href="#默认情况下使用的垃圾收集器" class="headerlink" title="默认情况下使用的垃圾收集器"></a>默认情况下使用的垃圾收集器</h3><p>在<a href="http://xxfox.perfma.com/jvm/query" target="_blank" rel="noopener">XXFOX</a>下查看了JDK6、7、8下的GC参数可以看到 UseParallelGC 和 UseParallelOldGC 都是默认开启的。当使用UseParallelGC 的时候新生代老年代分别使用了Parallel Scavenge  + Serial Old 。UseParallelOldGC 使得老年代的GC变成了Parallel Old 。</p>
+<p><img src="/2019/01/23/JVM-之-垃圾回收/3.png" alt="你想输入的替代文字"></p>
+<p> 所以在默认的情况下Client、Server模式默认GC为：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>新生代GC方式</th>
+<th>老年代和持久<strong>代</strong>GC方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Client</td>
+<td>Serial 串行GC</td>
+<td>Serial Old 串行GC</td>
+</tr>
+<tr>
+<td>Server</td>
+<td>Parallel Scavenge  并行回收GC</td>
+<td>Parallel Old 并行GC</td>
+</tr>
+</tbody>
+</table>
 
       
     </div>
@@ -659,7 +684,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可达性分析、-引用计数法"><span class="nav-number">2.</span> <span class="nav-text">可达性分析、 引用计数法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引用计数法"><span class="nav-number">2.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可达性分析"><span class="nav-number">2.2.</span> <span class="nav-text">可达性分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四种引用"><span class="nav-number">3.</span> <span class="nav-text">四种引用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#强引用"><span class="nav-number">3.1.</span> <span class="nav-text">强引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#软引用"><span class="nav-number">3.2.</span> <span class="nav-text">软引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#弱引用"><span class="nav-number">3.3.</span> <span class="nav-text">弱引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚引用"><span class="nav-number">3.4.</span> <span class="nav-text">虚引用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾回收算法"><span class="nav-number">4.</span> <span class="nav-text">垃圾回收算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-清除"><span class="nav-number">4.1.</span> <span class="nav-text">标记-清除</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制算法"><span class="nav-number">4.2.</span> <span class="nav-text">复制算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-整理"><span class="nav-number">4.3.</span> <span class="nav-text">标记-整理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分代收集算法"><span class="nav-number">4.4.</span> <span class="nav-text">分代收集算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">5.</span> <span class="nav-text">垃圾收集器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#年轻代使用的收集器"><span class="nav-number">5.1.</span> <span class="nav-text">年轻代使用的收集器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#老年代使用的收集器"><span class="nav-number">5.2.</span> <span class="nav-text">老年代使用的收集器</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可达性分析、-引用计数法"><span class="nav-number">2.</span> <span class="nav-text">可达性分析、 引用计数法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#引用计数法"><span class="nav-number">2.1.</span> <span class="nav-text">引用计数法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可达性分析"><span class="nav-number">2.2.</span> <span class="nav-text">可达性分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四种引用"><span class="nav-number">3.</span> <span class="nav-text">四种引用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#强引用"><span class="nav-number">3.1.</span> <span class="nav-text">强引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#软引用"><span class="nav-number">3.2.</span> <span class="nav-text">软引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#弱引用"><span class="nav-number">3.3.</span> <span class="nav-text">弱引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚引用"><span class="nav-number">3.4.</span> <span class="nav-text">虚引用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾回收算法"><span class="nav-number">4.</span> <span class="nav-text">垃圾回收算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-清除"><span class="nav-number">4.1.</span> <span class="nav-text">标记-清除</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#复制算法"><span class="nav-number">4.2.</span> <span class="nav-text">复制算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#标记-整理"><span class="nav-number">4.3.</span> <span class="nav-text">标记-整理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分代收集算法"><span class="nav-number">4.4.</span> <span class="nav-text">分代收集算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#垃圾收集器"><span class="nav-number">5.</span> <span class="nav-text">垃圾收集器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#年轻代使用的收集器"><span class="nav-number">5.1.</span> <span class="nav-text">年轻代使用的收集器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#老年代使用的收集器"><span class="nav-number">5.2.</span> <span class="nav-text">老年代使用的收集器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#默认情况下使用的垃圾收集器"><span class="nav-number">6.</span> <span class="nav-text">默认情况下使用的垃圾收集器</span></a></li></ol></div>
             
 
           </div>
