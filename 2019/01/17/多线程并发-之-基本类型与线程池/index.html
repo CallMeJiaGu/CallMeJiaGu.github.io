@@ -106,7 +106,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言这篇主要来记录一下并发中的基本类型AtomicInteger、以及四种线程池的解析。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-01-18T03:03:50.618Z">
+<meta property="og:updated_time" content="2019-02-24T12:08:13.636Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="多线程并发 之 基本类型与线程池">
 <meta name="twitter:description" content="前言这篇主要来记录一下并发中的基本类型AtomicInteger、以及四种线程池的解析。">
@@ -366,14 +366,19 @@
 <a id="more"></a>
 <h3 id="基本类型"><a href="#基本类型" class="headerlink" title="基本类型"></a>基本类型</h3><p>AtomicInteger是用来解决多线程并发情况下的变量安全问题。原理上使用了<strong>CAS和自旋的方式</strong>。但是AtomicInteger解决不了ABA问题。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">AtomicInteger atomicInteger = <span class="keyword">new</span> AtomicInteger(<span class="number">5</span>);</span><br><span class="line">atomicInteger.addAndGet(<span class="number">1</span>);</span><br><span class="line">System.out.println(atomicInteger);</span><br></pre></td></tr></table></figure>
-<p>AtomicStampedReference中有一个Stamp作为版本号，用来解决ABA问题。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">atomicStampedRef.compareAndSet(<span class="number">100</span>, <span class="number">101</span>, atomicStampedRef.getStamp(), atomicStampedRef.getStamp() + <span class="number">1</span>);</span><br></pre></td></tr></table></figure></p>
+<p>AtomicStampedReference中有一个Stamp作为版本号，用来解决ABA问题。Demo：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> x = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">int</span> stamp = <span class="number">0</span> ;</span><br><span class="line">AtomicStampedReference atomicStampedReference = <span class="keyword">new</span> AtomicStampedReference(x,stamp);</span><br><span class="line">System.out.println(atomicStampedReference.compareAndSet(<span class="number">1</span>,<span class="number">2</span>,<span class="number">0</span>,stamp+<span class="number">1</span>));</span><br><span class="line">System.out.println(atomicStampedReference.getReference()+<span class="string">","</span>+atomicStampedReference.getStamp());</span><br></pre></td></tr></table></figure></p>
+<p>结果：</p>
+<blockquote>
+<p>true<br>2,1</p>
+</blockquote>
 <h3 id="线程池"><a href="#线程池" class="headerlink" title="线程池"></a>线程池</h3><p>主要的参数：corePoolSize 、maximumPoolSize 、keepAliveTime 、unit 、workQueue 。</p>
 <blockquote>
 <p><strong>corePoolSize</strong>：核心线程数。当前线程数 &lt; corePoolSize ，新进来的任务会再开一个线程。</p>
-<p><strong>workQueue</strong> ：缓存队列。当前线程数 &gt;= corePoolSize，任务先会放入缓存队列中。</p>
+<p><strong>workQueue</strong> ：缓存队列。当前线程数 &gt;= corePoolSize，任务先会放入缓存队列中。（在后面详细讲）</p>
 <p><strong>maximumPoolSize</strong> ：最大线程数。当前线程数 &gt;= corePoolSize &amp;&amp; 缓存队列满 ，会再创建线程。直到当前线程数 == maximumPoolSize 。</p>
 <p><strong>keepAliveTime</strong> ：存活时间。当前线程数 &gt; 核心线程数 ，会监控多出的线程，空闲时间超过keepAliveTime就会销毁。</p>
 <p><strong>unit</strong> ：这个是keepAliveTime的单位，可以为秒、毫秒等等。</p>
+<p><strong>handler</strong>： 线程池对拒绝任务的处理策略（在后文讲具体的策略）</p>
 </blockquote>
 <p><strong>四种线程池主要是针对构造ThreadPoolExecutor的时候，对上述参数的设定不同而使得它们的应用场景不同。</strong></p>
 <p><strong>newCachedThreadPool：</strong></p>
@@ -388,6 +393,18 @@
 <p><strong>newSingleThreadExecutor：</strong></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newSingleThreadExecutor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> FinalizableDelegatedExecutorService</span><br><span class="line">        (<span class="keyword">new</span> ThreadPoolExecutor(<span class="number">1</span>, <span class="number">1</span>,</span><br><span class="line">                                <span class="number">0L</span>, TimeUnit.MILLISECONDS,</span><br><span class="line">                                <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>算是一种特殊的newFixedThreadPool线程池。</p>
+<h3 id="2019-02-24更新"><a href="#2019-02-24更新" class="headerlink" title="2019.02.24更新"></a>2019.02.24更新</h3><h3 id="线程池的四种拒绝策略"><a href="#线程池的四种拒绝策略" class="headerlink" title="线程池的四种拒绝策略"></a>线程池的四种拒绝策略</h3><p><strong>AbortPolicy</strong>：直接抛出异常，默认策略</p>
+<p><strong>CallerRunsPolicy</strong>：用调用者所在的线程来执行任务</p>
+<p><strong>DiscardOldestPolicy</strong>：丢弃阻塞队列最靠前的任务，执行当前的任务。</p>
+<p><strong>DiscardPolicy</strong>：直接丢弃任务</p>
+<blockquote>
+<p>这四种策略是独立无关的，是对任务拒绝处理的四中表现形式。最简单的方式就是直接丢弃任务。但是却有两种方式，到底是该丢弃哪一个任务，比如可以丢弃当前将要加入队列的任务本身（DiscardPolicy）或者丢弃任务队列中最旧任务（DiscardOldestPolicy）。丢弃最旧任务也不是简单的丢弃最旧的任务，而是有一些额外的处理。</p>
+<p>除了丢弃任务还可以直接抛出一个异常（RejectedExecutionException），这是比较简单的方式。抛出异常的方式（AbortPolicy）尽管实现方式比较简单，但是由于抛出一个RuntimeException，因此会中断调用者的处理过程。除了抛出异常以外还可以不进入线程池执行，在这种方式（CallerRunsPolicy）中任务将由调用者线程去执行。</p>
+</blockquote>
+<h3 id="线程池的三种阻塞队列"><a href="#线程池的三种阻塞队列" class="headerlink" title="线程池的三种阻塞队列"></a>线程池的三种阻塞队列</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">BlockingQueue&lt;Runnable&gt; workQueue = <span class="keyword">null</span>;</span><br><span class="line">workQueue = <span class="keyword">new</span> ArrayBlockingQueue&lt;&gt;(<span class="number">5</span>);<span class="comment">//基于数组的先进先出队列，有界</span></span><br><span class="line">workQueue = <span class="keyword">new</span> LinkedBlockingQueue&lt;&gt;();<span class="comment">//基于链表的先进先出队列，无界</span></span><br><span class="line">workQueue = <span class="keyword">new</span> SynchronousQueue&lt;&gt;();<span class="comment">//无缓冲的等</span></span><br></pre></td></tr></table></figure>
+<p><strong>SynchronousQueue</strong>：这是一个很有意思的阻塞队列，<strong>其中每个插入操作必须等待另一个线程的移除操作</strong>，同样任何一个移除操作都等待另一个线程的插入 操作。因此此队列内部其 实没有任何一个元素，或者说容量是0，严格说并不是一种容器。由于队列没有容量，因此不能调用peek操作，因为只有移除元素时才有元素。</p>
+<p><strong>LinkedBlockingQueue</strong>：LinkedBlockingQueue是一个无界缓存等待队列。当前执行的线程数量达到corePoolSize的数量时，剩余的元素会在阻塞队列里等待。（<font color="#FF0000"><strong>所以在使用此阻塞队列时maximumPoolSizes就相当于无效了</strong></font>），每个线程完全独立于其他线程。生产者和消费者使用独立的锁来控制数据的同步，即在高并发的情况下可以并行操作队列中的数据。</p>
+<p><strong>ArrayBlockingQueue</strong>：ArrayBlockingQueue是一个有界缓存等待队列，可以指定缓存队列的大小，当正在执行的线程数等于corePoolSize时，多余的元素缓存在ArrayBlockingQueue队列中等待有空闲的线程时继续执行，当ArrayBlockingQueue已满时，加入ArrayBlockingQueue失败，会开启新的线程去执行，当线程数已经达到最大的maximumPoolSizes时，再有新的元素尝试加入ArrayBlockingQueue时会报错。</p>
 
       
     </div>
@@ -590,7 +607,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基本类型"><span class="nav-number">2.</span> <span class="nav-text">基本类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程池"><span class="nav-number">3.</span> <span class="nav-text">线程池</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基本类型"><span class="nav-number">2.</span> <span class="nav-text">基本类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程池"><span class="nav-number">3.</span> <span class="nav-text">线程池</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2019-02-24更新"><span class="nav-number">4.</span> <span class="nav-text">2019.02.24更新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程池的四种拒绝策略"><span class="nav-number">5.</span> <span class="nav-text">线程池的四种拒绝策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程池的三种阻塞队列"><span class="nav-number">6.</span> <span class="nav-text">线程池的三种阻塞队列</span></a></li></ol></div>
             
 
           </div>
