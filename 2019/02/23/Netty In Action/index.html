@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="NIO,Netty,零拷贝," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言这篇主要来记录一下Netty相关的知识点，如比较容易混淆的BIO\NIO\AIO，以及Netty的线程模式、零拷贝技术等。">
+<meta name="keywords" content="NIO,Netty,零拷贝">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty In Action（一）">
+<meta property="og:url" content="http://yoursite.com/2019/02/23/Netty In Action/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言这篇主要来记录一下Netty相关的知识点，如比较容易混淆的BIO\NIO\AIO，以及Netty的线程模式、零拷贝技术等。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205116938-338617203.png">
+<meta property="og:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205128488-616024087.png">
+<meta property="og:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205228564-867800649.png">
+<meta property="og:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205238924-890218087.png">
+<meta property="og:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205249173-151738900.png">
+<meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/1.png">
+<meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/2.png">
+<meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/3.png">
+<meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/4.png">
+<meta property="og:updated_time" content="2019-02-26T12:56:59.254Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Netty In Action（一）">
+<meta name="twitter:description" content="前言这篇主要来记录一下Netty相关的知识点，如比较容易混淆的BIO\NIO\AIO，以及Netty的线程模式、零拷贝技术等。">
+<meta name="twitter:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205116938-338617203.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/02/23/Netty In Action/"/>
+
+
+
+
+
+  <title>Netty In Action（一） | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/02/23/Netty In Action/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/2.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Netty In Action（一）</h1>
+        
+
+        <div class="post-meta">
+		
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-02-23T10:00:48+08:00">
+                2019-02-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Netty/" itemprop="url" rel="index">
+                    <span itemprop="name">Netty</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>这篇主要来记录一下Netty相关的知识点，如比较容易混淆的BIO\NIO\AIO，以及Netty的线程模式、零拷贝技术等。</p>
+<a id="more"></a>
+<h3 id="BIO"><a href="#BIO" class="headerlink" title="BIO"></a><strong>BIO</strong></h3><p>同步阻塞</p>
+<p><img src="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205116938-338617203.png" alt="img"></p>
+<blockquote>
+<p>主要瓶颈在线程上。<strong>每个连接都会建立一个线程。虽然线程消耗比进程小</strong>，但是一台机器实际上能建立的有效线程有限，以Java来说，1.5以后，一个线程大致消耗1M内存！且随着线程数量的增加，CPU切换线程上下文的消耗也随之增加，在高过某个阀值后，继续增加线程，性能不增反降</p>
+</blockquote>
+<h3 id="NIO"><a href="#NIO" class="headerlink" title="NIO"></a><strong>NIO</strong></h3><p>同步非阻塞（编码复杂，需处理半包问题）</p>
+<p><img src="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205128488-616024087.png" alt="img"></p>
+<blockquote>
+<p>性能高，不用一个连接就建一个线程，可以一个线程处理所有的连接！相应的，编码就复杂很多，从上面的代码就可以明显体会到了。还有一个问题，由于是非阻塞的，应用无法知道什么时候消息读完了，就存在了半包问题！</p>
+<p>所有的请求注册到一个Selector多路复用器上，多路复用器轮询channle，然后去处理对应的事件。</p>
+</blockquote>
+<p>buffer 、 channel、selector</p>
+<h3 id="AIO"><a href="#AIO" class="headerlink" title="AIO"></a>AIO</h3><p>异步非阻塞</p>
+<blockquote>
+<p>服务器实现模式为一个有效请求一个线程，客户端的I/O请求都是由<strong>OS先完成</strong>了<strong>再通知服</strong>务器应用去启动线程进行处理，这里体现了异步的操作。NIO之所以是同步阻塞，就是因为IO请求都是服务器线程自己做的，没有其他线程做好了，再去通知它。</p>
+</blockquote>
+<h3 id="Netty的线程模型"><a href="#Netty的线程模型" class="headerlink" title="Netty的线程模型"></a>Netty的线程模型</h3><p>Netty是对Reactor模型的一个实现。那么什么是Reactor模型？<font color="#FF0000"><strong>Reactor是基于事件驱动的分发处理模型</strong></font>。就拿NIO来说，首先多路复用器先轮询到了一个channel的Accept事件，这个时候它就会把这个ServerSocket重新注册为可Read事件，好让下次多路复用器下次可以读。而Reactor的思想是事件的分发处理，即有专门的处理连接事件的个体（Handlers），然后有专门处理读写的个体（Acceptor）。还有一个分派的个体（Reactor）。这个就是分发处理模型。</p>
+<blockquote>
+<ul>
+<li><strong>Reactor</strong> 将I/O事件分派给对应的Handler</li>
+<li><strong>Acceptor</strong> 处理客户端新连接，并分派请求到处理器链中</li>
+<li><strong>Handlers</strong> 执行非阻塞读/写 任务</li>
+</ul>
+</blockquote>
+<p>Reactor模型有三种：单Reactor单线程模型、单Reactor多线程模型、多Reactor多线程模型</p>
+<h4 id="Reactor单线程模型"><a href="#Reactor单线程模型" class="headerlink" title="Reactor单线程模型"></a>Reactor单线程模型</h4><p><img src="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205228564-867800649.png" alt="img"></p>
+<p>这个模型和上面的NIO流程很类似，只是将消息相关处理独立到了Handler中去了！</p>
+<h4 id="单Reactor多线程模型"><a href="#单Reactor多线程模型" class="headerlink" title="单Reactor多线程模型"></a>单Reactor多线程模型</h4><p>Reactor多线程模型就是将Handler中的IO操作和非IO操作分开，操作IO的线程称为IO线程，非IO操作的线程称为工作线程!这样的话，客户端的请求会直接被丢到线程池中，客户端发送请求就不会堵塞！<strong>但是当用户进一步增加的时候，Reactor会出现瓶颈！</strong></p>
+<p><img src="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205238924-890218087.png" alt="img"></p>
+<h4 id="主从Reactor模型"><a href="#主从Reactor模型" class="headerlink" title="主从Reactor模型"></a>主从Reactor模型</h4><p><img src="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205249173-151738900.png" alt="img"></p>
+<p>主Reactor用于响应连接请求，从Reactor用于处理IO操作请求！这个模型就是Netty的实现了。MainReactor 对应bossGroup，从Reactor对应workerGroup。</p>
+<h3 id="Netty的零拷贝技术"><a href="#Netty的零拷贝技术" class="headerlink" title="Netty的零拷贝技术"></a>Netty的零拷贝技术</h3><p>零拷贝：就是在操作数据的时候，减少数据从一块缓冲区到另外一个缓冲区的拷贝，因为减少了一次拷贝，所以CPU效率提高了。</p>
+<p><strong>在操作系统层面</strong>上零拷贝通常是指，<font color="#FF0000"><strong>减少用户态和内核态</strong></font>的一次拷贝。如正常情况下：先把磁盘上的数据读入到内核态，然后内核态拷贝到用户态，这个时候如果用户态需要进行网络传输，又需要把这个数据拷贝到SocketBuffer中。如下图：</p>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/1.png" alt="OS层面上的NoZeroCopy"></p>
+<p>而零拷贝技术就是让内核态中的数据直接拷贝到SockerBuffer中：</p>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/2.png" alt="OS层面上的NoZeroCopy"></p>
+<p><strong>在NIO中</strong>它的零拷贝体现在<font color="#FF0000"><strong>用户态和用户态</strong></font>之间的一次减少拷贝。</p>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/3.png" alt="OS层面上的NoZeroCopy"></p>
+<p>在NIO中，NIO可以申请到直接内存，先来说一下为什么JVM中的数据不能直接拷贝到SocketBuffer中。有以下两点原因：</p>
+<blockquote>
+<p>第一是因为JVM的GC缘故，会导致JVM堆处于一个变化的状态，有可能导致传输数据被回收之类的不可预料问题。所以必须先将JVM中的数据拷贝到直接内存（直接内存是在JVM之外的用户态中）。</p>
+<p> 第二是JVM如果要传输到SocketBuffer，两者需要一个传输协调的问题，JVM不想要花费这部分的时间来等待，所以直接拷贝到直接内存，然后直接内存再拷到SocketBuffer就和JVM没关系了。</p>
+</blockquote>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/4.png" alt="OS层面上的NoZeroCopy"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/NIO/" rel="tag"># NIO</a>
+          
+            <a href="/tags/Netty/" rel="tag"># Netty</a>
+          
+            <a href="/tags/零拷贝/" rel="tag"># 零拷贝</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/23/JVM-之-性能监控与故障处理/" rel="next" title="JVM 之 性能监控与故障处理">
+                <i class="fa fa-chevron-left"></i> JVM 之 性能监控与故障处理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/img/2.png"
+                alt="JinTx" />
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">80</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">47</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/CallMeJiaGu/CallMeJiaGu.github.io" target="_blank" title="github">
+                      
+                        <i class="fa fa-fw fa-github-square"></i>github</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="646696382@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://blog.csdn.net/MakeContral/" target="_blank" title="CSND">
+                      
+                        <i class="fa fa-fw fa-google"></i>CSND</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BIO"><span class="nav-number">2.</span> <span class="nav-text">BIO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NIO"><span class="nav-number">3.</span> <span class="nav-text">NIO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AIO"><span class="nav-number">4.</span> <span class="nav-text">AIO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Netty的线程模型"><span class="nav-number">5.</span> <span class="nav-text">Netty的线程模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Reactor单线程模型"><span class="nav-number">5.1.</span> <span class="nav-text">Reactor单线程模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#单Reactor多线程模型"><span class="nav-number">5.2.</span> <span class="nav-text">单Reactor多线程模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#主从Reactor模型"><span class="nav-number">5.3.</span> <span class="nav-text">主从Reactor模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Netty的零拷贝技术"><span class="nav-number">6.</span> <span class="nav-text">Netty的零拷贝技术</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
