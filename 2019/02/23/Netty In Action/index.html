@@ -106,20 +106,20 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言这篇主要来记录一下Netty相关的知识点，如比较容易混淆的BIO\NIO\AIO，以及Netty的线程模式、零拷贝技术等。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205116938-338617203.png">
-<meta property="og:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205128488-616024087.png">
-<meta property="og:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205228564-867800649.png">
-<meta property="og:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205238924-890218087.png">
-<meta property="og:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205249173-151738900.png">
+<meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/5.png">
+<meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/6.png">
+<meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/7.png">
+<meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/8.png">
+<meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/9.png">
 <meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/1.png">
 <meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/2.png">
 <meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/3.png">
 <meta property="og:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/4.png">
-<meta property="og:updated_time" content="2019-02-26T12:56:59.254Z">
+<meta property="og:updated_time" content="2019-02-28T02:20:15.144Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Netty In Action（一）">
 <meta name="twitter:description" content="前言这篇主要来记录一下Netty相关的知识点，如比较容易混淆的BIO\NIO\AIO，以及Netty的线程模式、零拷贝技术等。">
-<meta name="twitter:image" content="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205116938-338617203.png">
+<meta name="twitter:image" content="http://yoursite.com/2019/02/23/Netty%20In%20Action/Netty-In-Action/5.png">
 
 
 
@@ -375,12 +375,12 @@
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>这篇主要来记录一下Netty相关的知识点，如比较容易混淆的BIO\NIO\AIO，以及Netty的线程模式、零拷贝技术等。</p>
 <a id="more"></a>
 <h3 id="BIO"><a href="#BIO" class="headerlink" title="BIO"></a><strong>BIO</strong></h3><p>同步阻塞</p>
-<p><img src="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205116938-338617203.png" alt="img"></p>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/5.png" alt="你想输入的替代文字"></p>
 <blockquote>
 <p>主要瓶颈在线程上。<strong>每个连接都会建立一个线程。虽然线程消耗比进程小</strong>，但是一台机器实际上能建立的有效线程有限，以Java来说，1.5以后，一个线程大致消耗1M内存！且随着线程数量的增加，CPU切换线程上下文的消耗也随之增加，在高过某个阀值后，继续增加线程，性能不增反降</p>
 </blockquote>
 <h3 id="NIO"><a href="#NIO" class="headerlink" title="NIO"></a><strong>NIO</strong></h3><p>同步非阻塞（编码复杂，需处理半包问题）</p>
-<p><img src="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205128488-616024087.png" alt="img"></p>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/6.png" alt="你想输入的替代文字"></p>
 <blockquote>
 <p>性能高，不用一个连接就建一个线程，可以一个线程处理所有的连接！相应的，编码就复杂很多，从上面的代码就可以明显体会到了。还有一个问题，由于是非阻塞的，应用无法知道什么时候消息读完了，就存在了半包问题！</p>
 <p>所有的请求注册到一个Selector多路复用器上，多路复用器轮询channle，然后去处理对应的事件。</p>
@@ -399,25 +399,25 @@
 </ul>
 </blockquote>
 <p>Reactor模型有三种：单Reactor单线程模型、单Reactor多线程模型、多Reactor多线程模型</p>
-<h4 id="Reactor单线程模型"><a href="#Reactor单线程模型" class="headerlink" title="Reactor单线程模型"></a>Reactor单线程模型</h4><p><img src="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205228564-867800649.png" alt="img"></p>
+<h4 id="Reactor单线程模型"><a href="#Reactor单线程模型" class="headerlink" title="Reactor单线程模型"></a>Reactor单线程模型</h4><p><img src="/2019/02/23/Netty In Action/Netty-In-Action/7.png" alt="你想输入的替代文字"></p>
 <p>这个模型和上面的NIO流程很类似，只是将消息相关处理独立到了Handler中去了！</p>
 <h4 id="单Reactor多线程模型"><a href="#单Reactor多线程模型" class="headerlink" title="单Reactor多线程模型"></a>单Reactor多线程模型</h4><p>Reactor多线程模型就是将Handler中的IO操作和非IO操作分开，操作IO的线程称为IO线程，非IO操作的线程称为工作线程!这样的话，客户端的请求会直接被丢到线程池中，客户端发送请求就不会堵塞！<strong>但是当用户进一步增加的时候，Reactor会出现瓶颈！</strong></p>
-<p><img src="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205238924-890218087.png" alt="img"></p>
-<h4 id="主从Reactor模型"><a href="#主从Reactor模型" class="headerlink" title="主从Reactor模型"></a>主从Reactor模型</h4><p><img src="https://img2018.cnblogs.com/blog/371217/201812/371217-20181216205249173-151738900.png" alt="img"></p>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/8.png" alt="你想输入的替代文字"></p>
+<h4 id="主从Reactor模型"><a href="#主从Reactor模型" class="headerlink" title="主从Reactor模型"></a>主从Reactor模型</h4><p><img src="/2019/02/23/Netty In Action/Netty-In-Action/9.png" alt="你想输入的替代文字"></p>
 <p>主Reactor用于响应连接请求，从Reactor用于处理IO操作请求！这个模型就是Netty的实现了。MainReactor 对应bossGroup，从Reactor对应workerGroup。</p>
 <h3 id="Netty的零拷贝技术"><a href="#Netty的零拷贝技术" class="headerlink" title="Netty的零拷贝技术"></a>Netty的零拷贝技术</h3><p>零拷贝：就是在操作数据的时候，减少数据从一块缓冲区到另外一个缓冲区的拷贝，因为减少了一次拷贝，所以CPU效率提高了。</p>
 <p><strong>在操作系统层面</strong>上零拷贝通常是指，<font color="#FF0000"><strong>减少用户态和内核态</strong></font>的一次拷贝。如正常情况下：先把磁盘上的数据读入到内核态，然后内核态拷贝到用户态，这个时候如果用户态需要进行网络传输，又需要把这个数据拷贝到SocketBuffer中。如下图：</p>
-<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/1.png" alt="OS层面上的NoZeroCopy"></p>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/1.png" alt="你想输入的替代文字"></p>
 <p>而零拷贝技术就是让内核态中的数据直接拷贝到SockerBuffer中：</p>
-<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/2.png" alt="OS层面上的NoZeroCopy"></p>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/2.png" alt="你想输入的替代文字"></p>
 <p><strong>在NIO中</strong>它的零拷贝体现在<font color="#FF0000"><strong>用户态和用户态</strong></font>之间的一次减少拷贝。</p>
-<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/3.png" alt="OS层面上的NoZeroCopy"></p>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/3.png" alt="你想输入的替代文字"></p>
 <p>在NIO中，NIO可以申请到直接内存，先来说一下为什么JVM中的数据不能直接拷贝到SocketBuffer中。有以下两点原因：</p>
 <blockquote>
 <p>第一是因为JVM的GC缘故，会导致JVM堆处于一个变化的状态，有可能导致传输数据被回收之类的不可预料问题。所以必须先将JVM中的数据拷贝到直接内存（直接内存是在JVM之外的用户态中）。</p>
 <p> 第二是JVM如果要传输到SocketBuffer，两者需要一个传输协调的问题，JVM不想要花费这部分的时间来等待，所以直接拷贝到直接内存，然后直接内存再拷到SocketBuffer就和JVM没关系了。</p>
 </blockquote>
-<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/4.png" alt="OS层面上的NoZeroCopy"></p>
+<p><img src="/2019/02/23/Netty In Action/Netty-In-Action/4.png" alt="你想输入的替代文字"></p>
 
       
     </div>
