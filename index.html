@@ -519,42 +519,14 @@
 
       
         
-          
-            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Redis 在一些高并发的查询起到了至关重要的作用，在生成环境中通常需要设置主从架构或者集群架构。其中主从架构中主Redis负责读写功能，从Redis只负责读功能，当主Redis宕机那么服务就不再提供写的功能，所以需要再搭配哨兵，使得从Redis往主Redis进行转变。这里就来详细阐述一下简单的主从架构，下一篇讲解主从架构+哨兵。实验环境：<code>Linux + Redis 4.0.13</code></p>
-<h3 id="Redis安装"><a href="#Redis安装" class="headerlink" title="Redis安装"></a>Redis安装</h3><p>在Linux环境下，首先使用wget下载Redis</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget http://download.redis.io/releases/redis-4.0.13.tar.gz <span class="comment"># 如果没有网络，可以下载好之后再scp过来</span></span><br><span class="line">tar xzf redis-4.0.13.tar.gz <span class="comment"># 解压文件</span></span><br></pre></td></tr></table></figure>
-<p>进入到解压开的文件夹中，执行make命名进行编译<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> redis-4.0.13 </span><br><span class="line">make <span class="comment"># 如果编译失败，确认你的环境是否有gcc</span></span><br></pre></td></tr></table></figure></p>
-<p>编译成功后可以在 <code>/redis-4.0.13/src</code>下看到redis-server、redis-cli</p>
-<p><img src="/2019/03/08/Redis-主从架构/1.png" alt="你想输入的替代文字"></p>
-<h3 id="Redis-主从配置"><a href="#Redis-主从配置" class="headerlink" title="Redis 主从配置"></a>Redis 主从配置</h3><blockquote>
-<p>主Redis：10.1.13.22  6379</p>
-<p>从Redis：10.1.13.54  6379</p>
-</blockquote>
-<p>修改<strong>主</strong>Redis的配置文件 redis-4.0.13/ redis.conf</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim redis-4.0.13/redis.conf</span><br></pre></td></tr></table></figure>
-<p>修改以下内容：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#bind 127.0.0.1 #原有的配置注释掉，修改成以下</span></span><br><span class="line"><span class="built_in">bind</span> 10.1.13.22 <span class="comment"># 这里要设置成能让其他服务器访问到的IP地址。设置你本机的IP地址，或者设置 0.0.0.0</span></span><br></pre></td></tr></table></figure>
-<p>修改<strong>从</strong>Redis的配置文件，修改以下内容：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#bind 127.0.0.1 #原有的配置注释掉，修改成以下</span></span><br><span class="line"><span class="built_in">bind</span> 10.1.13.54 <span class="comment"># 这里要设置成能让其他服务器访问到的IP地址。设置你本机的IP地址，或者设置 0.0.0.0</span></span><br><span class="line"></span><br><span class="line">slaveof 10.1.13.22 6379 <span class="comment">#添加slaveof配置，表示你想要作为谁的从服务 IP Port</span></span><br></pre></td></tr></table></figure>
-<p>在10.1.13.32上启动主Redis，启动的时候要指定的你配置文件的路径</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">root@tdlab-virtual-machine:/redis/redis-4.0.13<span class="comment"># ./src/redis-server ./redis.conf</span></span><br></pre></td></tr></table></figure>
-<p>在10.1.13.54上启动从Redis</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">root@tdlab-virtual-machine:/redis/redis-4.0.13<span class="comment"># ./src/redis-server ./redis.conf</span></span><br></pre></td></tr></table></figure>
-<p>可以看到从Redis成功链接到主Redis</p>
-<p><img src="/2019/03/08/Redis-主从架构/2.png" alt="你想输入的替代文字"></p>
-<p>主Redis也接受到了从Redis的连接要求：</p>
-<p><img src="/2019/03/08/Redis-主从架构/3.png" alt="你想输入的替代文字"></p>
-<p>在10.1.13.22上启动Redis的客户端，连接主Redis：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./src/redis-cli -h 10.1.13.22 <span class="comment">#注意要配置IP地址，因为你主Redis配置了bing 10.1.13.22，默认的127.0.0.1已经连接不到主Redis了，端口是默认的可以不用设定</span></span><br></pre></td></tr></table></figure>
-<p>使用info命令看到的确有一台从Redis：</p>
-<p><img src="/2019/03/08/Redis-主从架构/4.png" alt="你想输入的替代文字"></p>
-<p>现在你可以在主Redis上进行数据的读写，然后从Redis也可以读到，但是从Redis是不能接受写操作的。</p>
-<p>主Redis上写入数据：</p>
-<p><img src="/2019/03/08/Redis-主从架构/5.png" alt="你想输入的替代文字"></p>
-<p>从redis上读到该数据：</p>
-<p><img src="/2019/03/08/Redis-主从架构/6.png" alt="你想输入的替代文字"></p>
-
-          
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Redis 在一些高并发的查询起到了至关重要的作用，在生成环境中通常需要设置主从架构或者集群架构。其中主从架构中主Redis负责读写功能，从Redis只负责读功能，当主Redis宕机那么服务就不再提供写的功能，所以需要再搭配哨兵，使得从Redis往主Redis进行转变。这里就来详细阐述一下简单的主从架构，下一篇讲解主从架构+哨兵。实验环境：<code>Linux + Redis 4.0.13</code></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/03/08/Redis-主从架构/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
