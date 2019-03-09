@@ -102,21 +102,21 @@
 <meta name="keywords" content="Redis,主从架构">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis 主从架构">
-<meta property="og:url" content="http://yoursite.com/2019/03/08/Redis-主从架构/index.html">
+<meta property="og:url" content="http://yoursite.com/2019/01/01/Redis-主从架构/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言Redis 在一些高并发的查询起到了至关重要的作用，在生成环境中通常需要设置主从架构或者集群架构。其中主从架构中主Redis负责读写功能，从Redis只负责读功能，当主Redis宕机那么服务就不再提供写的功能，所以需要再搭配哨兵，使得从Redis往主Redis进行转变。这里就来详细阐述一下简单的主从架构，下一篇讲解主从架构+哨兵。实验环境：Linux + Redis 4.0.13">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://yoursite.com/2019/03/08/Redis-主从架构/1.png">
-<meta property="og:image" content="http://yoursite.com/2019/03/08/Redis-主从架构/2.png">
-<meta property="og:image" content="http://yoursite.com/2019/03/08/Redis-主从架构/3.png">
-<meta property="og:image" content="http://yoursite.com/2019/03/08/Redis-主从架构/4.png">
-<meta property="og:image" content="http://yoursite.com/2019/03/08/Redis-主从架构/5.png">
-<meta property="og:image" content="http://yoursite.com/2019/03/08/Redis-主从架构/6.png">
-<meta property="og:updated_time" content="2019-03-08T13:42:28.867Z">
+<meta property="og:image" content="http://yoursite.com/2019/01/01/Redis-主从架构/1.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/01/Redis-主从架构/2.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/01/Redis-主从架构/3.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/01/Redis-主从架构/4.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/01/Redis-主从架构/5.png">
+<meta property="og:image" content="http://yoursite.com/2019/01/01/Redis-主从架构/6.png">
+<meta property="og:updated_time" content="2019-03-09T04:05:17.771Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redis 主从架构">
 <meta name="twitter:description" content="前言Redis 在一些高并发的查询起到了至关重要的作用，在生成环境中通常需要设置主从架构或者集群架构。其中主从架构中主Redis负责读写功能，从Redis只负责读功能，当主Redis宕机那么服务就不再提供写的功能，所以需要再搭配哨兵，使得从Redis往主Redis进行转变。这里就来详细阐述一下简单的主从架构，下一篇讲解主从架构+哨兵。实验环境：Linux + Redis 4.0.13">
-<meta name="twitter:image" content="http://yoursite.com/2019/03/08/Redis-主从架构/1.png">
+<meta name="twitter:image" content="http://yoursite.com/2019/01/01/Redis-主从架构/1.png">
 
 
 
@@ -146,7 +146,7 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2019/03/08/Redis-主从架构/"/>
+  <link rel="canonical" href="http://yoursite.com/2019/01/01/Redis-主从架构/"/>
 
 
 
@@ -279,7 +279,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/08/Redis-主从架构/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/01/Redis-主从架构/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="JinTx">
@@ -309,8 +309,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-08T20:55:46+08:00">
-                2019-03-08
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-01T20:55:46+08:00">
+                2019-01-01
               </time>
             
 
@@ -375,7 +375,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget http://download.redis.io/releases/redis-4.0.13.tar.gz <span class="comment"># 如果没有网络，可以下载好之后再scp过来</span></span><br><span class="line">tar xzf redis-4.0.13.tar.gz <span class="comment"># 解压文件</span></span><br></pre></td></tr></table></figure>
 <p>进入到解压开的文件夹中，执行make命名进行编译<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> redis-4.0.13 </span><br><span class="line">make <span class="comment"># 如果编译失败，确认你的环境是否有gcc</span></span><br></pre></td></tr></table></figure></p>
 <p>编译成功后可以在 <code>/redis-4.0.13/src</code>下看到redis-server、redis-cli</p>
-<p><img src="/2019/03/08/Redis-主从架构/1.png" alt="你想输入的替代文字"></p>
+<p><img src="/2019/01/01/Redis-主从架构/1.png" alt="你想输入的替代文字"></p>
 <h3 id="Redis-主从配置"><a href="#Redis-主从配置" class="headerlink" title="Redis 主从配置"></a>Redis 主从配置</h3><blockquote>
 <p>主Redis：10.1.13.22  6379</p>
 <p>从Redis：10.1.13.54  6379</p>
@@ -391,18 +391,18 @@
 <p>在10.1.13.54上启动从Redis</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">root@tdlab-virtual-machine:/redis/redis-4.0.13<span class="comment"># ./src/redis-server ./redis.conf</span></span><br></pre></td></tr></table></figure>
 <p>可以看到从Redis成功链接到主Redis</p>
-<p><img src="/2019/03/08/Redis-主从架构/2.png" alt="你想输入的替代文字"></p>
+<p><img src="/2019/01/01/Redis-主从架构/2.png" alt="你想输入的替代文字"></p>
 <p>主Redis也接受到了从Redis的连接要求：</p>
-<p><img src="/2019/03/08/Redis-主从架构/3.png" alt="你想输入的替代文字"></p>
+<p><img src="/2019/01/01/Redis-主从架构/3.png" alt="你想输入的替代文字"></p>
 <p>在10.1.13.22上启动Redis的客户端，连接主Redis：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./src/redis-cli -h 10.1.13.22 <span class="comment">#注意要配置IP地址，因为你主Redis配置了bing 10.1.13.22，默认的127.0.0.1已经连接不到主Redis了，端口是默认的可以不用设定</span></span><br></pre></td></tr></table></figure>
 <p>使用info命令看到的确有一台从Redis：</p>
-<p><img src="/2019/03/08/Redis-主从架构/4.png" alt="你想输入的替代文字"></p>
+<p><img src="/2019/01/01/Redis-主从架构/4.png" alt="你想输入的替代文字"></p>
 <p>现在你可以在主Redis上进行数据的读写，然后从Redis也可以读到，但是从Redis是不能接受写操作的。</p>
 <p>主Redis上写入数据：</p>
-<p><img src="/2019/03/08/Redis-主从架构/5.png" alt="你想输入的替代文字"></p>
+<p><img src="/2019/01/01/Redis-主从架构/5.png" alt="你想输入的替代文字"></p>
 <p>从redis上读到该数据：</p>
-<p><img src="/2019/03/08/Redis-主从架构/6.png" alt="你想输入的替代文字"></p>
+<p><img src="/2019/01/01/Redis-主从架构/6.png" alt="你想输入的替代文字"></p>
 
       
     </div>
@@ -435,8 +435,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/02/23/Netty-In-Action（一）/" rel="next" title="Netty In Action（一）">
-                <i class="fa fa-chevron-left"></i> Netty In Action（一）
+              <a href="/2018/12/29/FileChannle-高性能分析/" rel="next" title="高性能IO 之 FileChannle和MMAP分析">
+                <i class="fa fa-chevron-left"></i> 高性能IO 之 FileChannle和MMAP分析
               </a>
             
           </div>
@@ -444,6 +444,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/03/多线程并发-之-synchronized-锁的优化/" rel="prev" title="多线程并发 之 synchronized 锁的优化">
+                多线程并发 之 synchronized 锁的优化 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
