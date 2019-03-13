@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="定位问题," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言相信大家在平时工作中，或多或少遇到过些棘手的问题，如CPU负载过高、内存溢出、频繁Full GC等。对刚接触工作的同学来说的确是不知道从哪入手，所以这里我简单介绍一下上面三种问题该如何去定位以及解决，当然解决的方式是不一的，可以根据具体环境的问题灵活使用。">
+<meta name="keywords" content="定位问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何定位生产环境中的问题">
+<meta property="og:url" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言相信大家在平时工作中，或多或少遇到过些棘手的问题，如CPU负载过高、内存溢出、频繁Full GC等。对刚接触工作的同学来说的确是不知道从哪入手，所以这里我简单介绍一下上面三种问题该如何去定位以及解决，当然解决的方式是不一的，可以根据具体环境的问题灵活使用。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/1.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/1.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/3.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/2.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/1.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/4.png">
+<meta property="og:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/5.png">
+<meta property="og:updated_time" content="2019-03-13T13:42:16.944Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何定位生产环境中的问题">
+<meta name="twitter:description" content="前言相信大家在平时工作中，或多或少遇到过些棘手的问题，如CPU负载过高、内存溢出、频繁Full GC等。对刚接触工作的同学来说的确是不知道从哪入手，所以这里我简单介绍一下上面三种问题该如何去定位以及解决，当然解决的方式是不一的，可以根据具体环境的问题灵活使用。">
+<meta name="twitter:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/"/>
+
+
+
+
+
+  <title>如何定位生产环境中的问题 | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/2.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">如何定位生产环境中的问题</h1>
+        
+
+        <div class="post-meta">
+		
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-13T19:42:29+08:00">
+                2019-03-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/工作/" itemprop="url" rel="index">
+                    <span itemprop="name">工作</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>相信大家在平时工作中，或多或少遇到过些棘手的问题，如CPU负载过高、内存溢出、频繁Full GC等。对刚接触工作的同学来说的确是不知道从哪入手，所以这里我简单介绍一下上面三种问题该如何去定位以及解决，当然解决的方式是不一的，可以根据具体环境的问题灵活使用。</p>
+<a id="more"></a>
+<h3 id="TOP-命令解析"><a href="#TOP-命令解析" class="headerlink" title="TOP 命令解析"></a>TOP 命令解析</h3><p>Linux中top命令是排查问题最有效的利器，但是很多人对top认识不深刻，而且网上很多博客有些错误的阐述，所以这里先来讨论一下在top命令中需要注意的三个信息：load average、CPU使用占用比、CPU占用率高的线程。<strong>清楚的话可以跳过这一节</strong>。</p>
+<h4 id="load-average"><a href="#load-average" class="headerlink" title="load average"></a>load average</h4><p>下面是top命令的结果：</p>
+<p><img src="/2019/03/13/如何定位生产环境中的问题/1.png" alt="你想输入的替代文字"></p>
+<p>先来看load average。其中1.02 、1.05 、1.01分别为1分钟、5分钟、15分钟CPU负载的情况。在很多博客上看到说load average大于5的时候就是超负荷的情况了，<font color="#FF0000"><strong>但是load average值是否超标是要根据你CPU的核数来判断的</strong></font>。</p>
+<blockquote>
+<p>一般来说，Load Average是与机器内核数有关的。以一个单核的机器为例，load=0.5表示CPU还有一半的资源可以处理其他的线程请求，load=1表示CPU所有的资源都在处理请求，没有剩余的资源可以利用了，而load=2则表示CPU已经超负荷运作，另外还有一倍的线程正在等待处理。所以，对于单核机器来说，理想状态下，Load Average要小于1。同理，对于双核处理器来说，Load Average要小于2。结论是：多核处理器中，你的Load Average不应该高于处理器核心的总数量。</p>
+</blockquote>
+<p>简单来说，但你的CPU核数为单核时，load average为0-1是一个正常的情况，如果是1.5那说明要一半的工作在等待中。如果你的CPU核数为4核十，load average为0-4是一个正常的情况。</p>
+<p>那么如何查看你当前CPU的核数呢？你可以在top命令情况下按下1，就可以看到。</p>
+<h4 id="CPU使用占用比"><a href="#CPU使用占用比" class="headerlink" title="CPU使用占用比"></a>CPU使用占用比</h4><p>接着来看CPU的使用占用比情况。在上图 <code>%CPU</code> 那行可以看到一系列占用CPU的百分比情况，其中：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">us <span class="comment">#用户空间占用CPU百分比</span></span><br><span class="line">sy <span class="comment">#内核空间占用CPU百分比</span></span><br><span class="line">ni <span class="comment">#用户进程空间内改变过优先级的进程占用CPU百分比</span></span><br><span class="line">id <span class="comment">#空闲CPU百分比</span></span><br><span class="line">wa <span class="comment">#等待输入输出的CPU时间百分比</span></span><br><span class="line">hi <span class="comment">#硬中断</span></span><br><span class="line">si <span class="comment">#软中断</span></span><br></pre></td></tr></table></figure>
+<p>首先需要明白的就是 Cpu(s) 和下面进程占用CPU情况的区别。<font color="#FF0000"><strong>可能有人会觉得奇怪</strong></font>：为什么PID为8783的进程明明占用了96.4%的CPU情况，但是为什么 us 用户空间占用只有38.9%呢？us 和 进程占用CPU的百分比有什么联系呢？</p>
+<p><img src="/2019/03/13/如何定位生产环境中的问题/1.png" alt="你想输入的替代文字"></p>
+<blockquote>
+<p>这是因为进程执行过程是分为内核态和用户态的。比如你在执行一个IO过程，因为IO必须要由内核程序亲自调用，那么调用IO的这段时间就是内核 sy 的时间了，其他时间则为用户 us 执行时间。所以虽然这个线程占用了CPU的96%的时间，但是实际上这个时间是分为了内核态和用户态的时间的。</p>
+</blockquote>
+<h4 id="CPU占用率高的线程"><a href="#CPU占用率高的线程" class="headerlink" title="CPU占用率高的线程"></a>CPU占用率高的线程</h4><p>有些人看到一个进程占用100%的情况就觉得自己的节点要爆炸了，当然这么说是夸张了。但是如果你的CPU是多核的，那么就算你的某个进程占用了100%的情况也是没关系的，因为Cpu(s) 显示的所有核数的平均情况。</p>
+<p><img src="/2019/03/13/如何定位生产环境中的问题/3.png" alt="你想输入的替代文字"></p>
+<p>在top情况下按1，查看CPU的所有核的情况：可以知道一个用户进程只是针对某一核的，如果你的CPU有12核，那么就意味着你最高可以有12个100%占用CPU的进程同时运行。</p>
+<p><img src="/2019/03/13/如何定位生产环境中的问题/2.png" alt="你想输入的替代文字"></p>
+<h3 id="CPU负载过高"><a href="#CPU负载过高" class="headerlink" title="CPU负载过高"></a>CPU负载过高</h3><p>上面简单的说明了一下top命令该注意的地方，那么现在再应用一下。实验环境：Linux + 单核CPU。</p>
+<p>为了重现问题，在Linux运行了以下脚本：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">say</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"abc"</span>);</span><br><span class="line">        System.out.println(<span class="string">"123"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String args[])</span></span>&#123;</span><br><span class="line">        say();</span><br><span class="line">        <span class="keyword">while</span>(<span class="keyword">true</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">"1"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用top命令查看：</p>
+<p><img src="/2019/03/13/如何定位生产环境中的问题/1.png" alt="你想输入的替代文字"></p>
+<p>因为是CPU是单核的原因，所以从load average上看出来，CPU已经是负载运行了。这个时候，可以去看一下PID为8783的进程中有有哪些线程，使用一下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">top -Hp 8783 <span class="comment"># -H 可以查看由某个进程启动的所有线程 ，p指定要看的进程</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2019/03/13/如何定位生产环境中的问题/4.png" alt="你想输入的替代文字"></p>
+<p>可以看到8783进程中8784线程占用了CPU的时间比最高。这个时候可以使用jstack命令查看,8783线程在运行什么代码，在使用jstack命令之前，需要将8784转为16进制，使用以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span> <span class="string">'%x\n'</span> 8784 <span class="comment"># 得到2250</span></span><br></pre></td></tr></table></figure>
+<p>使用jstack命令查看线程为8784的情况：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jstack 8783 | grep <span class="string">'2250'</span> -A 100 <span class="comment"># -A 表示在grep匹配到之后再输出100行</span></span><br></pre></td></tr></table></figure>
+<p><img src="/2019/03/13/如何定位生产环境中的问题/5.png" alt="你想输入的替代文字"></p>
+<p>可以看到当前线程执行代码块位置，这个时候就可以去根据你的代码逻辑去排查问题了。</p>
+<h3 id="内存溢出"><a href="#内存溢出" class="headerlink" title="内存溢出"></a>内存溢出</h3><p>内存溢出的解决办法可以查看我之前的博客：<a href="https://www.callmejiagu.com/2019/01/23/JVM-%E4%B9%8B-%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7%E4%B8%8E%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/#more" target="_blank" rel="noopener">JVM 之 性能监控与故障处理</a> </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/定位问题/" rel="tag"># 定位问题</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/02/23/Netty-In-Action（一）/" rel="next" title="Netty In Action（一）">
+                <i class="fa fa-chevron-left"></i> Netty In Action（一）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/img/2.png"
+                alt="JinTx" />
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">82</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">50</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/CallMeJiaGu/CallMeJiaGu.github.io" target="_blank" title="github">
+                      
+                        <i class="fa fa-fw fa-github-square"></i>github</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="646696382@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://blog.csdn.net/MakeContral/" target="_blank" title="CSND">
+                      
+                        <i class="fa fa-fw fa-google"></i>CSND</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TOP-命令解析"><span class="nav-number">2.</span> <span class="nav-text">TOP 命令解析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#load-average"><span class="nav-number">2.1.</span> <span class="nav-text">load average</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU使用占用比"><span class="nav-number">2.2.</span> <span class="nav-text">CPU使用占用比</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU占用率高的线程"><span class="nav-number">2.3.</span> <span class="nav-text">CPU占用率高的线程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU负载过高"><span class="nav-number">3.</span> <span class="nav-text">CPU负载过高</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存溢出"><span class="nav-number">4.</span> <span class="nav-text">内存溢出</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
