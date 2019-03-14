@@ -113,7 +113,7 @@
 <meta property="og:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/1.png">
 <meta property="og:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/4.png">
 <meta property="og:image" content="http://yoursite.com/2019/03/13/如何定位生产环境中的问题/5.png">
-<meta property="og:updated_time" content="2019-03-13T13:42:16.944Z">
+<meta property="og:updated_time" content="2019-03-14T12:03:21.624Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="如何定位生产环境中的问题">
 <meta name="twitter:description" content="前言相信大家在平时工作中，或多或少遇到过些棘手的问题，如CPU负载过高、内存溢出、频繁Full GC等。对刚接触工作的同学来说的确是不知道从哪入手，所以这里我简单介绍一下上面三种问题该如何去定位以及解决，当然解决的方式是不一的，可以根据具体环境的问题灵活使用。">
@@ -407,6 +407,32 @@
 <p><img src="/2019/03/13/如何定位生产环境中的问题/5.png" alt="你想输入的替代文字"></p>
 <p>可以看到当前线程执行代码块位置，这个时候就可以去根据你的代码逻辑去排查问题了。</p>
 <h3 id="内存溢出"><a href="#内存溢出" class="headerlink" title="内存溢出"></a>内存溢出</h3><p>内存溢出的解决办法可以查看我之前的博客：<a href="https://www.callmejiagu.com/2019/01/23/JVM-%E4%B9%8B-%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7%E4%B8%8E%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/#more" target="_blank" rel="noopener">JVM 之 性能监控与故障处理</a> </p>
+<h3 id="频繁Full-GC"><a href="#频繁Full-GC" class="headerlink" title="频繁Full GC"></a>频繁Full GC</h3><p>首先你可以使用jstat -gcutil查看一下堆回收的基本情况。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jstat -gcutil &lt;pid&gt; 1000 <span class="comment"># 每1000毫秒输出&lt;pid&gt;堆的使用情况</span></span><br></pre></td></tr></table></figure>
+<p> 通常来说触发Full GC有以下几点原因：</p>
+<blockquote>
+<p><strong>显示调用System.gc()</strong> 。只是建议系统进行GC，并不一定触发</p>
+<p> <strong>长期存活的对象将进入老年代。</strong></p>
+<p><strong>大对象直接进入老年代。</strong></p>
+<p><strong>Minor GC晋升到旧生代的平均大小大于老年代的剩余空间</strong> 。比如你第一次Minor GC有2M晋升到老年代中，那么下次执行Minor GC时会先判断老年代的空间是否大于2M。</p>
+</blockquote>
+<p>通过jstat的结果可能可以排除掉一些原因，但是最好是结合GC日志来查看。GC的日志文件可以在JVM启动时，添加-XX:+PrintGCDetails，<font color="#FF0000"><strong>或者你想在不停掉服务的情况，使用jinfo的命令去动态的调整虚拟机的各项参数</strong></font>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jinfo -flag +PrintGCDetails &lt;pid&gt;</span><br></pre></td></tr></table></figure>
+<p>下面就是GC日志，你可以知道当前GC的类型（如果是System.gc，会在后面给出提示）、堆使用的垃圾收集器，回收时间等信息：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[GC (System.gc()) [PSYoungGen: 3686K-&gt;664K(38400K)] 3686K-&gt;672K(125952K), 0.0016607 secs][Times: user=0.00 sys=0.00, real=0.00 secs] </span><br><span class="line">[Full GC (System.gc()) [PSYoungGen: 664K-&gt;0K(38400K)] [ParOldGen: 8K-&gt;537K(87552K)] 672K-&gt;537K(125952K), [Metaspace: 2754K-&gt;2754K(1056768K)], 0.0059024 secs][Times: user=0.00 sys=0.00, real=0.01 secs] </span><br><span class="line">Heap</span><br><span class="line"> PSYoungGen      total 38400K, used 333K [0x00000000d5c00000, 0x00000000d8680000, 0x0000000100000000)</span><br><span class="line">  eden space 33280K, 1% used [0x00000000d5c00000,0x00000000d5c534a8,0x00000000d7c80000)</span><br><span class="line">  from space 5120K, 0% used [0x00000000d7c80000,0x00000000d7c80000,0x00000000d8180000)</span><br><span class="line">  to   space 5120K, 0% used [0x00000000d8180000,0x00000000d8180000,0x00000000d8680000)</span><br><span class="line"> ParOldGen       total 87552K, used 537K [0x0000000081400000, 0x0000000086980000, 0x00000000d5c00000)</span><br><span class="line">  object space 87552K, 0% used [0x0000000081400000,0x00000000814864a0,0x0000000086980000)</span><br><span class="line"> Metaspace       used 2761K, capacity 4486K, committed 4864K, reserved 1056768K</span><br><span class="line">  class space    used 299K, capacity 386K, committed 512K, reserved 1048576K</span><br></pre></td></tr></table></figure>
+<p>日志分析：</p>
+<blockquote>
+<p>1.GC日志开头的”[GC”和”[Full GC”说明了这次垃圾收集的停顿类型，如果有”Full”，说明这次GC发生了”Stop-The-World”。因为是调用了System.gc()方法触发的收集，所以会显示”[Full GC (System.gc())”，不然是没有后面的(System.gc())的。</p>
+<p>2.“[PSYoungGen”和”[ParOldGen”是指GC发生的区域，分别代表使用<strong>Parallel Scavenge</strong>垃圾收集器的新生代和使用<strong>Parallel old</strong>垃圾收集器的老生代。为什么是这两个垃圾收集器组合呢？因为我的jvm开启的模式是Server，而Server模式的默认垃圾收集器组合便是这个，在命令行输入java -version就可以看到自己的jvm默认开启模式。还有一种是client模式，默认组合是Serial收集器和Serial Old收集器组合。</p>
+<p>3.在方括号中”PSYoungGen:”后面的”3686K-&gt;664K(38400K)”代表的是”GC前该内存区域已使用的容量-&gt;GC后该内存区域已使用的容量(该内存区域总容量)”</p>
+<p>4.在方括号之外的”3686K-&gt;672K(125952K)”代表的是”GC前Java堆已使用容量-&gt;GC后Java堆已使用容量(Java堆总容量)”</p>
+<p>5.再往后的”0.0016607 sec”代表该内存区域GC所占用的时间，单位是秒。</p>
+<p>6.再后面的”[Times: user=0.00 sys=0.00, real=0.00 secs]”，user代表进程在用户态消耗的CPU时间，sys代表代表进程在内核态消耗的CPU时间、real代表程序从开始到结束所用的时钟时间。这个时间包括其他进程使用的时间片和进程阻塞的时间（比如等待 I/O 完成）。</p>
+<p>7.至于后面的”eden”代表的是Eden空间，还有”from”和”to”代表的是Survivor空间。</p>
+</blockquote>
+<p>上面的操作算是排除问题的一种思路，但是你需要定位到代码，还是要把当前堆dump出来，然后使用MAT或者其他工具进行分析：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmap -dump:[live,]format=b,file=&lt;filename&gt; &lt;pid&gt; <span class="comment"># 把堆的对象情况dump到一个文件中</span></span><br></pre></td></tr></table></figure>
+<p>如何使用MAT在 <a href="https://www.callmejiagu.com/2019/01/23/JVM-%E4%B9%8B-%E6%80%A7%E8%83%BD%E7%9B%91%E6%8E%A7%E4%B8%8E%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86/#more" target="_blank" rel="noopener">JVM 之 性能监控与故障处理</a> 已经描述过了。</p>
 
       
     </div>
@@ -603,7 +629,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TOP-命令解析"><span class="nav-number">2.</span> <span class="nav-text">TOP 命令解析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#load-average"><span class="nav-number">2.1.</span> <span class="nav-text">load average</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU使用占用比"><span class="nav-number">2.2.</span> <span class="nav-text">CPU使用占用比</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU占用率高的线程"><span class="nav-number">2.3.</span> <span class="nav-text">CPU占用率高的线程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU负载过高"><span class="nav-number">3.</span> <span class="nav-text">CPU负载过高</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存溢出"><span class="nav-number">4.</span> <span class="nav-text">内存溢出</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TOP-命令解析"><span class="nav-number">2.</span> <span class="nav-text">TOP 命令解析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#load-average"><span class="nav-number">2.1.</span> <span class="nav-text">load average</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU使用占用比"><span class="nav-number">2.2.</span> <span class="nav-text">CPU使用占用比</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU占用率高的线程"><span class="nav-number">2.3.</span> <span class="nav-text">CPU占用率高的线程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU负载过高"><span class="nav-number">3.</span> <span class="nav-text">CPU负载过高</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存溢出"><span class="nav-number">4.</span> <span class="nav-text">内存溢出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#频繁Full-GC"><span class="nav-number">5.</span> <span class="nav-text">频繁Full GC</span></a></li></ol></div>
             
 
           </div>
