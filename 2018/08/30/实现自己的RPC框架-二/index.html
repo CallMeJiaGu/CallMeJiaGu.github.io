@@ -87,7 +87,7 @@
 
 
 
-  <meta name="keywords" content="NIO,造轮子,微服务,RPC," />
+  <meta name="keywords" content="造轮子,NIO,微服务,RPC," />
 
 
 
@@ -99,7 +99,7 @@
 
 
 <meta name="description" content="前言在上一篇的RPC实现，使用了Socket来进行通信，这种方式的缺点很明显，Socket的IO是同步阻塞的，即你的线程会一直等到有服务进来或者read()有消息。这时候有其他线程想要链接，为了不被阻塞，只能再开一个线程去处理。 虽然可以通过线程池来复用线程，但是通信线程多起来还是会影响到整个服务的性能。所以这篇我们将使用NIO来代替BIO来实现服务之间的通信。代码上传至github，链接。">
-<meta name="keywords" content="NIO,造轮子,微服务,RPC">
+<meta name="keywords" content="造轮子,NIO,微服务,RPC">
 <meta property="og:type" content="article">
 <meta property="og:title" content="实现自己的RPC框架(二)">
 <meta property="og:url" content="http://yoursite.com/2018/08/30/实现自己的RPC框架-二/index.html">
@@ -395,9 +395,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/NIO/" rel="tag"># NIO</a>
-          
             <a href="/tags/造轮子/" rel="tag"># 造轮子</a>
+          
+            <a href="/tags/NIO/" rel="tag"># NIO</a>
           
             <a href="/tags/微服务/" rel="tag"># 微服务</a>
           
@@ -518,7 +518,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-count">22</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -529,7 +529,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">50</span>
+                  <span class="site-state-item-count">52</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
