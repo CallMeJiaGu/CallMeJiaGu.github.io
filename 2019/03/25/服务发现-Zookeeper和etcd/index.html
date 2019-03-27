@@ -106,7 +106,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言记得在之前实现自己的RPC框架的时候，使用了Zookeeper实现了服务的注册以及查询，但若仅仅只是支持这块功能的话，etcd可以做的更好。etcd的灵感是来源于Zookeeper的，在实现的时候有了很多的改进，这篇简单来介绍一下etcd与Zookeeper的优缺点以及应用场景。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-03-27T13:56:03.854Z">
+<meta property="og:updated_time" content="2019-03-27T14:03:29.929Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="服务发现 Zookeeper和etcd（转载+整理）">
 <meta name="twitter:description" content="前言记得在之前实现自己的RPC框架的时候，使用了Zookeeper实现了服务的注册以及查询，但若仅仅只是支持这块功能的话，etcd可以做的更好。etcd的灵感是来源于Zookeeper的，在实现的时候有了很多的改进，这篇简单来介绍一下etcd与Zookeeper的优缺点以及应用场景。">
@@ -379,7 +379,30 @@
 <h4 id="etcd-watch机制"><a href="#etcd-watch机制" class="headerlink" title="etcd watch机制"></a>etcd watch机制</h4><p>Zookeeper的watch机制时一次性的，当watch的节点发生变更后，会通知客户端，同时watch失效。</p>
 <p>etcd的watch机制时一直生效的，watch一次，一直可以得到watch的节点的变更信息。但是，etcd的watch时阻塞模式的，watch某个节点后，就会阻塞等待回应。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">etcdWatch</span><span class="params">(Watch watch, String key, Boolean usePrefix, WatchCallback callback)</span> </span>&#123;</span><br><span class="line">        executorService.execute(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                Watch.Watcher watcher;</span><br><span class="line">                <span class="keyword">if</span> (usePrefix) &#123;</span><br><span class="line">                    watcher = watch.watch(ByteSequence.fromString(key), WatchOption.newBuilder().withPrefix(ByteSequence.fromString(key)).build());</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    watcher = watch.watch(ByteSequence.fromString(key));</span><br><span class="line">                &#125;</span><br><span class="line">                List&lt;WatchEvent&gt; events = watcher.listen().getEvents();</span><br><span class="line">                callback.callback(events);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                logger.error(e.getMessage(), e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h4><p><a href="http://127.0.0.1:2379/version" target="_blank" rel="noopener">http://127.0.0.1:2379/version</a> 查看版本</p>
+<h4 id="etcd-v3-基本api"><a href="#etcd-v3-基本api" class="headerlink" title="etcd v3 基本api"></a>etcd v3 基本api</h4><p>设置键、修改键</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl put /maple value</span><br></pre></td></tr></table></figure>
+<p>删除键</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl del /maple</span><br></pre></td></tr></table></figure>
+<p>删除所有/test前缀的节点</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl del  /test --prefix</span><br></pre></td></tr></table></figure>
+<p>查询<code>Key</code> </p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl get /test/ok</span><br></pre></td></tr></table></figure>
+<p>前缀查询</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl get /test/ok --prefix</span><br></pre></td></tr></table></figure>
+<p>watch key</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl watch /maple/services</span><br></pre></td></tr></table></figure>
+<p>watch子节点</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl watch /maple/services --prefix</span><br></pre></td></tr></table></figure>
+<p>申请租约、授权租约</p>
+<p>申请租约</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">etcdctl lease grant <span class="number">40</span></span><br><span class="line">    result: lease <span class="number">4e5</span>e5b853f528859 granted with TTL(<span class="number">40s</span>)</span><br></pre></td></tr></table></figure>
+<p>授权租约</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl put --lease=<span class="number">4e5</span>e5b853f528859 /maple/s <span class="number">123</span></span><br></pre></td></tr></table></figure>
+<p>撤销</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl lease revoke <span class="number">4e5</span>e5b853f5286cc</span><br></pre></td></tr></table></figure>
+<p>租约续约</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl lease keep-alive <span class="number">4e5</span>e5b853f52892b</span><br></pre></td></tr></table></figure>
+<p><a href="http://127.0.0.1:2379/version" target="_blank" rel="noopener">http://127.0.0.1:2379/version</a> 查看版本</p>
 <h4 id="etcd与Zookeeper的比较"><a href="#etcd与Zookeeper的比较" class="headerlink" title="etcd与Zookeeper的比较"></a>etcd与Zookeeper的比较</h4><p>etcd作为一个后起之秀，其优点也很明显。</p>
 <blockquote>
 <p>1.<strong>简单</strong>。使用Go语言编写部署简单；使用HTTP作为接口使用简单；<strong>使用Raft算法</strong>保证强一致性让用户易于理解。</p>
@@ -588,7 +611,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Zookeeper"><span class="nav-number">2.</span> <span class="nav-text">Zookeeper</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#etcd"><span class="nav-number">3.</span> <span class="nav-text">etcd</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#etcd租约节点"><span class="nav-number">3.1.</span> <span class="nav-text">etcd租约节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#etcd-实现有序节点"><span class="nav-number">3.2.</span> <span class="nav-text">etcd 实现有序节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#etcd-watch机制"><span class="nav-number">3.3.</span> <span class="nav-text">etcd watch机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用"><span class="nav-number">3.4.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#etcd与Zookeeper的比较"><span class="nav-number">3.5.</span> <span class="nav-text">etcd与Zookeeper的比较</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">4.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Zookeeper"><span class="nav-number">2.</span> <span class="nav-text">Zookeeper</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#etcd"><span class="nav-number">3.</span> <span class="nav-text">etcd</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#etcd租约节点"><span class="nav-number">3.1.</span> <span class="nav-text">etcd租约节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#etcd-实现有序节点"><span class="nav-number">3.2.</span> <span class="nav-text">etcd 实现有序节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#etcd-watch机制"><span class="nav-number">3.3.</span> <span class="nav-text">etcd watch机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#etcd-v3-基本api"><span class="nav-number">3.4.</span> <span class="nav-text">etcd v3 基本api</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#etcd与Zookeeper的比较"><span class="nav-number">3.5.</span> <span class="nav-text">etcd与Zookeeper的比较</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">4.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
             
 
           </div>
