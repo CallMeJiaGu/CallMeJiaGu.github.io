@@ -106,7 +106,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言最近一直忙着找实习以及小论文的实验，导致最近半个月都没有汲取到新的知识，也就这两天空闲的时候才能继续看看Netty。其实网上关于Netty的文章很多，但是能够从底层原理去解释的却不多，我们都知道Netty底层是通过IO多路复用来实现的，那么你们有没有考虑过在底层上IO多路复用又是是如何实现的？ 这篇就从底层的select函数以及文件驱动poll函数来分享一下我的认识，若如有误的地方，大家可以给">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-09T12:15:23.533Z">
+<meta property="og:updated_time" content="2019-04-09T12:19:42.065Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Netty In Action（二）">
 <meta name="twitter:description" content="前言最近一直忙着找实习以及小论文的实验，导致最近半个月都没有汲取到新的知识，也就这两天空闲的时候才能继续看看Netty。其实网上关于Netty的文章很多，但是能够从底层原理去解释的却不多，我们都知道Netty底层是通过IO多路复用来实现的，那么你们有没有考虑过在底层上IO多路复用又是是如何实现的？ 这篇就从底层的select函数以及文件驱动poll函数来分享一下我的认识，若如有误的地方，大家可以给">
@@ -365,7 +365,10 @@
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>最近一直忙着找实习以及小论文的实验，导致最近半个月都没有汲取到新的知识，也就这两天空闲的时候才能继续看看Netty。其实网上关于Netty的文章很多，但是能够从底层原理去解释的却不多，我们都知道Netty底层是通过IO多路复用来实现的，那么你们有没有考虑过在底层上IO多路复用又是是如何实现的？</p>
 <p>这篇就从底层的select函数以及文件驱动poll函数来分享一下我的认识，若如有误的地方，大家可以给个issue。</p>
 <a id="more"></a>
-
+<h3 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h3><p>什么是IO多路复用呢？</p>
+<p>如果让你自己来实现一个IO多路复用你会怎么实现</p>
+<p>待续….</p>
+<h3 id="select函数"><a href="#select函数" class="headerlink" title="select函数"></a>select函数</h3><h3 id="poll函数"><a href="#poll函数" class="headerlink" title="poll函数"></a>poll函数</h3><h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3>
       
     </div>
     
@@ -563,7 +566,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IO多路复用"><span class="nav-number">2.</span> <span class="nav-text">IO多路复用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#select函数"><span class="nav-number">3.</span> <span class="nav-text">select函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#poll函数"><span class="nav-number">4.</span> <span class="nav-text">poll函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">5.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
             
 
           </div>
