@@ -106,7 +106,7 @@
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言最近一直忙着找实习以及小论文的实验，导致最近半个月都没有汲取到新的知识，也就这两天空闲的时候才能继续看看Netty。其实网上关于Netty的文章很多，但是能够从底层原理去解释的却不多，我们都知道Netty底层是通过IO多路复用来实现的，那么你们有没有考虑过在底层上IO多路复用又是是如何实现的？ 这篇就从底层的select函数以及文件驱动poll函数来分享一下我的认识，若如有误的地方，大家可以给">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-09T12:19:42.065Z">
+<meta property="og:updated_time" content="2019-04-10T06:04:37.064Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Netty In Action（二）">
 <meta name="twitter:description" content="前言最近一直忙着找实习以及小论文的实验，导致最近半个月都没有汲取到新的知识，也就这两天空闲的时候才能继续看看Netty。其实网上关于Netty的文章很多，但是能够从底层原理去解释的却不多，我们都知道Netty底层是通过IO多路复用来实现的，那么你们有没有考虑过在底层上IO多路复用又是是如何实现的？ 这篇就从底层的select函数以及文件驱动poll函数来分享一下我的认识，若如有误的地方，大家可以给">
@@ -365,10 +365,17 @@
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>最近一直忙着找实习以及小论文的实验，导致最近半个月都没有汲取到新的知识，也就这两天空闲的时候才能继续看看Netty。其实网上关于Netty的文章很多，但是能够从底层原理去解释的却不多，我们都知道Netty底层是通过IO多路复用来实现的，那么你们有没有考虑过在底层上IO多路复用又是是如何实现的？</p>
 <p>这篇就从底层的select函数以及文件驱动poll函数来分享一下我的认识，若如有误的地方，大家可以给个issue。</p>
 <a id="more"></a>
-<h3 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h3><p>什么是IO多路复用呢？</p>
-<p>如果让你自己来实现一个IO多路复用你会怎么实现</p>
-<p>待续….</p>
-<h3 id="select函数"><a href="#select函数" class="headerlink" title="select函数"></a>select函数</h3><h3 id="poll函数"><a href="#poll函数" class="headerlink" title="poll函数"></a>poll函数</h3><h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3>
+<h3 id="IO多路复用"><a href="#IO多路复用" class="headerlink" title="IO多路复用"></a>IO多路复用</h3><p>首先来了解一下什么是IO多路复用呢。可以拆开来理解，”IO多路”可以简单的理解为多个I/O流，”复用”即多个I/O流共用了一个线程，换一种说法单个线程来管理跟踪多个I/O流。</p>
+<p>多路复用有了简单的了解后，<font color="#FF0000"><strong>现在问一下自己</strong></font>：<strong>如果让你自己来实现一个IO多路复用你会怎么实现</strong>？那简单，写一个死循环一直去遍历流，如果流有读、写、异常的事件就返回该流：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="keyword">true</span> &#123;</span><br><span class="line">        <span class="keyword">for</span>(i in stream[]) &#123;</span><br><span class="line">            <span class="keyword">if</span>(i has data)</span><br><span class="line">                read until unavailable</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种做法的缺陷也非常的明显，如果没有准备就绪的流，那么会浪费CPU时间。<font color="#FF0000"><strong>那么有没有一种方法</strong></font>，<strong>当所有的流没有准备就绪时，让线程阻塞起来，直到有就绪的流出现，让线程再执行返回呢</strong>？下面就来看看select函数是如何做的。</p>
+<h3 id="select函数"><a href="#select函数" class="headerlink" title="select函数"></a>select函数</h3><p>正如前面说的一样，为了不浪费CPU的时间，可以采用select来实现IO多路复用。</p>
+<p>当所有的流都没有准备就绪时，会把当前线程阻塞掉；当有一个或多个流的I/O事件就绪时，就从阻塞状态中醒来，然后轮询一遍所有的流，处理已经准备好的I/O事件。轮询的过程可以参照如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> <span class="keyword">true</span> &#123;</span><br><span class="line">        select(streams[])<span class="comment">//会被阻塞</span></span><br><span class="line">        <span class="keyword">for</span>(i in stream[]) &#123;</span><br><span class="line">            <span class="keyword">if</span>(i has data)</span><br><span class="line">                read until unavailable</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><font color="#FF0000"><strong>那么有没有人有疑惑，select居然这么强大，它的底层原理是如何实现的呢</strong></font>？这也是我写这篇博客的主要原因，下面就来分析一下select函数究竟做了什么。</p>
+<p>为了能解释清楚，先来讲一下什么是文件描述符（FD）：</p>
+<p>未完待续…..</p>
+<h3 id="poll函数"><a href="#poll函数" class="headerlink" title="poll函数"></a>poll函数</h3><h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3>
       
     </div>
     
