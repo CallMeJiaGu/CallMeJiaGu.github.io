@@ -110,7 +110,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/04/10/git-命令行记录/2.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/10/git-命令行记录/3.png">
 <meta property="og:image" content="http://yoursite.com/2018/04/10/git-命令行记录/4.png">
-<meta property="og:updated_time" content="2019-01-20T11:48:36.136Z">
+<meta property="og:updated_time" content="2019-05-31T07:34:26.823Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="git 命令行记录">
 <meta name="twitter:description" content="前言前一阵在使用IDEA往github上传代码，老是出现仓库上传的错误，打开.git文件夹修改config文件也没能成功。所以打算直接用命令行进行操作，这里简单的记录一下往github上传基本命令以及过程可能会遇到的问题。">
@@ -401,6 +401,8 @@
 <p><img src="/2018/04/10/git-命令行记录/3.png" alt="你想输入的替代文字"></p>
 <p>查看提交是否有冲突，选择将它合并</p>
 <p><img src="/2018/04/10/git-命令行记录/4.png" alt="你想输入的替代文字"></p>
+<h4 id="更新2019-5-31"><a href="#更新2019-5-31" class="headerlink" title="更新2019.5.31"></a>更新2019.5.31</h4><p>提交一下使用的感受：</p>
+<p>分支的作用：当你先进入一个项目组，你需要在原来的项目中开发一个接口，为了不对源代码的破坏，就先创建了一个分支testBranch ，你所有的提交都是在testBranch上的。或者和你一起进去的实习生都在用这个testBranch，每次提交之前，先pull一下，不然你本地的版本如果是v1.2，远程的是v1.5，这个时候你只能push -f强制提交了，所以在提交之前保证自己本地的版本和远程是一直的。 如果有什么问题了你可以git reset回滚一下，回滚之后的提交，肯定是需要加上push -f的，因为你的回滚使得你的版本必然比远程的来的小。<br>主管看到你们的testBranch，它会选择pull request，把你们的分支合并到它的master分支上去。这个master分支可以理解就是线上分支了。</p>
 
       
     </div>
@@ -601,7 +603,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#上传过程"><span class="nav-number">2.</span> <span class="nav-text">上传过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置ignore文件"><span class="nav-number">3.</span> <span class="nav-text">配置ignore文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更新2019-01-20"><span class="nav-number">4.</span> <span class="nav-text">更新2019/01/20</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#上传过程"><span class="nav-number">2.</span> <span class="nav-text">上传过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置ignore文件"><span class="nav-number">3.</span> <span class="nav-text">配置ignore文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更新2019-01-20"><span class="nav-number">4.</span> <span class="nav-text">更新2019/01/20</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#更新2019-5-31"><span class="nav-number">4.1.</span> <span class="nav-text">更新2019.5.31</span></a></li></ol></li></ol></div>
             
 
           </div>
