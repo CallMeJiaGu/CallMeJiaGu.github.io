@@ -98,18 +98,18 @@
 
 
 
-<meta name="description" content="前言要了解阿尔萨斯的底层原理需要对其涉及到知识有所了解，本文将介绍阿尔萨斯涉及到的JVMTI 、Instrumentation、Java attach、asm/Java assist 等几个关键点进行阐述。 什么是JVMTIJVMTI 的全称是 JVM Tools Interface，是Java虚拟机提供的一整套后门。通过这套后门可以对虚拟机方方面面进行监控，分析，甚至干预虚拟机的运行。JVMTI">
+<meta name="description" content="前言要了解阿尔萨斯的底层原理需要对其涉及到知识有所了解，本文将介绍阿尔萨斯涉及到的JVMTI 、Instrumentation、Java attach、asm/Java assist 等几个关键点进行阐述。">
 <meta name="keywords" content="阿尔萨斯,Java agent">
 <meta property="og:type" content="article">
 <meta property="og:title" content="阿尔萨斯 原理探究 预备知识">
 <meta property="og:url" content="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-Java-agent/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言要了解阿尔萨斯的底层原理需要对其涉及到知识有所了解，本文将介绍阿尔萨斯涉及到的JVMTI 、Instrumentation、Java attach、asm/Java assist 等几个关键点进行阐述。 什么是JVMTIJVMTI 的全称是 JVM Tools Interface，是Java虚拟机提供的一整套后门。通过这套后门可以对虚拟机方方面面进行监控，分析，甚至干预虚拟机的运行。JVMTI">
+<meta property="og:description" content="前言要了解阿尔萨斯的底层原理需要对其涉及到知识有所了解，本文将介绍阿尔萨斯涉及到的JVMTI 、Instrumentation、Java attach、asm/Java assist 等几个关键点进行阐述。">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-07-12T06:59:56.192Z">
+<meta property="og:updated_time" content="2019-07-12T07:49:10.317Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="阿尔萨斯 原理探究 预备知识">
-<meta name="twitter:description" content="前言要了解阿尔萨斯的底层原理需要对其涉及到知识有所了解，本文将介绍阿尔萨斯涉及到的JVMTI 、Instrumentation、Java attach、asm/Java assist 等几个关键点进行阐述。 什么是JVMTIJVMTI 的全称是 JVM Tools Interface，是Java虚拟机提供的一整套后门。通过这套后门可以对虚拟机方方面面进行监控，分析，甚至干预虚拟机的运行。JVMTI">
+<meta name="twitter:description" content="前言要了解阿尔萨斯的底层原理需要对其涉及到知识有所了解，本文将介绍阿尔萨斯涉及到的JVMTI 、Instrumentation、Java attach、asm/Java assist 等几个关键点进行阐述。">
 
 
 
@@ -363,6 +363,7 @@
 
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>要了解阿尔萨斯的底层原理需要对其涉及到知识有所了解，本文将介绍阿尔萨斯涉及到的<code>JVMTI</code> 、<code>Instrumentation</code>、<code>Java attach</code>、<code>asm/Java assist</code> 等几个关键点进行阐述。</p>
+<a id="more"></a>
 <h3 id="什么是JVMTI"><a href="#什么是JVMTI" class="headerlink" title="什么是JVMTI"></a>什么是JVMTI</h3><p>JVMTI 的全称是 JVM Tools Interface，是Java虚拟机提供的一整套后门。通过这套后门可以对虚拟机方方面面进行监控，分析，甚至干预虚拟机的运行。JVMTI 本质上是在JVM内部的许多事件进行了埋点。通过这些埋点可以给外部提供当前上下文的一些信息。它是分析工具与调试器的基础。</p>
 <blockquote>
 <p>我的理解：在虚拟机操作过程有很多埋点，比如在VM初始化过程就埋了一个点，这个点你可以通过C/C++来对该点有一个自定义的逻辑，来干涉VM的操作。</p>
@@ -411,8 +412,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2019/07/09/阿尔萨斯-原理探究-初体验（一）/" rel="next" title="阿尔萨斯 原理探究 初体验（一）">
-                <i class="fa fa-chevron-left"></i> 阿尔萨斯 原理探究 初体验（一）
+              <a href="/2019/07/09/阿尔萨斯-原理探究-初体验（一）/" rel="next" title="阿尔萨斯 原理探究 初体验">
+                <i class="fa fa-chevron-left"></i> 阿尔萨斯 原理探究 初体验
               </a>
             
           </div>
@@ -504,7 +505,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">94</span>
+                  <span class="site-state-item-count">93</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

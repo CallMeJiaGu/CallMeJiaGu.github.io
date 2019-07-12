@@ -98,20 +98,20 @@
 
 
 
-<meta name="description" content="前言这篇主要来记录一下实现Instrumentation的方式–premain。premain是在 Java SE 5中新引入的 ，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前。 preMain编写随便创建一个类，在类中定义premain的方法： 1234567public class IPreMain &amp;#123;    p">
+<meta name="description" content="前言这篇主要来记录一下实现Instrumentation的方式–premain。premain是在 Java SE 5中新引入的 ，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前。">
 <meta name="keywords" content="阿尔萨斯,premain">
 <meta property="og:type" content="article">
 <meta property="og:title" content="阿尔萨斯 原理探究 premain实践">
 <meta property="og:url" content="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-premain实践/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言这篇主要来记录一下实现Instrumentation的方式–premain。premain是在 Java SE 5中新引入的 ，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前。 preMain编写随便创建一个类，在类中定义premain的方法： 1234567public class IPreMain &amp;#123;    p">
+<meta property="og:description" content="前言这篇主要来记录一下实现Instrumentation的方式–premain。premain是在 Java SE 5中新引入的 ，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前。">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-premain实践/1.png">
 <meta property="og:image" content="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-premain实践/2.png">
-<meta property="og:updated_time" content="2019-07-12T07:40:55.488Z">
+<meta property="og:updated_time" content="2019-07-12T07:49:02.355Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="阿尔萨斯 原理探究 premain实践">
-<meta name="twitter:description" content="前言这篇主要来记录一下实现Instrumentation的方式–premain。premain是在 Java SE 5中新引入的 ，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前。 preMain编写随便创建一个类，在类中定义premain的方法： 1234567public class IPreMain &amp;#123;    p">
+<meta name="twitter:description" content="前言这篇主要来记录一下实现Instrumentation的方式–premain。premain是在 Java SE 5中新引入的 ，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前。">
 <meta name="twitter:image" content="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-premain实践/1.png">
 
 
@@ -366,6 +366,7 @@
 
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>这篇主要来记录一下实现Instrumentation的方式–premain。premain是在 Java SE 5中新引入的 ，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前。</p>
+<a id="more"></a>
 <h3 id="preMain编写"><a href="#preMain编写" class="headerlink" title="preMain编写"></a>preMain编写</h3><p>随便创建一个类，在类中定义premain的方法：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IPreMain</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">premain</span><span class="params">(String agentOps, Instrumentation inst)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"preAgent begin..."</span>);</span><br><span class="line">        System.out.println(<span class="string">"add transformer..."</span>);</span><br><span class="line">        inst.addTransformer(<span class="keyword">new</span> ITransformer());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这个方法的大体意思为：在执行虚拟机创建后，大多数的类都还没被加载进来，这个时候我们给Instrumentation添加了一个转换器，Instrumentation会在类被加载的过程中使用该转换器。</p>
@@ -502,7 +503,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">94</span>
+                  <span class="site-state-item-count">93</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
