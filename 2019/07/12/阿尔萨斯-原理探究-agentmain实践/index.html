@@ -87,7 +87,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="阿尔萨斯,premain," />
 
 
 
@@ -98,14 +98,21 @@
 
 
 
+<meta name="description" content="前言在上一篇中，我们采用了Java SE 5 中的premain实现对虚拟机层面上的AOP，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前，这样的方式存在一定的局限性。 Java SE 6 针对这种状况做出了改进，开发者可以在 main 函数开始执行以后，再启动自己的 Instrumentation 程序，这种方式通过agent">
+<meta name="keywords" content="阿尔萨斯,premain">
 <meta property="og:type" content="article">
 <meta property="og:title" content="阿尔萨斯 原理探究 agentmain实践">
 <meta property="og:url" content="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-agentmain实践/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言在上一篇中，我们采用了Java SE 5 中的premain实现对虚拟机层面上的AOP，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前，这样的方式存在一定的局限性。 Java SE 6 针对这种状况做出了改进，开发者可以在 main 函数开始执行以后，再启动自己的 Instrumentation 程序，这种方式通过agent">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-07-12T08:03:06.197Z">
+<meta property="og:image" content="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-agentmain实践/1.png">
+<meta property="og:image" content="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-agentmain实践/2.png">
+<meta property="og:updated_time" content="2019-07-12T09:24:16.469Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="阿尔萨斯 原理探究 agentmain实践">
+<meta name="twitter:description" content="前言在上一篇中，我们采用了Java SE 5 中的premain实现对虚拟机层面上的AOP，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前，这样的方式存在一定的局限性。 Java SE 6 针对这种状况做出了改进，开发者可以在 main 函数开始执行以后，再启动自己的 Instrumentation 程序，这种方式通过agent">
+<meta name="twitter:image" content="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-agentmain实践/1.png">
 
 
 
@@ -309,6 +316,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/阿尔萨斯/" itemprop="url" rel="index">
+                    <span itemprop="name">阿尔萨斯</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -336,7 +365,29 @@
       
 
       
-        
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在上一篇中，我们采用了Java SE 5 中的premain实现对虚拟机层面上的AOP，开发者只能在 premain 当中施展想象力，所作的 Instrumentation 也仅限与 main 函数执行前，这样的方式存在一定的局限性。</p>
+<p>Java SE 6 针对这种状况做出了改进，开发者可以在 main 函数开始执行以后，再启动自己的 Instrumentation 程序，这种方式通过agentMain。本文就来记录一下如何通过agentMain的实现方式，具体细节大家可以看文章后的参考文章。</p>
+<a id="more"></a>
+<h3 id="agentMain编写"><a href="#agentMain编写" class="headerlink" title="agentMain编写"></a>agentMain编写</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IAgentMain</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">agentmain</span><span class="params">(String agentArgs, Instrumentation inst)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> UnmodifiableClassException </span>&#123;</span><br><span class="line">        inst.addTransformer(<span class="keyword">new</span> ITransformer(), <span class="keyword">true</span>);</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 这段代码的意思是，重新转换目标类，也就是 Account 类。也就是说，你需要重新定义哪个类，需要指定，否则 JVM 不可能知道。</span></span><br><span class="line"><span class="comment">         * 还有一个类似的方法 redefineClasses ，注意，这个方法是在类加载前使用的。类加载后需要使用 retransformClasses 方法</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        inst.retransformClasses(Main.class);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在premain的时候，我们不需要去指定哪些类需要retransformer，因为大多数的类还没被加载如内存，加载内存的后类会经过ClassFileTransformer的转换的。</p>
+<p>而在agentmain方式中，这里是在程序启动后，再发送指令到目标虚拟机上，这个过程之前类已经到内存了，所以是不会经过ClassFileTransformer，所以需要通过inst.retransformClasses来告诉虚拟机哪些类需要重新transformer，这样它就能经过ClassFileTransformer的转换了。</p>
+<h3 id="pom-xml"><a href="#pom-xml" class="headerlink" title="pom.xml"></a>pom.xml</h3><p>注意与premain类似，需要添加上Agent-Class来指定IAgentMain：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Premain-Class</span>&gt;</span>agent.agentDomain.IPreMain<span class="tag">&lt;/<span class="name">Premain-Class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">Agent-Class</span>&gt;</span>agent.agentDomain.IAgentMain<span class="tag">&lt;/<span class="name">Agent-Class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">Can-Retransform-Classes</span>&gt;</span>true<span class="tag">&lt;/<span class="name">Can-Retransform-Classes</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">Can-Redefine-Classes</span>&gt;</span>true<span class="tag">&lt;/<span class="name">Can-Redefine-Classes</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>pom.xml全部内容在后文。</p>
+<h3 id="ITransformer-编写"><a href="#ITransformer-编写" class="headerlink" title="ITransformer 编写"></a>ITransformer 编写</h3><p>这个编写与premain是一样的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ITransformer</span> <span class="keyword">implements</span> <span class="title">ClassFileTransformer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">byte</span>[] transform(ClassLoader loader, String className, Class&lt;?&gt; classBeingRedefined,</span><br><span class="line">                            ProtectionDomain protectionDomain, <span class="keyword">byte</span>[] classfileBuffer)</span><br><span class="line">            <span class="keyword">throws</span> IllegalClassFormatException &#123;</span><br><span class="line">        className = className.replace(<span class="string">"/"</span>, <span class="string">"."</span>);</span><br><span class="line">        <span class="comment">// 对agent.Main类中所有申明的方法进行加强</span></span><br><span class="line">        <span class="keyword">if</span> (className.equals(<span class="string">"agent.Main"</span>)) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                CtClass ctClass = ClassPool.getDefault().get(className);</span><br><span class="line">                CtMethod[] ctMethods = ctClass.getDeclaredMethods();</span><br><span class="line">                <span class="keyword">for</span> (CtMethod method : ctMethods) &#123;</span><br><span class="line">                    method.insertBefore(<span class="string">"System.out.println(\"method begin time:\"+System.currentTimeMillis());"</span>);</span><br><span class="line">                    method.insertAfter(<span class="string">"System.out.println(\"method end time:\"+System.currentTimeMillis());"</span>);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> ctClass.toBytecode();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                System.out.println(e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">0</span>];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Main-编写"><a href="#Main-编写" class="headerlink" title="Main 编写"></a>Main 编写</h3><p>同样这个方法与premain是一样的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">( String[] args )</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        Main demo = <span class="keyword">new</span> Main();</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            demo.sayHello();</span><br><span class="line">            demo.sayBye();</span><br><span class="line">            System.out.println(<span class="string">"-------------------"</span>);</span><br><span class="line">            Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Hello World!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayBye</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Bye Bye"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="JVMAttach-编写"><a href="#JVMAttach-编写" class="headerlink" title="JVMAttach 编写"></a>JVMAttach 编写</h3><p>注意！！这个方法通过pid连接到目标虚拟机，通知它加载agent的jar包。VirtualMachine需要将jdk目录下的tools.jar添加到工程中，不然导入不了该类，具体操作大家可以参看参考文章。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JVMAttach</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args )</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException </span>&#123;</span><br><span class="line">        <span class="comment">// 这里填写Main执行后的pid</span></span><br><span class="line">        String vmPid = <span class="string">"66112"</span>;</span><br><span class="line">        <span class="comment">// 这里的路径存放的是agentMain打包后的位置</span></span><br><span class="line">        String agentJarPath = <span class="string">"F:\\agentTest\\target\\agentTest-1.0-SNAPSHOT.jar"</span>;</span><br><span class="line">        VirtualMachine virtualMachine = VirtualMachine.attach(vmPid);</span><br><span class="line">        <span class="comment">// 这里的csx参数会在 IAgentMain.agentmain(String args）中的args收到</span></span><br><span class="line">        virtualMachine.loadAgent(agentJarPath, <span class="string">"csx"</span>);</span><br><span class="line">        virtualMachine.detach();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>先运行Main函数，是正常的输出：</p>
+<p><img src="/2019/07/12/阿尔萨斯-原理探究-agentmain实践/1.png" alt="你想输入的替代文字"></p>
+<p>再运行JVMAttach，通知运行Main函数的虚拟机去加载agent，这个agent通过编写ClassFileTransformer逻辑，对agent.Main方法进行transformer改变其类字节码，运行结果：</p>
+<p><img src="/2019/07/12/阿尔萨斯-原理探究-agentmain实践/2.png" alt="你想输入的替代文字"></p>
+<p>可以看到类的方法的确按照我们的逻辑进行了加强！！</p>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://blog.csdn.net/qq_32169479/article/details/85321093" target="_blank" rel="noopener">https://blog.csdn.net/qq_32169479/article/details/85321093</a></p>
+<p><a href="https://www.jianshu.com/p/6096bfe19e41" target="_blank" rel="noopener">https://www.jianshu.com/p/6096bfe19e41</a></p>
+
       
     </div>
     
@@ -350,6 +401,14 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/阿尔萨斯/" rel="tag"># 阿尔萨斯</a>
+          
+            <a href="/tags/premain/" rel="tag"># premain</a>
+          
+        </div>
       
 
       
@@ -420,8 +479,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -507,6 +575,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#agentMain编写"><span class="nav-number">2.</span> <span class="nav-text">agentMain编写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pom-xml"><span class="nav-number">3.</span> <span class="nav-text">pom.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ITransformer-编写"><span class="nav-number">4.</span> <span class="nav-text">ITransformer 编写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Main-编写"><span class="nav-number">5.</span> <span class="nav-text">Main 编写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JVMAttach-编写"><span class="nav-number">6.</span> <span class="nav-text">JVMAttach 编写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">7.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
