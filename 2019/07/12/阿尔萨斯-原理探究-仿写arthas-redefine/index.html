@@ -87,7 +87,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="阿尔萨斯,asm," />
 
 
 
@@ -98,14 +98,18 @@
 
 
 
+<meta name="description" content="前言arthas 可以通过 redefine 命令可以在不重启的情况下对正在运行的class文件进行变更。这篇主要是探究该原理并实现一下简易版的i_redefine的功能。整体实现逻辑：编写 agentmain ，为 Instrumentation 添加自定义Transformer，对加载后的class进行转换。将编写的 agentmain 打包成 Jar ，利用Attach API 发送指令到目">
+<meta name="keywords" content="阿尔萨斯,asm">
 <meta property="og:type" content="article">
 <meta property="og:title" content="阿尔萨斯 原理探究 仿写arthas-redefine">
 <meta property="og:url" content="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-仿写arthas-redefine/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言arthas 可以通过 redefine 命令可以在不重启的情况下对正在运行的class文件进行变更。这篇主要是探究该原理并实现一下简易版的i_redefine的功能。整体实现逻辑：编写 agentmain ，为 Instrumentation 添加自定义Transformer，对加载后的class进行转换。将编写的 agentmain 打包成 Jar ，利用Attach API 发送指令到目">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-07-12T09:59:14.149Z">
+<meta property="og:updated_time" content="2019-07-14T08:02:26.931Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="阿尔萨斯 原理探究 仿写arthas-redefine">
+<meta name="twitter:description" content="前言arthas 可以通过 redefine 命令可以在不重启的情况下对正在运行的class文件进行变更。这篇主要是探究该原理并实现一下简易版的i_redefine的功能。整体实现逻辑：编写 agentmain ，为 Instrumentation 添加自定义Transformer，对加载后的class进行转换。将编写的 agentmain 打包成 Jar ，利用Attach API 发送指令到目">
 
 
 
@@ -309,6 +313,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/阿尔萨斯/" itemprop="url" rel="index">
+                    <span itemprop="name">阿尔萨斯</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -336,7 +362,26 @@
       
 
       
-        
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>arthas 可以通过 redefine 命令可以在不重启的情况下对正在运行的class文件进行变更。这篇主要是探究该原理并实现一下简易版的i_redefine的功能。整体实现逻辑：编写 agentmain ，为 Instrumentation 添加自定义Transformer，对加载后的class进行转换。将编写的 agentmain 打包成 Jar ，利用Attach API 发送指令到目标虚拟机，通知它进行loadAgent 。 使用到的技术栈：（Java agent（Java SE 6 ）+ Java attach API+ asm）。</p>
+<p>期间有一个问题困扰比较长：有什么方式知道一个class文件中对应的类的包名和类名？</p>
+<blockquote>
+<p>看了arthas的源码才知道可以通过中 asm 的ClassReader方法实现。</p>
+</blockquote>
+<h3 id="agentMain"><a href="#agentMain" class="headerlink" title="agentMain"></a>agentMain</h3><p>主要是为inst添加Transformer，并通知重新加载目标类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IAgentMain</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">agentmain</span><span class="params">(String agentArgs, Instrumentation inst)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// 注意不能仅仅根据路径来确定类名，而是要通过包中的路径+类名！！！</span></span><br><span class="line">        String path = agentArgs;</span><br><span class="line">        String targetClassName = getTargetClass(path).replace(<span class="string">"/"</span>,<span class="string">"."</span>);</span><br><span class="line">        inst.addTransformer(<span class="keyword">new</span> RedefineTransformer(path,targetClassName), <span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 这段代码的意思是，重新转换目标类，也就是 Account 类。也就是说，你需要重新定义哪个类，需要指定，否则 JVM 不可能知道。</span></span><br><span class="line"><span class="comment">         * 还有一个类似的方法 redefineClasses ，注意，这个方法是在类加载前使用的。类加载后需要使用 retransformClasses 方法 */</span></span><br><span class="line">        inst.retransformClasses(getClassByRedefinePath(targetClassName));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Class&lt;?&gt; getClassByRedefinePath(String targetClassName) <span class="keyword">throws</span> Exception&#123;</span><br><span class="line">        <span class="keyword">return</span> Class.forName(targetClassName);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 通过asm来获取一个class文件的包名与类名</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">getTargetClass</span><span class="params">(String path)</span></span>&#123;</span><br><span class="line">        <span class="keyword">byte</span>[] bytes = RedefineTransformer.getBytesFromFile(path);</span><br><span class="line">        ClassReader classReader = <span class="keyword">new</span> ClassReader(bytes);</span><br><span class="line">        <span class="keyword">return</span> classReader.getClassName();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再来看看转换类的具体逻辑，其中RedefineTransformer实现了ClassFileTransformer中的transform方法。</p>
+<h3 id="RedefineTransformer"><a href="#RedefineTransformer" class="headerlink" title="RedefineTransformer"></a>RedefineTransformer</h3><p>如果是目标类，就通过 getBytesFromFile 加载需要替换的class文件：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedefineTransformer</span> <span class="keyword">implements</span> <span class="title">ClassFileTransformer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String reDefineClassPath ;</span><br><span class="line">    <span class="keyword">public</span> String targetClass;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RedefineTransformer</span><span class="params">(String classPath,String tc)</span></span>&#123;</span><br><span class="line">        reDefineClassPath = classPath;</span><br><span class="line">        targetClass = tc;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">byte</span>[] getBytesFromFile(String fileName) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// precondition</span></span><br><span class="line">            File file = <span class="keyword">new</span> File(fileName);</span><br><span class="line">            InputStream is = <span class="keyword">new</span> FileInputStream(file);</span><br><span class="line">            <span class="keyword">long</span> length = file.length();</span><br><span class="line">            <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[(<span class="keyword">int</span>) length];</span><br><span class="line"></span><br><span class="line">            <span class="comment">// Read in the bytes</span></span><br><span class="line">            <span class="keyword">int</span> offset = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">int</span> numRead = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">while</span> (offset &lt;bytes.length</span><br><span class="line">                    &amp;&amp; (numRead = is.read(bytes, offset, bytes.length - offset)) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">                offset += numRead;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (offset &lt; bytes.length) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Could not completely read file "</span></span><br><span class="line">                        + file.getName());</span><br><span class="line">            &#125;</span><br><span class="line">            is.close();</span><br><span class="line">            <span class="keyword">return</span> bytes;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.out.println(<span class="string">"error occurs in _ClassTransformer!"</span></span><br><span class="line">                    + e.getClass().getName());</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">byte</span>[] transform(ClassLoader l, String className, Class&lt;?&gt; c,</span><br><span class="line">                            ProtectionDomain pd, <span class="keyword">byte</span>[] b) <span class="keyword">throws</span> IllegalClassFormatException &#123;</span><br><span class="line">        className = className.replace(<span class="string">"/"</span>,<span class="string">"."</span>);</span><br><span class="line">        <span class="keyword">if</span> (!className.equals(targetClass)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> getBytesFromFile(reDefineClassPath);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="测试类"><a href="#测试类" class="headerlink" title="测试类"></a>测试类</h3><p>测试类比较简单，有两个方法的输出：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">( String[] args )</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        Main demo = <span class="keyword">new</span> Main();</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            demo.sayHello();</span><br><span class="line">            demo.sayBye();</span><br><span class="line">            System.out.println(<span class="string">"-------------------"</span>);</span><br><span class="line">            Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Hello World!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayBye</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Bye Bye"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="修改后的测试类"><a href="#修改后的测试类" class="headerlink" title="修改后的测试类"></a>修改后的测试类</h3><p>修改的比较简单，就是在sayBye下面添加了一行输出，通过 javac 对它进行编译，存放到路径<code>F:/Main.class</code> .</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">( String[] args )</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        Main demo = <span class="keyword">new</span> Main();</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            demo.sayHello();</span><br><span class="line">            demo.sayBye();</span><br><span class="line">            System.out.println(<span class="string">"-------------------"</span>);</span><br><span class="line">            Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayHello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Hello World!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sayBye</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"Bye Bye"</span>);</span><br><span class="line">        System.out.println(<span class="string">"fix good Bye!!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="通知目标主机"><a href="#通知目标主机" class="headerlink" title="通知目标主机"></a>通知目标主机</h3><p>利用Java attach通知目标主机加载agentmain对应的Jar包，其中path是需要替换上的新class文件，pid是你运行测试类得到的pid号：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JVMTIThread</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line"></span><br><span class="line">        String path = <span class="string">"F:/Main.class"</span>;</span><br><span class="line">        String pid = <span class="string">"85317"</span> ;</span><br><span class="line">        JVMTIThread.attach(path,pid);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">attach</span><span class="params">(String classPath, String pid)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> IOException, AttachNotSupportedException, AgentLoadException, AgentInitializationException </span>&#123;</span><br><span class="line">            VirtualMachine virtualMachine = VirtualMachine.attach(pid);</span><br><span class="line">            virtualMachine.loadAgent(<span class="string">"F:\\agentTest\\target\\agentTest-1.0-SNAPSHOT.jar"</span>, classPath);</span><br><span class="line">            virtualMachine.detach();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><p>先启动Main的方法，将对应的 pid 与 修改后的class路径 填入到JVMTIThread 中并运行，结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">Hello World!</span><br><span class="line">Bye Bye</span><br><span class="line">-------------------</span><br><span class="line">Hello World!</span><br><span class="line">Bye Bye</span><br><span class="line">-------------------</span><br><span class="line">Hello World!</span><br><span class="line">Bye Bye</span><br><span class="line">-------------------</span><br><span class="line">Hello World!</span><br><span class="line">Bye Bye</span><br><span class="line">-------------------</span><br><span class="line">Hello World!</span><br><span class="line">Bye Bye</span><br><span class="line">fix good Bye!!</span><br><span class="line">-------------------</span><br><span class="line">Hello World!</span><br><span class="line">Bye Bye</span><br><span class="line">fix good Bye!!</span><br><span class="line">-------------------</span><br></pre></td></tr></table></figure>
+<p>可以看到运行的过程中Main的确被替换上了新的方法。</p>
+
       
     </div>
     
@@ -350,6 +395,14 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/阿尔萨斯/" rel="tag"># 阿尔萨斯</a>
+          
+            <a href="/tags/asm/" rel="tag"># asm</a>
+          
+        </div>
       
 
       
@@ -370,8 +423,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/07/13/阿尔萨斯-原理探究-asm再认识/" rel="prev" title="">
-                 <i class="fa fa-chevron-right"></i>
+              <a href="/2019/07/14/阿尔萨斯-原理探究-asm再认识/" rel="prev" title="阿尔萨斯 原理探究 asm再认识（转载）">
+                阿尔萨斯 原理探究 asm再认识（转载） <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -424,8 +477,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -466,7 +528,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">61</span>
+                  <span class="site-state-item-count">62</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -511,6 +573,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#agentMain"><span class="nav-number">2.</span> <span class="nav-text">agentMain</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RedefineTransformer"><span class="nav-number">3.</span> <span class="nav-text">RedefineTransformer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试类"><span class="nav-number">4.</span> <span class="nav-text">测试类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改后的测试类"><span class="nav-number">5.</span> <span class="nav-text">修改后的测试类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通知目标主机"><span class="nav-number">6.</span> <span class="nav-text">通知目标主机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#验证"><span class="nav-number">7.</span> <span class="nav-text">验证</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
