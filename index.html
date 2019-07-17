@@ -576,6 +576,157 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/14/阿尔萨斯-原理探究-仿写arthas-redefine/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/2.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/07/14/阿尔萨斯-原理探究-仿写arthas-redefine/" itemprop="url">阿尔萨斯 原理探究 仿写arthas-redefine</a></h1>
+        
+
+        <div class="post-meta">
+		
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-14T17:59:14+08:00">
+                2019-07-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/阿尔萨斯/" itemprop="url" rel="index">
+                    <span itemprop="name">阿尔萨斯</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>arthas 可以通过 redefine 命令可以在不重启的情况下对正在运行的class文件进行变更。这篇主要是探究该原理并实现一下简易版的i_redefine的功能。整体实现逻辑：编写 agentmain ，为 Instrumentation 添加自定义Transformer，对加载后的class进行转换。将编写的 agentmain 打包成 Jar ，利用Attach API 发送指令到目标虚拟机，通知它进行loadAgent 。 使用到的技术栈：（Java agent（Java SE 6 ）+ Java attach API+ asm）。</p>
+<p>期间有一个问题困扰比较长：有什么方式知道一个class文件中对应的类的包名和类名？</p>
+<blockquote>
+<p>看了arthas的源码才知道可以通过中 asm 的ClassReader方法实现。</p>
+</blockquote>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/07/14/阿尔萨斯-原理探究-仿写arthas-redefine/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/14/阿尔萨斯-原理探究-asm再认识/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -673,157 +824,6 @@
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2019/07/14/阿尔萨斯-原理探究-asm再认识/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/12/阿尔萨斯-原理探究-仿写arthas-redefine/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="JinTx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/img/2.png">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Don't Stop">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/12/阿尔萨斯-原理探究-仿写arthas-redefine/" itemprop="url">阿尔萨斯 原理探究 仿写arthas-redefine</a></h1>
-        
-
-        <div class="post-meta">
-		
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-12T17:59:14+08:00">
-                2019-07-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/阿尔萨斯/" itemprop="url" rel="index">
-                    <span itemprop="name">阿尔萨斯</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>arthas 可以通过 redefine 命令可以在不重启的情况下对正在运行的class文件进行变更。这篇主要是探究该原理并实现一下简易版的i_redefine的功能。整体实现逻辑：编写 agentmain ，为 Instrumentation 添加自定义Transformer，对加载后的class进行转换。将编写的 agentmain 打包成 Jar ，利用Attach API 发送指令到目标虚拟机，通知它进行loadAgent 。 使用到的技术栈：（Java agent（Java SE 6 ）+ Java attach API+ asm）。</p>
-<p>期间有一个问题困扰比较长：有什么方式知道一个class文件中对应的类的包名和类名？</p>
-<blockquote>
-<p>看了arthas的源码才知道可以通过中 asm 的ClassReader方法实现。</p>
-</blockquote>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2019/07/12/阿尔萨斯-原理探究-仿写arthas-redefine/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
