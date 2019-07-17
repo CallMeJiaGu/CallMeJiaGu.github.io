@@ -522,7 +522,7 @@
           <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>arthas 中 trace 可以监控一个方法内部调用路径，并输出方法路径上的每个节点上耗时.</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ trace demo.MathGame run</span><br><span class="line">Press Ctrl+C to abort.</span><br><span class="line">Affect(class-cnt:1 , method-cnt:1) cost in 42 ms.</span><br><span class="line">`---ts=2018-12-04 00:44:17;thread_name=main;id=1;is_daemon=false;priority=5;TCCL=sun.misc.Launcher$AppClassLoader@3d4eac69</span><br><span class="line">    `---[10.611029ms] demo.MathGame:run()</span><br><span class="line">        +---[0.05638ms] java.util.Random:nextInt()</span><br><span class="line">        +---[10.036885ms] demo.MathGame:primeFactors()</span><br><span class="line">        `---[0.170316ms] demo.MathGame:print()</span><br></pre></td></tr></table></figure>
 <p>在刚接触到这个功能时，我在想这不就是Spring中的切面编程，对方法进行加强嘛！！</p>
-<p>不过还是有点想当然，首先要注意的是我们监控的方法所在的虚拟机没有重启，更没有对一个方法加上注解或者通过配置文件来加强这个方法，因此trace是在虚拟机层面上的AOP！！还好这部分我们在上一篇已经说到过了，那么还有一个问题<strong>如何监控方法内部的调用路径呢</strong>？？关于这个点我会在后面的章节分享我的做法。</p>
+<p>不过还是有点想当然，首先要注意的是我们监控的方法所在的虚拟机没有重启，更没有对一个方法加上注解或者通过配置文件来加强这个方法，因此trace是在虚拟机层面上的AOP！！还好这部分我们在上一篇已经说到过了，那么还有一个问题<strong>如何监控方法内部的调用路径呢</strong>？？关于这个点我会在后面的章节分享我的做法。代码上传至：<a href="https://github.com/CallMeJiaGu/iarthas.git" target="_blank" rel="noopener">github</a></p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2019/07/15/阿尔萨斯-原理探究-仿写arthas-trace/#more" rel="contents">
@@ -1335,7 +1335,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/07/09/阿尔萨斯-初体验/" itemprop="url">阿尔萨斯 原理探究 初体验</a></h1>
+                <a class="post-title-link" href="/2019/07/09/阿尔萨斯-初体验/" itemprop="url">阿尔萨斯 原理探究 初体验（转载）</a></h1>
         
 
         <div class="post-meta">
@@ -1409,7 +1409,7 @@
 
       
         
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>初体验</p>
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p><code>Arthas</code> 是Alibaba开源的Java诊断工具。一开始最吸引我的是它的redefine功能，居然可以直接将正在运行的字节码进行替换，好神奇（乡下人没见过世面）！！这里主要来记录一下阿尔萨斯的使用，大多网上是能找到的。<a href="https://alibaba.github.io/arthas/index.html" target="_blank" rel="noopener">Arthas 用户文档</a></p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2019/07/09/阿尔萨斯-初体验/#more" rel="contents">
