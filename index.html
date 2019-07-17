@@ -519,9 +519,17 @@
 
       
         
-          
-            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3>
-          
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>arthas 中 trace 可以监控一个方法内部调用路径，并输出方法路径上的每个节点上耗时.</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ trace demo.MathGame run</span><br><span class="line">Press Ctrl+C to abort.</span><br><span class="line">Affect(class-cnt:1 , method-cnt:1) cost in 42 ms.</span><br><span class="line">`---ts=2018-12-04 00:44:17;thread_name=main;id=1;is_daemon=false;priority=5;TCCL=sun.misc.Launcher$AppClassLoader@3d4eac69</span><br><span class="line">    `---[10.611029ms] demo.MathGame:run()</span><br><span class="line">        +---[0.05638ms] java.util.Random:nextInt()</span><br><span class="line">        +---[10.036885ms] demo.MathGame:primeFactors()</span><br><span class="line">        `---[0.170316ms] demo.MathGame:print()</span><br></pre></td></tr></table></figure>
+<p>在刚接触到这个功能时，我在想这不就是Spring中的切面编程，对方法进行加强嘛！！</p>
+<p>不过还是有点想当然，首先要注意的是我们监控的方法所在的虚拟机没有重启，更没有对一个方法加上注解或者通过配置文件来加强这个方法，因此trace是在虚拟机层面上的AOP！！还好这部分我们在上一篇已经说到过了，那么还有一个问题<strong>如何监控方法内部的调用路径呢</strong>？？关于这个点我会在后面的章节分享我的做法。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2019/07/15/阿尔萨斯-原理探究-仿写arthas-trace/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
