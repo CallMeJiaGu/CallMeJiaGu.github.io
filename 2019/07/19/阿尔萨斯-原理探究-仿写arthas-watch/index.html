@@ -87,7 +87,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="阿尔萨斯,asm," />
 
 
 
@@ -98,14 +98,18 @@
 
 
 
+<meta name="description" content="前言在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！期间被两个问题卡着：  如何获取到方法的入参类型与值？  如何获取到方法的返回结果的类型与值？   还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过记录最后一次访问局部变量，因此获取返回结果的局部变量中的索引位置">
+<meta name="keywords" content="阿尔萨斯,asm">
 <meta property="og:type" content="article">
 <meta property="og:title" content="阿尔萨斯 原理探究 仿写arthas-watch">
 <meta property="og:url" content="http://yoursite.com/2019/07/19/阿尔萨斯-原理探究-仿写arthas-watch/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="前言在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！期间被两个问题卡着：  如何获取到方法的入参类型与值？  如何获取到方法的返回结果的类型与值？   还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过记录最后一次访问局部变量，因此获取返回结果的局部变量中的索引位置">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-07-19T06:44:17.931Z">
+<meta property="og:updated_time" content="2019-07-19T14:23:30.164Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="阿尔萨斯 原理探究 仿写arthas-watch">
+<meta name="twitter:description" content="前言在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！期间被两个问题卡着：  如何获取到方法的入参类型与值？  如何获取到方法的返回结果的类型与值？   还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过记录最后一次访问局部变量，因此获取返回结果的局部变量中的索引位置">
 
 
 
@@ -309,6 +313,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/阿尔萨斯/" itemprop="url" rel="index">
+                    <span itemprop="name">阿尔萨斯</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -336,7 +362,19 @@
       
 
       
-        
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！期间被两个问题卡着：</p>
+<ol>
+<li><p>如何获取到方法的入参类型与值？</p>
+</li>
+<li><p>如何获取到方法的返回结果的类型与值？</p>
+</li>
+</ol>
+<p>还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过记录最后一次访问局部变量，因此获取返回结果的局部变量中的索引位置。现在没看懂没事，后文会详细的介绍。先来看一下我实现的watch方法：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">4</span><br><span class="line">1</span><br><span class="line">-------------------</span><br><span class="line">监控当前方法：doAdd</span><br><span class="line"> 入参：</span><br><span class="line">       参数类型-- int@1</span><br><span class="line">       参数类型-- String@abc</span><br><span class="line">       参数类型-- long@11</span><br><span class="line">       参数类型-- Lagent/Job;@agent.Job@7adf9f5f</span><br><span class="line">       参数类型-- Lagent/Main;@agent.Main@85ede7b</span><br><span class="line">       参数类型-- double@0.11</span><br><span class="line"> 出参：</span><br><span class="line">       参数类型-- int@4</span><br><span class="line">4</span><br><span class="line">1</span><br><span class="line">-------------------</span><br></pre></td></tr></table></figure>
+<p>可以看到一开始方法只是简单的打印出测试输出4 ,1 ，通过 Attach 到目标主机，对目标类的方法进行retransformer，加强了原方法，输出了监控方法的入参、出参的类型与值。</p>
+<p><strong>结合watch与trace应该可以完成Doom中核心的功能：流量数据采集！！</strong></p>
+<a id="more"></a>
+<h3 id="局部变量与操作数栈"><a href="#局部变量与操作数栈" class="headerlink" title="局部变量与操作数栈"></a>局部变量与操作数栈</h3><h3 id="获取方法的入参类型与值"><a href="#获取方法的入参类型与值" class="headerlink" title="获取方法的入参类型与值"></a>获取方法的入参类型与值</h3><h3 id="获取方法返回结果类型与值"><a href="#获取方法返回结果类型与值" class="headerlink" title="获取方法返回结果类型与值"></a>获取方法返回结果类型与值</h3>
       
     </div>
     
@@ -350,6 +388,14 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/阿尔萨斯/" rel="tag"># 阿尔萨斯</a>
+          
+            <a href="/tags/asm/" rel="tag"># asm</a>
+          
+        </div>
       
 
       
@@ -420,8 +466,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -507,6 +562,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#局部变量与操作数栈"><span class="nav-number">2.</span> <span class="nav-text">局部变量与操作数栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取方法的入参类型与值"><span class="nav-number">3.</span> <span class="nav-text">获取方法的入参类型与值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取方法返回结果类型与值"><span class="nav-number">4.</span> <span class="nav-text">获取方法返回结果类型与值</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
