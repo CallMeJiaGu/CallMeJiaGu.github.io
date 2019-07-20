@@ -98,18 +98,20 @@
 
 
 
-<meta name="description" content="前言在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！期间被两个问题卡着：  如何获取到方法的入参类型与值？  如何获取到方法的返回结果的类型与值？   还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过记录最后一次访问局部变量，因此获取返回结果的局部变量中的索引位置">
+<meta name="description" content="前言在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！主要是涉及到的知识点比较多。期间被两个问题卡着：  如何获取到方法的入参类型与值？  如何获取到方法的返回结果的类型与值？   还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过字节码指令记录最后一次访问局部变量，">
 <meta name="keywords" content="阿尔萨斯,asm">
 <meta property="og:type" content="article">
 <meta property="og:title" content="阿尔萨斯 原理探究 仿写arthas-watch">
 <meta property="og:url" content="http://yoursite.com/2019/07/19/阿尔萨斯-原理探究-仿写arthas-watch/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
-<meta property="og:description" content="前言在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！期间被两个问题卡着：  如何获取到方法的入参类型与值？  如何获取到方法的返回结果的类型与值？   还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过记录最后一次访问局部变量，因此获取返回结果的局部变量中的索引位置">
+<meta property="og:description" content="前言在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！主要是涉及到的知识点比较多。期间被两个问题卡着：  如何获取到方法的入参类型与值？  如何获取到方法的返回结果的类型与值？   还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过字节码指令记录最后一次访问局部变量，">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-07-19T14:23:30.164Z">
+<meta property="og:image" content="http://yoursite.com/2019/07/19/阿尔萨斯-原理探究-仿写arthas-watch/1.png">
+<meta property="og:updated_time" content="2019-07-20T02:58:31.949Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="阿尔萨斯 原理探究 仿写arthas-watch">
-<meta name="twitter:description" content="前言在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！期间被两个问题卡着：  如何获取到方法的入参类型与值？  如何获取到方法的返回结果的类型与值？   还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过记录最后一次访问局部变量，因此获取返回结果的局部变量中的索引位置">
+<meta name="twitter:description" content="前言在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！主要是涉及到的知识点比较多。期间被两个问题卡着：  如何获取到方法的入参类型与值？  如何获取到方法的返回结果的类型与值？   还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过字节码指令记录最后一次访问局部变量，">
+<meta name="twitter:image" content="http://yoursite.com/2019/07/19/阿尔萨斯-原理探究-仿写arthas-watch/1.png">
 
 
 
@@ -362,19 +364,52 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！期间被两个问题卡着：</p>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在没完成watch功能之前，一直以为watch应该是最好实现的，但是写了快两天才写完！！主要是涉及到的知识点比较多。期间被两个问题卡着：</p>
 <ol>
 <li><p>如何获取到方法的入参类型与值？</p>
 </li>
 <li><p>如何获取到方法的返回结果的类型与值？</p>
 </li>
 </ol>
-<p>还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过记录最后一次访问局部变量，因此获取返回结果的局部变量中的索引位置。现在没看懂没事，后文会详细的介绍。先来看一下我实现的watch方法：</p>
+<p>还没看到阿尔萨斯是如何处理这两个问题的，不过在我写的iarthas里，我是通过字节码中的局部变量与操作数栈来解决第一个问题的。第二个问题我是通过字节码指令记录最后一次访问局部变量，因此获取返回结果的局部变量中的索引位置。现在没看懂没事，后文会详细的介绍。先来看一下我实现的watch方法：</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">4</span><br><span class="line">1</span><br><span class="line">-------------------</span><br><span class="line">监控当前方法：doAdd</span><br><span class="line"> 入参：</span><br><span class="line">       参数类型-- int@1</span><br><span class="line">       参数类型-- String@abc</span><br><span class="line">       参数类型-- long@11</span><br><span class="line">       参数类型-- Lagent/Job;@agent.Job@7adf9f5f</span><br><span class="line">       参数类型-- Lagent/Main;@agent.Main@85ede7b</span><br><span class="line">       参数类型-- double@0.11</span><br><span class="line"> 出参：</span><br><span class="line">       参数类型-- int@4</span><br><span class="line">4</span><br><span class="line">1</span><br><span class="line">-------------------</span><br></pre></td></tr></table></figure>
 <p>可以看到一开始方法只是简单的打印出测试输出4 ,1 ，通过 Attach 到目标主机，对目标类的方法进行retransformer，加强了原方法，输出了监控方法的入参、出参的类型与值。</p>
 <p><strong>结合watch与trace应该可以完成Doom中核心的功能：流量数据采集！！</strong></p>
 <a id="more"></a>
-<h3 id="局部变量与操作数栈"><a href="#局部变量与操作数栈" class="headerlink" title="局部变量与操作数栈"></a>局部变量与操作数栈</h3><h3 id="获取方法的入参类型与值"><a href="#获取方法的入参类型与值" class="headerlink" title="获取方法的入参类型与值"></a>获取方法的入参类型与值</h3><h3 id="获取方法返回结果类型与值"><a href="#获取方法返回结果类型与值" class="headerlink" title="获取方法返回结果类型与值"></a>获取方法返回结果类型与值</h3>
+<h3 id="局部变量与操作数栈"><a href="#局部变量与操作数栈" class="headerlink" title="局部变量与操作数栈"></a>局部变量与操作数栈</h3><p>我们知道，Java 代码是在线程内部执行的。每个线程都有自己的执行栈，栈由帧组成。每个帧表示一个方法调用：每次调用一个方法时，会将一个新帧压入当前线程的执行栈。当方法返回时，会将这个帧从执行栈中弹出。</p>
+<p>每一帧包括两部分：一个局部变量部分和一个操作数栈部分。局部变量部分包含可根据索引以随机顺序访问的变量。由名字可以看出，操作数栈部分是一个栈，其中包含了供字节代码指令用作操作数的值。用下面例子来说明：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> x,<span class="keyword">int</span> y)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> result = x+y;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用add方法时会创建一个帧，一开始会为该帧的局部变量与操作数栈进行初始化，一般局部变量会将当前 this 押入到第0位置，再将两个方法参数 x , y 分别压入到第1和第2的位置，那么初始化好的<strong>局部变量</strong>就是：【this , x , y】，<strong>操作数栈</strong>还是为空：【】</p>
+<p>add方法对应的字节码操作为如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ILOAD <span class="number">1</span> 	<span class="comment">//1</span></span><br><span class="line">ILOAD <span class="number">2</span> 	<span class="comment">//2</span></span><br><span class="line">IADD 		<span class="comment">//3</span></span><br><span class="line">ISTORE <span class="number">3</span>	<span class="comment">//4</span></span><br></pre></td></tr></table></figure>
+<p>当执行1,2两个指令的时候，ILOAD 1 会将局部变量的1号位置中的值压入到操作数栈中，ILOAD 2会将局部变量2号位置中的值压入操作数栈中，<strong>操作数栈</strong>对应的是【x , y】。</p>
+<p>IADD会将当前对操作数栈进行出栈的操作，出栈两个，并执行ADD，将结果再压入到操作数栈中，操作数栈现在保存了【x+y】。</p>
+<p>ISTORE 3 会对操作数栈进行出栈操作，并将值存储到局部变量的3号位置，最后局部变量对应的是：【this , x , y , x+y】，操作数栈为空：【】。</p>
+<p><font color="##FF0000"><strong>需要注意</strong></font>：==局部变量部分和操作数栈部分中的每个槽（slot）可以保存除 long 和 double 变量之外的任意 Java 值。long 和 double 变量需要两个槽==。如果忽略这点，在实现 watch 过程中会采坑的。</p>
+<h3 id="获取方法的入参类型与值"><a href="#获取方法的入参类型与值" class="headerlink" title="获取方法的入参类型与值"></a>获取方法的入参类型与值</h3><p>假设我要对以下方法进行 watch ，那么第一步我需要知道该方法所有入参的类型先！！我们可以通过 ASM 中visitMethod 来获取方法的描述符</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">doAdd</span><span class="params">(<span class="keyword">int</span> x,String s,<span class="keyword">long</span> l ,Job j,Main n,<span class="keyword">double</span> d)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">    <span class="keyword">return</span>  x+<span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ClassVisitor.visitMethod方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 可以根据Desc获取入参与出参的类型，desc的值可以参考下面</span></span><br><span class="line"><span class="comment">     * void m(int i, float f) 的Description：(IF)V</span></span><br><span class="line"><span class="comment">     * int[] m(int i, String s) 的Description：(ILjava/lang/String;)[I</span></span><br><span class="line"><span class="comment">     * int m(Object o) 的Description：(Ljava/lang/Object;)I</span></span><br><span class="line"><span class="comment">     * Object m(int[] i) 的Description：([I)Ljava/lang/Object;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MethodVisitor <span class="title">visitMethod</span><span class="params">(<span class="keyword">final</span> <span class="keyword">int</span> access, <span class="keyword">final</span> String name, <span class="keyword">final</span> String desc, <span class="keyword">final</span> String signature, <span class="keyword">final</span> String[] exceptions)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>一些 Java 类型的类型描述符：</p>
+<p><img src="/2019/07/19/阿尔萨斯-原理探究-仿写arthas-watch/1.png" alt="你想输入的替代文字"></p>
+<p>因此我们可以获取到doAdd的方法描述符：==(ILjava/lang/String;JLagent/Job;Lagent/Main;D)I== 对应起来就是==(int ,String ,agent.Job , agent.Main ,double)==，最后一个I表示返回类型为int。</p>
+<p>回想一下前面讲到的局部变量和操作数栈，那么在调用 <code>doAdd(int x,String s,long l ,Job j,Main n,double d)</code> 方法时局部变量会初始化为：【this , x , s , l , j , n , d】，那么要打印出这个值，我们只需要把要打印的值的下标 LOAD 到操作数栈就可以了！！比如我要打印参数int x的值，那么只要得到 x 的下标1.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitCode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//省略....</span></span><br><span class="line">	mv.visitFieldInsn(GETSTATIC, <span class="string">"java/lang/System"</span>, <span class="string">"out"</span>, <span class="string">"Ljava/io/PrintStream;"</span>);</span><br><span class="line">  	mv.visitVarInsn(iType.getLoadOpcode(), index);</span><br><span class="line">   	mv.visitMethodInsn(INVOKEVIRTUAL, <span class="string">"java/io/PrintStream"</span>, <span class="string">"println"</span>, <span class="string">"("</span> + iType.getPrintDesc() + <span class="string">")V"</span>, <span class="keyword">false</span>);</span><br><span class="line">    <span class="comment">//省略.....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>==在上一节中我们提到long和double是会占用两个solt的，因此你要打印参数long l时，它的下标是3，但是agent.Job的下标就是5了，因为3,4都被long占用了，因此LOAD 的时候需要计算好参数的下标。== 我用index来表示每个参数在局部变量中的下标位置。</p>
+<p>==另外一点也要注意的是==：int类型对应的是ILOAD, double类型对应的DLOAD，即每个参数类型都要有对应的opcodes :</p>
+<blockquote>
+<p>ILOAD, LLOAD, FLOAD, DLOAD 和 ALOAD 指令读取一个局部变量，并将它的值压到操作数栈中。它们的参数是必须读取的局部变量的索引 i。ILOAD 用于加载一个 boolean、byte、char、short或int局部变量。LLOAD、FLOAD和DLOAD分别用于加载long、float或double 值。（LLOAD 和 DLOAD 实际加载两个槽 i 和 i+1）。最后，ALOAD 用于加载任意非基元值，即对 象和数组引用。与之对应，ISTORE、LSTORE、FSTORE、DSTORE 和 ASTORE 指令从操作数栈中弹出一个值，并将它存储在由其索引 i 指定的局部变量中。</p>
+</blockquote>
+<p>具体实现可以在代码上看。</p>
+<h3 id="获取方法返回结果类型与值"><a href="#获取方法返回结果类型与值" class="headerlink" title="获取方法返回结果类型与值"></a>获取方法返回结果类型与值</h3><p>获取方法返回结果当时被卡了很久！！最后突然想到在执行Return的时候，它会将要返回的值从局部变量中LOAD出来到操作数栈，那么我们将最后操作局部变量visitVarInsn方法中的下标记录下来，这个下标就是返回值在局部变量的下标了！！</p>
+<pre><code>methodVisitor.visitLineNumber(18, label10);
+methodVisitor.visitVarInsn(ILOAD, 11);
+methodVisitor.visitInsn(IRETURN);
+</code></pre><p>下标11就是返回值在局部变量中下标位置，因为return是最好一个操作，所以用lastVar来记录即可：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitVarInsn</span><span class="params">(<span class="keyword">int</span> opcode, <span class="keyword">int</span> var)</span> </span>&#123;</span><br><span class="line">    lastVar = var;</span><br><span class="line">    <span class="keyword">super</span>.visitVarInsn(opcode,var);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>把局部变量LOAD出来打印一下即可！！</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">visitInsn</span><span class="params">(<span class="keyword">int</span> opcode)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (opcode &lt;= Opcodes.RETURN &amp;&amp; opcode &gt;= Opcodes.IRETURN) &#123;</span><br><span class="line">        mv.visitFieldInsn(GETSTATIC, <span class="string">"java/lang/System"</span>, <span class="string">"out"</span>, <span class="string">"Ljava/io/PrintStream;"</span>);</span><br><span class="line">        mv.visitVarInsn(parOutITypes.getLoadOpcode(), lastVar);</span><br><span class="line">        mv.visitMethodInsn(INVOKEVIRTUAL, <span class="string">"java/io/PrintStream"</span>, <span class="string">"println"</span>, <span class="string">"("</span> + parOutITypes.getPrintDesc() + <span class="string">")V"</span>, <span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">super</span>.visitInsn(opcode);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
       
     </div>
     
