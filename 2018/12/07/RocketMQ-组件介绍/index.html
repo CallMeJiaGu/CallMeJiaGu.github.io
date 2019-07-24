@@ -108,7 +108,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/12/07/RocketMQ-组件介绍/1.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/07/RocketMQ-组件介绍/3.png">
-<meta property="og:updated_time" content="2018-12-07T13:53:08.424Z">
+<meta property="og:updated_time" content="2019-07-24T07:41:26.013Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RocketMQ 组件介绍">
 <meta name="twitter:description" content="前言上一篇简单的介绍了消息中间件的一些应用，后面的中间件主要围绕着RocketMQ进行学习，所以这篇来记录一下RocketMQ的基本组件，以及他们的关联。">
@@ -402,6 +402,7 @@
 <p><strong>4</strong>.Producer发送消息，启动时先跟nameServer集群中的<strong>其中一台建立长连接，并从nameServer中获取当前发送的Topic存在哪些Broker上，然后跟对应的Broker建长连接，直接向Broker发消息</strong>。</p>
 <p><strong>5.</strong>Consumer跟Producer类似。跟其中一台nameServer建立长连接，获取当前订阅Topic存在哪些Broker，然后直接跟Broker建立连接通道，开始消费消息。</p>
 </blockquote>
+<h3 id="RocketMQ和kafka的区别"><a href="#RocketMQ和kafka的区别" class="headerlink" title="RocketMQ和kafka的区别"></a>RocketMQ和kafka的区别</h3><p>Rocket 和 kafka在性能还是有点差距的，kafka在写入TPS在上可以达到百万级，这个是因为kafka中的producer将信息堆起来一起发送，以减少网络IO，但是这个时候如果producer宕机了，会导致信息丢失的，也就是说kafka有点牺牲可靠性来换取性能。<br>RocketMQ不这么做有以下几点原因：因为堆积的信息会导致内存不足，引发GC。另外就是认为分布式中的单台producer通常也就上万的，不会太高。第三就是producer宕机会造成信息丢失，它保证高可用</p>
 
       
     </div>
@@ -604,7 +605,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ和List有什么区别？"><span class="nav-number">2.</span> <span class="nav-text">MQ和List有什么区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ的组件"><span class="nav-number">3.</span> <span class="nav-text">MQ的组件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Produce"><span class="nav-number">3.1.</span> <span class="nav-text">Produce</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Broker"><span class="nav-number">3.2.</span> <span class="nav-text">Broker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NameServer"><span class="nav-number">3.3.</span> <span class="nav-text">NameServer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Consumer"><span class="nav-number">3.4.</span> <span class="nav-text">Consumer</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ工作流程"><span class="nav-number">4.</span> <span class="nav-text">MQ工作流程</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ和List有什么区别？"><span class="nav-number">2.</span> <span class="nav-text">MQ和List有什么区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ的组件"><span class="nav-number">3.</span> <span class="nav-text">MQ的组件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Produce"><span class="nav-number">3.1.</span> <span class="nav-text">Produce</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Broker"><span class="nav-number">3.2.</span> <span class="nav-text">Broker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NameServer"><span class="nav-number">3.3.</span> <span class="nav-text">NameServer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Consumer"><span class="nav-number">3.4.</span> <span class="nav-text">Consumer</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ工作流程"><span class="nav-number">4.</span> <span class="nav-text">MQ工作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ和kafka的区别"><span class="nav-number">5.</span> <span class="nav-text">RocketMQ和kafka的区别</span></a></li></ol></div>
             
 
           </div>
