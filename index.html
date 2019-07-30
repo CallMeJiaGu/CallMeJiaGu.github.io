@@ -445,7 +445,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/07/28/阿尔萨斯-原理探究-仿写arthas-TimeTunnel/" itemprop="url">阿尔萨斯 原理探究 仿写arthas-TimeTunnel</a></h1>
+                <a class="post-title-link" href="/2019/07/28/阿尔萨斯-原理探究-仿写arthas-TimeTunnel/" itemprop="url">阿尔萨斯 原理探究 仿写arthas-TimeTunnel 流量采集</a></h1>
         
 
         <div class="post-meta">
@@ -519,8 +519,14 @@
 
       
         
-          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>对于TimeTunnel功能块的编写真的可以用心累来形容，期间针对方法请求参数的序列化思量了很久，后面我会把实现思路与大家分享一下。</p>
-<p>未完待续…</p>
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>对于TimeTunnel功能块的编写真的可以用心累来形容，总结一句话就是太想当然了！！在开始做这块功能的时候，原本大体的思路就是在watch方法的基础上请求参数进行序列化的操作，但是这个序列化的过程就没有那么容易了！考虑一下下面这种情况：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">doAdd</span><span class="params">(<span class="keyword">int</span> x,String s,<span class="keyword">long</span> l ,Job j,Main n,<span class="keyword">double</span> d)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>考虑到我们将使用反射来完成回放功能，那么你需要将当前的类、方法名、方法参数类型、请求参数都保留下来，前面三个是好做的，但是如果你需要保留的参数并没有实现 Serializable 接口，那么该类就不能被序列化，<strong>并且就算该类实现了Serializable接口，也不能保证该类成员对象都能被序列化的</strong>！！（与深拷贝有点相似，需要考虑到整个对象的引用情况）</p>
+<p>于是我换了一种思路，采用FastJson将对象以字符串的形式进行序列化，要回调的时候再通过JSON.parseObject实现对象的转换！！</p>
+<p>先看看我的做的TimeTunnel效果图：<font color="#FF0000">对正在运行的函数doAdd和doDelet实现方法级别的流量录制</font>.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">2</span><br><span class="line">1</span><br><span class="line">-------------------</span><br><span class="line">开始采集方法：doAdd</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line">开始采集方法：doDelet</span><br><span class="line"></span><br><span class="line">1</span><br><span class="line">-------------------</span><br></pre></td></tr></table></figure>
+<p>对类、方法、方法参数以元数据存储一份，每一次的请求参数以当前时间轴进行保存：</p>
+<p><img src="/2019/07/28/阿尔萨斯-原理探究-仿写arthas-TimeTunnel/1.png" alt="你想输入的替代文字"></p>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2019/07/28/阿尔萨斯-原理探究-仿写arthas-TimeTunnel/#more" rel="contents">
@@ -1831,7 +1837,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">62</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
