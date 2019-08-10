@@ -115,7 +115,7 @@
 <meta property="og:image" content="http://yoursite.com/2019/02/23/Netty-In-Action（一）/2.png">
 <meta property="og:image" content="http://yoursite.com/2019/02/23/Netty-In-Action（一）/3.png">
 <meta property="og:image" content="http://yoursite.com/2019/02/23/Netty-In-Action（一）/4.png">
-<meta property="og:updated_time" content="2019-04-10T05:29:31.055Z">
+<meta property="og:updated_time" content="2019-08-10T04:33:31.500Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Netty In Action（一）">
 <meta name="twitter:description" content="前言这篇主要来记录一下Netty相关的知识点，如比较容易混淆的BIO\NIO\AIO，以及Netty的线程模式、零拷贝技术等。">
@@ -374,6 +374,12 @@
       
         <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>这篇主要来记录一下Netty相关的知识点，如比较容易混淆的BIO\NIO\AIO，以及Netty的线程模式、零拷贝技术等。</p>
 <a id="more"></a>
+<h3 id="初识"><a href="#初识" class="headerlink" title="初识"></a>初识</h3><blockquote>
+<p>在BIO流程中，会先将数据拷贝到内核缓存区，再由内核缓冲区拷贝到用户缓冲区，如果用户进程在读取的时候，内核缓冲区的数据还没准备好，那么用户进程就会被阻塞，一直等到数据准备完毕。</p>
+<p>而NIO（非阻塞IO，与Java NIO不一样的概念），在读取的时候，如果当前内核缓冲区没有数据，会直接放回一个error，不会阻塞，那么我们就可以通过轮询的方式，判断返回的是否是success，如果是的话表明数据有了。但是NIO的缺点就是要轮询，消耗CPU。</p>
+<p>IO多路复用就是来解决轮询的问题。用户线程将要处理的文件描述符注册到select中，在调用select函数的时候，select函数会将当前线程进行阻塞，一直等到注册中有就绪的IO事件时，才会唤醒当前线程对就绪的IO进行处理。select虽然会阻塞当前线程与BIO有点类型，但是select的好处就是可以监控多个IO流，并且没有想NIO一样忙轮询。它实现的本质是采用了回调与文件驱动poll函数。</p>
+<p>既然IO多路复用可以监控多个IO流，那么它就采用了事件分发的reactor模式，即有专门来处理IO连接线程组，也有专门来处理IO读写的线程组，以此提高效率。</p>
+</blockquote>
 <h3 id="BIO"><a href="#BIO" class="headerlink" title="BIO"></a><strong>BIO</strong></h3><p>同步阻塞</p>
 <p><img src="/2019/02/23/Netty-In-Action（一）/5.png" alt="你想输入的替代文字"></p>
 <blockquote>
@@ -622,7 +628,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BIO"><span class="nav-number">2.</span> <span class="nav-text">BIO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NIO"><span class="nav-number">3.</span> <span class="nav-text">NIO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AIO"><span class="nav-number">4.</span> <span class="nav-text">AIO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Netty的线程模型"><span class="nav-number">5.</span> <span class="nav-text">Netty的线程模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Reactor单线程模型"><span class="nav-number">5.1.</span> <span class="nav-text">Reactor单线程模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#单Reactor多线程模型"><span class="nav-number">5.2.</span> <span class="nav-text">单Reactor多线程模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#主从Reactor模型"><span class="nav-number">5.3.</span> <span class="nav-text">主从Reactor模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Netty的零拷贝技术"><span class="nav-number">6.</span> <span class="nav-text">Netty的零拷贝技术</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初识"><span class="nav-number">2.</span> <span class="nav-text">初识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BIO"><span class="nav-number">3.</span> <span class="nav-text">BIO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NIO"><span class="nav-number">4.</span> <span class="nav-text">NIO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AIO"><span class="nav-number">5.</span> <span class="nav-text">AIO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Netty的线程模型"><span class="nav-number">6.</span> <span class="nav-text">Netty的线程模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Reactor单线程模型"><span class="nav-number">6.1.</span> <span class="nav-text">Reactor单线程模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#单Reactor多线程模型"><span class="nav-number">6.2.</span> <span class="nav-text">单Reactor多线程模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#主从Reactor模型"><span class="nav-number">6.3.</span> <span class="nav-text">主从Reactor模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Netty的零拷贝技术"><span class="nav-number">7.</span> <span class="nav-text">Netty的零拷贝技术</span></a></li></ol></div>
             
 
           </div>
