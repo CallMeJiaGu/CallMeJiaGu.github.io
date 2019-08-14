@@ -108,7 +108,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/12/07/RocketMQ-组件介绍/1.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/07/RocketMQ-组件介绍/3.png">
-<meta property="og:updated_time" content="2019-08-12T13:00:28.734Z">
+<meta property="og:updated_time" content="2019-08-14T08:44:00.750Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RocketMQ 组件介绍">
 <meta name="twitter:description" content="前言上一篇简单的介绍了消息中间件的一些应用，后面的中间件主要围绕着RocketMQ进行学习，所以这篇来记录一下RocketMQ的基本组件，以及他们的关联。">
@@ -406,10 +406,23 @@
 <h3 id="RocketMQ高可用性"><a href="#RocketMQ高可用性" class="headerlink" title="RocketMQ高可用性"></a>RocketMQ高可用性</h3><p>NameServer 都是互相独立的，就算挂了一台也不会影响到使用</p>
 <p>broker采用了主从的架构，每个broker中的master负值读写，只有当master宕机了，slaver才能提供读的功能（但是不能提供写的功能）。</p>
 <p>这里与kafka不同的是，kafka采用了ZK来选举，而RocketMQ采用了NameServer是不提供选举的，因此提供了上述的方式来保证高可用性。</p>
-<p>kafka在消息写入方面性能比rocketMQ会有大概10倍的差别，主要是kafka牺牲了一定的可靠性，因为它将消息以堆积的形式进行发送，以此来减少IO的消耗，但是堆积过程中如果发送者宕机了那么消息就丢失了。</p>
+<p>kafka在消息写入方面性能比rocketMQ会    有大概10倍的差别，主要是kafka牺牲了一定的可靠性，因为它将消息以堆积的形式进行发送，以此来减少IO的消耗，但是堆积过程中如果发送者宕机了那么消息就丢失了。</p>
 <p>而rocketmq提供了同步刷盘与异步刷盘的机制，就是说当消息来的时候，我需要发送一个ack，这个ack如果是在消息落盘之后那就是同步的，表明这个消息是不会被丢失的。如果是直接写入到pagecache中，后面启动另外的线程来刷盘，那就是异步的。</p>
 <p>同时在broker中通过同步复制、异步复制的方式来保证高可用性.</p>
-
+<h3 id="Queue分配策略"><a href="#Queue分配策略" class="headerlink" title="Queue分配策略"></a>Queue分配策略</h3><p>Queue分配只有在集群消费模式下使用，广播模式下是没有分配策略的</p>
+<p>我们看这个方法<code>AllocateMessageQueueStrategy#allocate()</code>，他有下面几种实现：</p>
+<blockquote>
+<ul>
+<li>AllocateMessageQueueAveragely：这是默认的分配方式，一个consumer分到在平均的情况下分到连续的queue，待会我们会看看代码</li>
+<li>AllocateMessageQueueAveragelyByCircle： 和上面类似，但是分到的queue不是连续的。比如一共12个Queue，3个consumer，则第一个consumer接收queue1，4，7，9的消息</li>
+<li>AllocateMachineRoomNearby：将queue先按照broker划分几个computer room，不同的consumer只消费某几个broker上的消息</li>
+<li>AllocateMessageQueueByMachineRoom：根据computer room进行hash分配队列</li>
+<li>AllocateMessageQueueByConfig：在用户启动时指定消费哪些Queue的消息</li>
+<li>AllocateMessageQueueConsistentHash：使用一致性hash算法来分配Queue，用户需自定义虚拟节点的数量</li>
+</ul>
+</blockquote>
+<p>主要来看看默认的分配方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> List&lt;MessageQueue&gt; <span class="title">allocate</span><span class="params">(String consumerGroup, String currentCID, List&lt;MessageQueue&gt; mqAll,</span></span></span><br><span class="line"><span class="function"><span class="params">        List&lt;String&gt; cidAll)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 省略...</span></span><br><span class="line">        <span class="keyword">int</span> index = cidAll.indexOf(currentCID);</span><br><span class="line">        <span class="keyword">int</span> mod = mqAll.size() % cidAll.size();</span><br><span class="line">        <span class="comment">// 1. mq数量 &lt;= consumer数量，size = 1</span></span><br><span class="line">        <span class="comment">// 2. 否则，size = mq数量 / consumer数量，余数是几则前几个consumer的size+1,这样所有的queue都会有consumer消费</span></span><br><span class="line">        <span class="keyword">int</span> averageSize =</span><br><span class="line">            mqAll.size() &lt;= cidAll.size() ? <span class="number">1</span> : (mod &gt; <span class="number">0</span> &amp;&amp; index &lt; mod ? mqAll.size() / cidAll.size()</span><br><span class="line">                + <span class="number">1</span> : mqAll.size() / cidAll.size());</span><br><span class="line">        <span class="keyword">int</span> startIndex = (mod &gt; <span class="number">0</span> &amp;&amp; index &lt; mod) ? index * averageSize : index * averageSize + mod;</span><br><span class="line">        <span class="keyword">int</span> range = Math.min(averageSize, mqAll.size() - startIndex);</span><br><span class="line">        <span class="comment">// 从第一个consumer开始分配，每个分avgSize个连续的Queue，</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; range; i++) &#123;</span><br><span class="line">            result.add(mqAll.get((startIndex + i) % mqAll.size()));</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -611,7 +624,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ和List有什么区别？"><span class="nav-number">2.</span> <span class="nav-text">MQ和List有什么区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ的组件"><span class="nav-number">3.</span> <span class="nav-text">MQ的组件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Produce"><span class="nav-number">3.1.</span> <span class="nav-text">Produce</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Broker"><span class="nav-number">3.2.</span> <span class="nav-text">Broker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NameServer"><span class="nav-number">3.3.</span> <span class="nav-text">NameServer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Consumer"><span class="nav-number">3.4.</span> <span class="nav-text">Consumer</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ工作流程"><span class="nav-number">4.</span> <span class="nav-text">MQ工作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ和kafka的区别"><span class="nav-number">5.</span> <span class="nav-text">RocketMQ和kafka的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ高可用性"><span class="nav-number">6.</span> <span class="nav-text">RocketMQ高可用性</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ和List有什么区别？"><span class="nav-number">2.</span> <span class="nav-text">MQ和List有什么区别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ的组件"><span class="nav-number">3.</span> <span class="nav-text">MQ的组件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Produce"><span class="nav-number">3.1.</span> <span class="nav-text">Produce</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Broker"><span class="nav-number">3.2.</span> <span class="nav-text">Broker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NameServer"><span class="nav-number">3.3.</span> <span class="nav-text">NameServer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Consumer"><span class="nav-number">3.4.</span> <span class="nav-text">Consumer</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ工作流程"><span class="nav-number">4.</span> <span class="nav-text">MQ工作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ和kafka的区别"><span class="nav-number">5.</span> <span class="nav-text">RocketMQ和kafka的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RocketMQ高可用性"><span class="nav-number">6.</span> <span class="nav-text">RocketMQ高可用性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Queue分配策略"><span class="nav-number">7.</span> <span class="nav-text">Queue分配策略</span></a></li></ol></div>
             
 
           </div>
