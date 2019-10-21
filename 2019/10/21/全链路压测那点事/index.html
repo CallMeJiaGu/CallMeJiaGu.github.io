@@ -87,7 +87,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="全链路压测," />
 
 
 
@@ -99,16 +99,19 @@
 
 
 <meta name="description" content="前言文章转载自 全链路压测那点事(一)  全链路压测一直是测试领域的一顶皇冠。全链路压测对测试人员要求极高，不仅需要有性能测试知识，还要有一定的组织能力与工程能力。全链路压测不仅是一个测试任务，而是一个公司级别的超大型项目，全链路压测涉及到公司所有技术人员与职能部门，从压测准备到实施，直至压测完成后的改进与优化，通常需要涉及公司开发、测试、运维等多个部门协同合作，因此全链路压测更合理的组织方式是以">
+<meta name="keywords" content="全链路压测">
 <meta property="og:type" content="article">
 <meta property="og:title" content="全链路压测那点事（转载）">
 <meta property="og:url" content="http://yoursite.com/2019/10/21/全链路压测那点事/index.html">
 <meta property="og:site_name" content="Don&#39;t Stop">
 <meta property="og:description" content="前言文章转载自 全链路压测那点事(一)  全链路压测一直是测试领域的一顶皇冠。全链路压测对测试人员要求极高，不仅需要有性能测试知识，还要有一定的组织能力与工程能力。全链路压测不仅是一个测试任务，而是一个公司级别的超大型项目，全链路压测涉及到公司所有技术人员与职能部门，从压测准备到实施，直至压测完成后的改进与优化，通常需要涉及公司开发、测试、运维等多个部门协同合作，因此全链路压测更合理的组织方式是以">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-10-21T12:59:50.950Z">
+<meta property="og:image" content="http://yoursite.com/2019/10/21/全链路压测那点事/1.png">
+<meta property="og:updated_time" content="2019-10-21T13:02:05.511Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="全链路压测那点事（转载）">
 <meta name="twitter:description" content="前言文章转载自 全链路压测那点事(一)  全链路压测一直是测试领域的一顶皇冠。全链路压测对测试人员要求极高，不仅需要有性能测试知识，还要有一定的组织能力与工程能力。全链路压测不仅是一个测试任务，而是一个公司级别的超大型项目，全链路压测涉及到公司所有技术人员与职能部门，从压测准备到实施，直至压测完成后的改进与优化，通常需要涉及公司开发、测试、运维等多个部门协同合作，因此全链路压测更合理的组织方式是以">
+<meta name="twitter:image" content="http://yoursite.com/2019/10/21/全链路压测那点事/1.png">
 
 
 
@@ -312,6 +315,28 @@
           </span>
 
           
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/全链路压测/" itemprop="url" rel="index">
+                    <span itemprop="name">全链路压测</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
 
           
             
@@ -343,6 +368,7 @@
 <p>全链路压测一直是测试领域的一顶皇冠。全链路压测对测试人员要求极高，不仅需要有性能测试知识，还要有一定的组织能力与工程能力。全链路压测不仅是一个测试任务，而是一个公司级别的超大型项目，全链路压测涉及到公司所有技术人员与职能部门，从压测准备到实施，直至压测完成后的改进与优化，通常需要涉及公司开发、测试、运维等多个部门协同合作，因此全链路压测更合理的组织方式是以项目形式展开，协同部门负责人进行牵头，集全公司之力以线上性能最优为目标进行的一次技术改进过程。</p>
 <a id="more"></a>
 <p>通常情况下项目上线前我们会对单一接口进行压测，此时我们可以获得单一接口性能的极限QPS数据，不过线上流量成分相当复杂，单一接口的性能数据并不能体现线上服务的真实情况。因此，我们还需要进行场景化的多接口性能压测。</p>
+<p><img src="/2019/10/21/全链路压测那点事/1.png" alt="你想输入的替代文字"></p>
 <p>假设我们的服务有100个接口，我们通过线上服务日志分析100个接口一天时间内的请求比例，我们根据请求流量配比可以很好地模拟线上流量，如果我们的压测工具支持日志回放，那么我们可以直接回放接入层日志进行本次压测，会更接近真实情况。</p>
 <p>至此，我们已经较为完美的解决了压测流量构造的问题，但似乎事情并不像我们想象的那样简单，经过几次离线性能测试验证，你惊奇的发现我们的压测结果和线上的真实情况还存在较大差异，而造成这种差异出现的原因是压测环境与线上环境多方面不同的直接结果。</p>
 <p>不幸的是通常情况下公司并不可能按照线上环境架构与性能要求1比1的搭建一套离线环境，因此生产环境的全链路压测就成为很多公司的必然选择，一旦决定在生产环境进行全链路压测，你会发现更加棘手的问题都排在后面，一个接着一个。</p>
@@ -365,6 +391,12 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/全链路压测/" rel="tag"># 全链路压测</a>
+          
+        </div>
       
 
       
@@ -475,7 +507,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-count">25</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -486,7 +518,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-count">64</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
