@@ -108,7 +108,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2020/01/12/对架构的理解（手稿）/对架构的理解/1.png">
 <meta property="og:image" content="http://yoursite.com/2020/01/12/对架构的理解（手稿）/对架构的理解/2.png">
-<meta property="og:updated_time" content="2020-01-12T13:24:38.277Z">
+<meta property="og:updated_time" content="2020-01-13T07:00:19.558Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="对架构的理解（手稿）（未完待续...）">
 <meta name="twitter:description" content="前言在网络上关于架构的文章有许多，能看到的19年火热的”中台”概念，以及又开始流行的 “DDD”，但对这些知识的理解总是容易混淆，以及为什么需要这些架构方法论，它们能解决的哪些问题，区别在哪等存在着疑惑。就拿之前实习碰到的“域”概念来说，我依然没能想明白设计者是从哪方面去考虑设计的。这篇文章主要是来记录自己对架构设计的笔记和理解。">
@@ -369,6 +369,12 @@
 <a id="more"></a>
 <p>SPI  </p>
 <p>微服务 中台 DDD SOA</p>
+<p>可以把微服务当成是去除了 ESB 的SOA    </p>
+<p>SOA 是一种服务治理的方法论，可以通过服务总线 ESB 来实现</p>
+<p>中台架构，简单地说，就是<strong>企业级能力</strong>的复用，一个种方法论，企业治理思想</p>
+<p>微服务，是可独立开发、维护、部署的小型业务单元，是一种技术架构方式</p>
+<p>CQRS</p>
+<p>贫血模型</p>
 <p><a href="https://zhuanlan.zhihu.com/p/70371288" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/70371288</a> 关于DDD比较好的文章    </p>
 <p><strong>简单来说，DDD 的本质是一种软件设计方法，而微服务架构是具体的实现方式。</strong>微服务架构虽好，但是他并没有给出如何对复杂系统进行分解的具体方法论，而 DDD 正好就是解决方案。</p>
 <p>DDD 强调领域模型和微服务设计的一体性，先有领域模型然后才有微服务，而不是脱离领域模型来谈微服务设计。</p>
@@ -426,6 +432,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/05/08/白话中台番外篇：DDD、EventStorming与业务中台（转载）/" rel="prev" title="白话中台番外篇：DDD、EventStorming与业务中台（转载）">
+                白话中台番外篇：DDD、EventStorming与业务中台（转载） <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -506,7 +516,7 @@
               
                 <a href="/archives">
               
-                  <span class="site-state-item-count">103</span>
+                  <span class="site-state-item-count">104</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

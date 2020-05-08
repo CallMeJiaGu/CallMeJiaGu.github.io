@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="架构," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本文转载自（https://zhuanlan.zhihu.com/p/120896743） 提到中台（尤其是业务中台）的构建方法论，就不得不提另两个同样伴随着微服务和中台概念兴起的工具：Domain-Driven Design（DDD，领域驱动设计）和EventStorming（事件风暴）。在各种讲中台落地规划，尤其是业务中台的共性能力识别和微服务划分的时候，总是能看到这两位的身影。不过相信好多朋">
+<meta name="keywords" content="架构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="白话中台番外篇：DDD、EventStorming与业务中台（转载）">
+<meta property="og:url" content="http://yoursite.com/2020/05/08/白话中台番外篇：DDD、EventStorming与业务中台（转载）/index.html">
+<meta property="og:site_name" content="Don&#39;t Stop">
+<meta property="og:description" content="本文转载自（https://zhuanlan.zhihu.com/p/120896743） 提到中台（尤其是业务中台）的构建方法论，就不得不提另两个同样伴随着微服务和中台概念兴起的工具：Domain-Driven Design（DDD，领域驱动设计）和EventStorming（事件风暴）。在各种讲中台落地规划，尤其是业务中台的共性能力识别和微服务划分的时候，总是能看到这两位的身影。不过相信好多朋">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-b73bbb432fe6a5b4558443ae1407b2f4_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-aadc6226a900108095bce2de39a935b1_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-d774d2e4ef5dd10617edff96fb7eb1f8_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-d5605af32ab45025da28eafd9f4ecadd_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-af6d2f8f8e52f22eaaba7b776b3b74e4_720w.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-bfaf8b314522946e46ede5c7a812d08e_720w.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-f776effbe9e94e2fb12e4d9260e6b0c7_720w.jpg">
+<meta property="og:updated_time" content="2020-05-08T02:33:06.690Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="白话中台番外篇：DDD、EventStorming与业务中台（转载）">
+<meta name="twitter:description" content="本文转载自（https://zhuanlan.zhihu.com/p/120896743） 提到中台（尤其是业务中台）的构建方法论，就不得不提另两个同样伴随着微服务和中台概念兴起的工具：Domain-Driven Design（DDD，领域驱动设计）和EventStorming（事件风暴）。在各种讲中台落地规划，尤其是业务中台的共性能力识别和微服务划分的时候，总是能看到这两位的身影。不过相信好多朋">
+<meta name="twitter:image" content="https://pic1.zhimg.com/80/v2-b73bbb432fe6a5b4558443ae1407b2f4_720w.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/05/08/白话中台番外篇：DDD、EventStorming与业务中台（转载）/"/>
+
+
+
+
+
+  <title>白话中台番外篇：DDD、EventStorming与业务中台（转载） | Don't Stop</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Don't Stop</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/08/白话中台番外篇：DDD、EventStorming与业务中台（转载）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="JinTx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/img/2.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Don't Stop">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">白话中台番外篇：DDD、EventStorming与业务中台（转载）</h1>
+        
+
+        <div class="post-meta">
+		
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-05-08T10:27:42+08:00">
+                2020-05-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/架构/" itemprop="url" rel="index">
+                    <span itemprop="name">架构</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文转载自（<a href="https://zhuanlan.zhihu.com/p/120896743" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/120896743</a>）</p>
+<p>提到中台（尤其是业务中台）的构建方法论，就不得不提另两个同样伴随着微服务和中台概念兴起的工具：Domain-Driven Design（DDD，领域驱动设计）和EventStorming（事件风暴）。在各种讲中台落地规划，尤其是业务中台的共性能力识别和微服务划分的时候，总是能看到这两位的身影。不过相信好多朋友对于这两个相对陌生的面孔还是感觉云里雾里，搞不清楚到底是什么，以及与中台的关系。</p>
+<p>本篇就以我个人的经历和视角，为大家讲述一下我对这二位的理解。</p>
+<a id="more"></a>
+<h3 id="DDD（领域驱动设计）"><a href="#DDD（领域驱动设计）" class="headerlink" title="DDD（领域驱动设计）"></a>DDD（领域驱动设计）</h3><p>回想一下，第一次接触DDD应该还是十多年前，那还是每天刷着JavaEye，看一群神仙打架的年代。</p>
+<p>依稀记得那时候社区里讨论的最热的也还是Hibernate和OR-Mapping，RoR也还在蓄势待发，记忆中那也是我最开始接触DDD的时候。</p>
+<p>所以，现在很多人以为DDD是个新冒出来的东西，其实并不是，这东西已经有了10多年的历史了，豆瓣上还有第一版领域驱动设计的蓝色版本的封面（不知道谁还有这个版本，反正我的是早就丢了）。而第一版的出版年份被定格在2006年3月1日，距今已经过去了13年。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-b73bbb432fe6a5b4558443ae1407b2f4_720w.jpg" alt="img"></p>
+<p>DDD虽然诞生的早，但直到现在，和我们日常工作的距离也并不远，例如我们代码中经常出现的XxxEntity，XxxRepository ，XxxService，XxxFactory……这些类，这里的Entity、Repository、Service和Factory，以及我们现在大家早已习以为常的分层架构，都是出自DDD之手，只不过很多人已经不知道这些都是拜DDD所赐而已。</p>
+<p>我们中的大多数人就像<a href="https://link.zhihu.com/?target=https%3A//baike.baidu.com/item/%25E7%258C%25B4%25E5%25AD%2590%25E5%25AE%259A%25E5%25BE%258B/6268365" target="_blank" rel="noopener">“猴子定律”</a>里后来的猴子们一样，习惯了约定俗成，日复一日重复着（Controller-Service-Repository-Entity =&gt; CRUD）这些看似枯燥的操作，而早已忘了为什么一开始架构和这些所谓的最佳实践被设计成这个样子，少了一份溯本求源的精神。</p>
+<p>以致于我经常在面试的时候，问候选人，你这里为什么要一个Service呀？大多数的回复都是：这是规范呀！这不是基本常识么？我们公司规定都得这么写的……</p>
+<p>那说来说去，DDD到底是什么呢？</p>
+<p>在我看来，<strong>DDD其实就是面向对象的一套“方言”，提供了一种基于业务领域的对象划分和分类方法，其最大的价值就在于对于软件开发过程全生命周期使用语言的统一！</strong></p>
+<p>怎么讲呢？</p>
+<p>在面向对象的世界，只告诉了我们万事万物皆是对象。但并没有告诉我们对象究竟应该怎么组织，该以什么角度进行划分。</p>
+<p>而作为技术人员的我们，早已习惯了从技术的角度出发思考，自然就出现了“用技术的语言”定义对象的习惯，例如最常见的DAO（Data Access Objects），DTO（Data Transfer Object）这类对象的划分方式就是使用技术视角看待和分类对象的典型案例。</p>
+<p>这样从技术视角分类对象的问题，就在于在软件的开发过程中，会涉及到多“语言”间的对应和翻译，例如最常见的就是业务语言和技术语言的相互翻译。想想周围经常出现的研发和产品之间各种痛苦的沟（吵）通（架）场景，应该就知道我说的意思了。</p>
+<p>这个过程其实和两种不同语言（例如中文和英文）的人之间的沟通是一样的，而且更加隐蔽，因为说的明明都是中文，但是彼此就是听不懂彼此说的到底是什么意思，而且都觉得对方像个傻子，听不懂人话，殊不知其实两个人说的本身就不是同一种语言。</p>
+<p>而DDD的出现，就是为了解决这个问题。它通过一套面向对象的分类方法或是方言体系，从领域出发，实现软件开发过程中各个角色和环境的<strong>“统一语言”（UBIQUITOUS LANGUAGE）</strong>。例如使用“仓库（Repository）”替代“数据访问对象（DAO）”，就更能让业务和技术同时理解这个对象的作用。</p>
+<p>就像车同轨，书同文一样。</p>
+<p>好了，了解了DDD的来历和价值，那你肯定还有疑问，既然DDD这个概念已经快被人们淡忘了10多年了（虽然我们一直还在不知不觉中僵硬地应用着），那为什么最近一两年又突然重出江湖，重新被大家关注了呢？</p>
+<p>答案其实就两个：<strong>微服务和中台</strong>。</p>
+<p>说到这里还有个段子：</p>
+<p>其实DDD一开始的时候，就把领域分析设计分为了战略（Domain、Bounded Context）和战术（Entity、VO、Repository、Service……）两个部分。按道理应该从战略入手，再下沉到战术部分。但是Eric Evans在写《Domain-Driven Design》这本书时，可能是基于当时的环境，却是先写的战术部分，书的后半部分才开始展开DDD的战略部分。</p>
+<p>而又因为战术部分本身就很复杂很枯燥（各种图各种代码），所以很多人并没有坚持到读后边的战略部分，就读不下去（比如我）。导致的结果就是这么多年战术部分被大家充分的讨论和应用，而战略部分的影响则相较之下非常有限，讨论和应用的也不多。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-aadc6226a900108095bce2de39a935b1_720w.jpg" alt="img"></p>
+<p>直到微服务的横空出世……</p>
+<p>随着微服务架构的兴起，微服务到底如何拆分就成了人们最最关注的问题。这时候一些“老人儿”们突然想起来，这不是正是应用DDD中战略部分（问题域，限界上下文）应用和施展拳脚的场合么？！</p>
+<p>所以随着微服务的爆炸式发展，DDD这位退隐已久的老江湖，又再次被请出了山，站到了大家的面前。</p>
+<p>而此时，他身边还多了一个年轻的新搭档，他正是：事件风暴。</p>
+<h3 id="EventStorming（事件风暴）"><a href="#EventStorming（事件风暴）" class="headerlink" title="EventStorming（事件风暴）"></a>EventStorming（事件风暴）</h3><p>现在，当很多人谈到DDD都会同时谈到EventStorming，甚至有人误认为这两个名词本身指代的就是同一个概念。</p>
+<p>但其实这是两个完全独立的工具。</p>
+<p>DDD是一套基于领域的分析和建模方法，而EventStorming则是一套Workshop（可以理解成一个类似于头脑风暴的工作坊）方法。DDD出现要比EventStorming早了10多年，而EventStorming的设计虽然参考了DDD的部分内容，但是并不是只为了DDD而设计的，是一套独立的通过协作基于事件还原系统全貌，从而快速分析复杂业务领域，完成领域建模的方法。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-d774d2e4ef5dd10617edff96fb7eb1f8_720w.jpg" alt="img"></p>
+<p>EventStorming最初由Alberto Brandolini（曾受邀参加了DDD-China 2017）开发，经过DDD社区和ThoughtWorks的很多团队实践验证后，于2015年11月进入<a href="https://link.zhihu.com/?target=https%3A//www.thoughtworks.com/radar/techniques/event-storming" target="_blank" rel="noopener">ThoughtWorks技术雷达</a>，开始被更多人知晓和应用，从此成为DDD的最佳拍档。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-d5605af32ab45025da28eafd9f4ecadd_720w.jpg" alt="img"></p>
+<p>关于EventStorming的具体内容和细节，已经有很多文章都介绍了，不过还是强烈建议先看一下<a href="https://link.zhihu.com/?target=http%3A//eventstorming.com" target="_blank" rel="noopener">http://eventstorming.com</a> 官网的那本作者Alberto Brandolini自己写的《Introducing EventStorming》，应该是最官方最正宗的对于EventStorming的介绍。</p>
+<p>而书中的下面这个图，我认为是对于EventStorming最清晰、完整且简单的概括。完整的阐释了从系统外部与用户的交互，到系统内（事件-策略-命令-聚合-事件）的事件传递涟漪，以及通过事件影响到读模型从而给予用户动作的响应，从而形成完整闭环的全过程。对我们了解还原系统的全貌非常有帮助。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-af6d2f8f8e52f22eaaba7b776b3b74e4_720w.jpg" alt="img"></p>
+<p>前面提到了，EventStorming和DDD两个独立的工具，形式不同、解决的也是不同的问题，那为什么这两者总是搭档出现呢？</p>
+<p>关键就在于下图这条红线，就像是月老手中的红线一样，将两个概念牵在了一起。</p>
+<p>DDD提供了一套面向对象的“方言”，给出了一套面向对象的分类框架和架构指引，但是在DDD中并没有明确给出如何为一个系统识别出这些不同种类的对象的过程和方法。</p>
+<p>而EventStorming的出现正好弥补了这个空白，通过EventStorming工作坊的方式，正好给我们提供了一个还原和分析系统的方法，并最终通过“聚合”这条红线，穿越时空，无缝切入到DDD的领域范畴之内，以“聚合”为支点，向上可以进一步做问题域和限界上下文的战略分析，向下则可以通过聚合的进一步展开进行实体、值对象等相关的战术分析，引导落地。</p>
+<p><img src="https://pic3.zhimg.com/80/v2-bfaf8b314522946e46ede5c7a812d08e_720w.jpg" alt="img"></p>
+<p>而DDD战略设计中问题域和限界上下文的识别，则为我们划分微服务提供了非常强有力的支撑，至此我们就通过EventStorming和DDD的这一对强力组合的联袂辅助下，找到了解决了微服务架构下最困难问题之一的，既服务该如何划分问题的解题思路和落地方法。</p>
+<p>那说了半天微服务，DDD和EventStorming到底又与业务中台有什么关系呢？</p>
+<h3 id="DDD、EventStorming与业务中台"><a href="#DDD、EventStorming与业务中台" class="headerlink" title="DDD、EventStorming与业务中台"></a>DDD、EventStorming与业务中台</h3><p>我之前的文章曾提到过业务中台与微服务的关系，而当时我的观点很简单，就是：没有直接关系。</p>
+<p>业务中台解决的是企业级能力复用的问题，而微服务解决的是运行时解耦的问题。业务中台不一定是微服务的，采用微服务架构的也不一定就是业务中台，这些之前都提到过，这里就不赘述了。</p>
+<p>所以很多人以为使用DDD和EventStorming规划业务中台，是因为微服务，在我看来，基于以上的分析这也是站不住脚的，难道我不用微服务架构来实现业务中台，就无法使用DDD和EventStorming了么？</p>
+<p>DDD和EventStorming的结合，形成的是一套“领域分析方法”，可以想象成一套双剑合璧的剑阵。其目的是透过现象看本质，透过表面的业务流程来分析背后的核心领域问题和概念，而微服务架构只是使用了这套能力，来指导和帮助进行服务划分而已，并且也不是唯一的指导原则，其他还需要考虑像团队组成、变更频率、技术异构边界、SLA要求等等因素……</p>
+<p>而对于业务中台，这套领域分析方法，则可以指导我们探究与分析业务中台规划过程中的一个最困难的问题，既：识别不同的业务线，到底有哪些业务是可以复用的？</p>
+<p>因为如果只分析表面的功能和流程，我们总是会发现虽然不同的业务看似都差不多，但总是有不同的地方，很难抽取共性。</p>
+<p>这就像我们看每个人，乍一看都长得差不多，一个脑袋一个身子，俩个胳膊俩条腿。但是仔细观察，又会发现每个人都是不一样的，细节上还是有很大的差别，长相不同，性格不同，做事方式也不一样。</p>
+<p>而领域分析就像是给人照个B超一样或是做一个性格分析一样，透过外表和行为，分析背后的本质和机理，寻找不同背后的相同，找寻变化背后的不变。</p>
+<p>而这种通过领域分析和抽象，找寻不同业务线背后面对的相同的问题域，并从中提取共性的业务模型、提取共性的业务功能、提取共性的业务流程、甚至是提取共性的业务模式，加工并予以复用的过程，也正是业务中台的规划与建设过程的关键所在。</p>
+<p><img src="https://pic4.zhimg.com/80/v2-f776effbe9e94e2fb12e4d9260e6b0c7_720w.jpg" alt="img"></p>
+<p>这也是为什么当我们提到业务中台规划的时候，总是会涉及到DDD和EventStorming，并把他们作为核心方法的原因。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>最后，我们用武侠小说中的一段场景来收尾做个总结：</p>
+<blockquote>
+<p>江湖上流传着一个人的传说：<br>十年前，他一身白衣飘飘，仗双剑叱咤江湖，但只用一剑，已天下无敌，从来没有人看到过他的另一把剑出鞘。<br>十年间，江湖上早已不见了白衣人的踪迹，人们虽然还在不断地传承着这流传下来的无名剑法，但忘已忘却了这个剑法背后的那个人。<br>十年后，江湖又是一场大乱，白衣人又重现江湖，虽然已没有几个人认识他，但是认识的人看到他之后都无不大吃一惊。<br>这十年，他的容貌没有一点变化。<br>但让人吃惊的不是他的容貌，而是他的剑：此时，双剑都已出鞘！<br>而他的身旁，还站着另一个持剑的少年，一样的白衣飘飘，一样的冷峻与潇洒，让人们不禁想起了白衣人十年前的样子。<br>两个人，三把剑，一套剑阵，能否能平息这场江湖大乱？<br>或是否还会有其他的英雄会横空出世？<br>棋至中盘，一切都还未成定论，让我们一起拭目以待！</p>
+</blockquote>
+<p>文/ThoughtWorks 王键</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/架构/" rel="tag"># 架构</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/01/12/对架构的理解（手稿）/" rel="next" title="对架构的理解（手稿）（未完待续...）">
+                <i class="fa fa-chevron-left"></i> 对架构的理解（手稿）（未完待续...）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/img/2.png"
+                alt="JinTx" />
+            
+              <p class="site-author-name" itemprop="name">JinTx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">104</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">26</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/CallMeJiaGu/CallMeJiaGu.github.io" target="_blank" title="github">
+                      
+                        <i class="fa fa-fw fa-github-square"></i>github</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="646696382@qq.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://blog.csdn.net/MakeContral/" target="_blank" title="CSND">
+                      
+                        <i class="fa fa-fw fa-google"></i>CSND</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#DDD（领域驱动设计）"><span class="nav-number">1.</span> <span class="nav-text">DDD（领域驱动设计）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EventStorming（事件风暴）"><span class="nav-number">2.</span> <span class="nav-text">EventStorming（事件风暴）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DDD、EventStorming与业务中台"><span class="nav-number">3.</span> <span class="nav-text">DDD、EventStorming与业务中台</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">JinTx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
